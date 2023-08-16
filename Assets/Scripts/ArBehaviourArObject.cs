@@ -43,6 +43,7 @@ using GoogleARCore;
 using UnityEngine.XR.ARSubsystems;
 using UnityEngine.XR.ARFoundation;
 using System.Globalization;
+using Unity.XR.CoreUtils;
 #endif
 
 namespace com.arpoise.arpoiseapp
@@ -83,7 +84,7 @@ namespace com.arpoise.arpoiseapp
 #if HAS_AR_FOUNDATION
         protected ARTrackedImageManager ArTrackedImageManager;
         protected MutableRuntimeReferenceImageLibrary ArMutableLibrary;
-        protected ARSessionOrigin ArSessionOriginScript;
+        protected XROrigin XrOriginScript;
 #endif
         protected bool HasTriggerImages = false;
         protected string InformationMessage = null;

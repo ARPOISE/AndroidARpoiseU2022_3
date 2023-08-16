@@ -34,6 +34,7 @@ using System.Globalization;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.XR.ARFoundation.Samples;
 
 namespace com.arpoise.arpoiseapp
 {
@@ -48,13 +49,16 @@ namespace com.arpoise.arpoiseapp
         private ArLayerScrollList _layerScrollList = null;
         private float _initialHeading = 0;
         private float _compassHeading = 0;
+        private float _originAngeleY = 0;
+        private Quaternion _originQuaternion = Quaternion.identity;
         private float _initialCameraAngle = 0;
         private bool _cameraIsInitializing = true;
         private bool _isFirstUpdate = true;
 
+
         protected bool UseInitialHeading = false;
-        protected bool UseCameraAndHeading = true;
-        protected bool UseOriginScript = false;
+        protected bool UseCameraAndHeading = false;
+        protected bool UseOriginScript = true;
 
         protected bool InputPanelEnabled = true;
 
@@ -434,6 +438,11 @@ namespace com.arpoise.arpoiseapp
                 {
                     SceneAnchor.transform.localEulerAngles = new Vector3(0, _initialCameraAngle - _initialHeading, 0);
                 }
+                if (UseOriginScript)
+                {
+                    _originAngeleY = -_compassHeading;
+                    XrOriginScript.MakeContentAppearAt(SceneAnchor.transform, _originQuaternion = Quaternion.Euler(0, _originAngeleY, 0));
+                }
             }
 
             // For the first 500 milliseconds we remember the initial camera heading
@@ -492,18 +501,24 @@ namespace com.arpoise.arpoiseapp
 
             if (UseCameraAndHeading)
             {
-                var yAngle = ArCamera.transform.localEulerAngles.y - Input.compass.trueHeading;
-                if (SceneAnchor.transform.localEulerAngles.y != yAngle)
+                var angleY = ArCamera.transform.localEulerAngles.y - Input.compass.trueHeading;
+                if (SceneAnchor.transform.localEulerAngles.y != angleY)
                 {
                     velocity = 0.0f;
-                    yAngle = Mathf.SmoothDampAngle(SceneAnchor.transform.localEulerAngles.y, yAngle, ref velocity, .99f);
-                    SceneAnchor.transform.localEulerAngles = new Vector3(0, yAngle, 0);
+                    angleY = Mathf.SmoothDampAngle(SceneAnchor.transform.localEulerAngles.y, angleY, ref velocity, .99f);
+                    SceneAnchor.transform.localEulerAngles = new Vector3(0, angleY, 0);
                 }
             }
 
             if (UseOriginScript)
             {
-                //ArSessionOriginScript
+                var angleY = ArCamera.transform.localEulerAngles.y - Input.compass.trueHeading;
+                if (_originAngeleY != angleY)
+                {
+                    velocity = 0.0f;
+                    _originAngeleY = Mathf.SmoothDampAngle(_originAngeleY, angleY, ref velocity, .99f);
+                    XrOriginScript.MakeContentAppearAt(SceneAnchor.transform, _originQuaternion = Quaternion.Euler(0, _originAngeleY, 0));
+                }
             }
 
             // If we moved away from the current layer
@@ -558,6 +573,7 @@ namespace com.arpoise.arpoiseapp
                         message = message.Replace("{H}", string.Empty + (int)_compassHeading);
                         message = message.Replace("{CY}", string.Empty + (int)ArCamera.transform.localEulerAngles.y);
                         message = message.Replace("{AY}", string.Empty + (int)SceneAnchor.transform.localEulerAngles.y);
+                        message = message.Replace("{OY}", string.Empty + (int)_originQuaternion.eulerAngles.y);
                         //message = message.Replace("{D}", string.Empty + DeviceAngle);
 
                         message = message.Replace("{LAT}", UsedLatitude.ToString("F6", CultureInfo.InvariantCulture));

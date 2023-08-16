@@ -32,6 +32,7 @@ using com.arpoise.arpoiseapp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.ARFoundation;
@@ -41,7 +42,7 @@ using UnityEngine.XR.ARSubsystems;
 public class ArFoundationArvosController : ArBehaviourSlam
 {
     public ArvosVisualizer ArvosVisualizer;
-    public GameObject ArSessionOrigin;
+    public GameObject XrOrigin;
 
     private ARPlaneManager _arPlaneManager;
     private ARRaycastManager _arRaycastManager;
@@ -59,23 +60,23 @@ public class ArFoundationArvosController : ArBehaviourSlam
         // Note, Application.targetFrameRate is ignored when QualitySettings.vSyncCount != 0.
         Application.targetFrameRate = 60;
 
-        _arPlaneManager = ArSessionOrigin.GetComponent<ARPlaneManager>();
-        _arRaycastManager = ArSessionOrigin.GetComponent<ARRaycastManager>();
-        _placeOnPlane = ArSessionOrigin.GetComponent<PlaceOnPlane>();
+        _arPlaneManager = XrOrigin.GetComponent<ARPlaneManager>();
+        _arRaycastManager = XrOrigin.GetComponent<ARRaycastManager>();
+        _placeOnPlane = XrOrigin.GetComponent<PlaceOnPlane>();
 
-        ArSessionOriginScript = ArSessionOrigin.GetComponent<ARSessionOrigin>();
-        ArTrackedImageManager = ArSessionOrigin.GetComponent<ARTrackedImageManager>();
+        XrOriginScript = XrOrigin.GetComponent<XROrigin>();
+        ArTrackedImageManager = XrOrigin.GetComponent<ARTrackedImageManager>();
     }
 
     #region Start
     protected override void Start()
     {
-        _arPlaneManager = ArSessionOrigin.GetComponent<ARPlaneManager>();
-        _arRaycastManager = ArSessionOrigin.GetComponent<ARRaycastManager>();
-        _placeOnPlane = ArSessionOrigin.GetComponent<PlaceOnPlane>();
+        _arPlaneManager = XrOrigin.GetComponent<ARPlaneManager>();
+        _arRaycastManager = XrOrigin.GetComponent<ARRaycastManager>();
+        _placeOnPlane = XrOrigin.GetComponent<PlaceOnPlane>();
 
-        ArSessionOriginScript = ArSessionOrigin.GetComponent<ARSessionOrigin>();
-        ArTrackedImageManager = ArSessionOrigin.GetComponent<ARTrackedImageManager>();
+        XrOriginScript = XrOrigin.GetComponent<XROrigin>();
+        ArTrackedImageManager = XrOrigin.GetComponent<ARTrackedImageManager>();
         ArTrackedImageManager.referenceLibrary = ArMutableLibrary = ArTrackedImageManager.CreateRuntimeLibrary() as MutableRuntimeReferenceImageLibrary;
 
         base.Start();
