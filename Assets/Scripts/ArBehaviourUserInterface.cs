@@ -55,7 +55,6 @@ namespace com.arpoise.arpoiseapp
         private bool _cameraIsInitializing = true;
         private bool _isFirstUpdate = true;
 
-
         protected bool UseInitialHeading = false;
         protected bool UseCameraAndHeading = false;
         protected bool UseOriginScript = true;
@@ -440,7 +439,7 @@ namespace com.arpoise.arpoiseapp
                 }
                 if (UseOriginScript)
                 {
-                    _originAngeleY = -_compassHeading;
+                    _originAngeleY = ArCamera.transform.localEulerAngles.y - Input.compass.trueHeading;
                     XrOriginScript.MakeContentAppearAt(SceneAnchor.transform, _originQuaternion = Quaternion.Euler(0, _originAngeleY, 0));
                 }
             }
@@ -516,7 +515,7 @@ namespace com.arpoise.arpoiseapp
                 if (_originAngeleY != angleY)
                 {
                     velocity = 0.0f;
-                    _originAngeleY = Mathf.SmoothDampAngle(_originAngeleY, angleY, ref velocity, .99f);
+                    _originAngeleY = Mathf.SmoothDampAngle(_originAngeleY, angleY, ref velocity, .75f);
                     XrOriginScript.MakeContentAppearAt(SceneAnchor.transform, _originQuaternion = Quaternion.Euler(0, _originAngeleY, 0));
                 }
             }

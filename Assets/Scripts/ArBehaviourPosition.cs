@@ -375,7 +375,7 @@ namespace com.arpoise.arpoiseapp
                     second = DateTime.Now.Ticks / 10000000L;
                     //if (second >= nextMove)
                     //{
-                    //    nextMove = second + 6 + random.Next(0, 6);
+                     //    nextMove = second + 6 + random.Next(0, 6);
                     //    FilteredLatitude = OriginalLatitude + 0.00001f * random.Next(-5, 5);
                     //    FilteredLongitude = OriginalLongitude + 0.00001f * random.Next(-4, 4);
                     //    Debug.Log("UNITY_EDITOR new location, lat " + FilteredLatitude + ", lon " + FilteredLongitude);
