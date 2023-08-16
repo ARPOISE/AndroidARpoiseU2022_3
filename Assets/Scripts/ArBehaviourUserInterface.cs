@@ -39,15 +39,23 @@ namespace com.arpoise.arpoiseapp
 {
     public class ArBehaviourUserInterface : ArBehaviourData
     {
-        private const string ConfirmText = "Please confirm.";
-        private const string SelectingText = "Please select a layer.";
-        private const string LoadingText = "Loading data, please wait";
+        private const string _confirmText = "Please confirm.";
+        private const string _selectingText = "Please select a layer.";
+        private const string _loadingText = "Loading data, please wait";
         private long _currentSecond = InitialSecond;
         private int _framesPerCurrentSecond = 1;
         private bool _headerButtonActivated = false;
         private ArLayerScrollList _layerScrollList = null;
+        private float _initialHeading = 0;
+        private float _compassHeading = 0;
+        private float _initialCameraAngle = 0;
+        private bool _cameraIsInitializing = true;
+        private bool _isFirstUpdate = true;
 
-        protected float InitialCameraAngle = -1000;
+        protected bool UseInitialHeading = false;
+        protected bool UseCameraAndHeading = true;
+        protected bool UseOriginScript = false;
+
         protected bool InputPanelEnabled = true;
 
         public bool HasHitOnObject { get; private set; }
@@ -346,20 +354,8 @@ namespace com.arpoise.arpoiseapp
                 Application.Quit();
             }
 
-            if (CameraIsInitializing)
-            {
-                //InitialHeading = Input.compass.trueHeading;
-            }
-
             var camera = ArCamera;
-            if (camera != null && camera.transform != null && camera.transform.forward != null)
-            {
-                //if (CameraIsInitializing || InitialCameraAngle == -1000)
-                //{
-                //    InitialCameraAngle = camera.transform.eulerAngles.y;
-                //}
-            }
-            else
+            if (camera == null || camera.transform == null)
             {
                 SetInfoText("No camera available");
                 return;
@@ -386,12 +382,6 @@ namespace com.arpoise.arpoiseapp
                 menuButtonClick.Execute();
             }
 
-            if (IsNewLayer)
-            {
-                IsNewLayer = false;
-                InitialHeading = Input.compass.trueHeading;
-            }
-
             // Set any error text onto the canvas
             if (!string.IsNullOrWhiteSpace(ErrorMessage))
             {
@@ -401,7 +391,7 @@ namespace com.arpoise.arpoiseapp
 
             if (InfoPanelIsActive())
             {
-                SetInfoText(ConfirmText);
+                SetInfoText(_confirmText);
                 return;
             }
 
@@ -413,7 +403,7 @@ namespace com.arpoise.arpoiseapp
 
             if (LayerPanelIsActive)
             {
-                SetInfoText(SelectingText);
+                SetInfoText(_selectingText);
                 return;
             }
 
@@ -425,8 +415,48 @@ namespace com.arpoise.arpoiseapp
                 {
                     progress += ".";
                 }
-                SetInfoText(LoadingText + progress);
+                SetInfoText(_loadingText + progress);
                 return;
+            }
+
+            if (_isFirstUpdate)
+            {
+                _isFirstUpdate = false;
+
+                _initialHeading = _compassHeading = Input.compass.trueHeading;
+                _initialCameraAngle = camera.transform.eulerAngles.y;
+
+                if (UseInitialHeading)
+                {
+                    SceneAnchor.transform.localEulerAngles = new Vector3(0, _initialCameraAngle - _initialHeading, 0);
+                }
+                if (UseCameraAndHeading)
+                {
+                    SceneAnchor.transform.localEulerAngles = new Vector3(0, _initialCameraAngle - _initialHeading, 0);
+                }
+            }
+
+            // For the first 500 milliseconds we remember the initial camera heading
+            if (_cameraIsInitializing && StartTicks > 0 && DateTime.Now.Ticks > StartTicks + 5000000)
+            {
+                _cameraIsInitializing = false;
+            }
+
+            if (_cameraIsInitializing)
+            {
+                _initialHeading = _compassHeading = Input.compass.trueHeading;
+                _initialCameraAngle = camera.transform.eulerAngles.y;
+
+                if (UseInitialHeading)
+                {
+                    SceneAnchor.transform.localEulerAngles = new Vector3(0, _initialCameraAngle - _initialHeading, 0);
+                }
+            }
+
+            if (IsNewLayer)
+            {
+                IsNewLayer = false;
+                _initialHeading = Input.compass.trueHeading;
             }
 
             if (_currentSecond == CurrentSecond)
@@ -457,48 +487,24 @@ namespace com.arpoise.arpoiseapp
                 ErrorMessage = e.Message;
             }
 
-            //// Calculate heading
-            //var currentHeading = CurrentHeading;
-            //if (Math.Abs(currentHeading - Heading) > 180)
-            //{
-            //    if (currentHeading < Heading)
-            //    {
-            //        currentHeading += 360;
-            //    }
-            //    else
-            //    {
-            //        Heading += 360;
-            //    }
-            //}
-            //Heading += (currentHeading - Heading) / 10;
-            //while (Heading > 360)
-            //{
-            //    Heading -= 360;
-            //}
+            float velocity = 0.0f;
+            _compassHeading = Mathf.SmoothDampAngle(_compassHeading, Input.compass.trueHeading, ref velocity, 0.3f);
 
-            if (InitialCameraAngle == -1000)
+            if (UseCameraAndHeading)
             {
-                InitialCameraAngle = ArCamera.transform.localEulerAngles.y;
-                InitialHeading = Heading = Input.compass.trueHeading;
-                SceneAnchor.transform.localEulerAngles = new Vector3(0, InitialCameraAngle - InitialHeading, 0);
-            }
-            else
-            {
-                float velocity = 0.0f;
-                Heading = Mathf.SmoothDampAngle(Heading, Input.compass.trueHeading, ref velocity, 0.3f);
-
                 var yAngle = ArCamera.transform.localEulerAngles.y - Input.compass.trueHeading;
                 if (SceneAnchor.transform.localEulerAngles.y != yAngle)
                 {
                     velocity = 0.0f;
-                    yAngle = Mathf.SmoothDampAngle(SceneAnchor.transform.localEulerAngles.y, yAngle, ref velocity, 0.3f);
+                    yAngle = Mathf.SmoothDampAngle(SceneAnchor.transform.localEulerAngles.y, yAngle, ref velocity, .99f);
                     SceneAnchor.transform.localEulerAngles = new Vector3(0, yAngle, 0);
                 }
             }
-            //if (SceneAnchor.transform.localEulerAngles.y != -InitialHeading)
-            //{
-            //    SceneAnchor.transform.localEulerAngles = new Vector3(0, -InitialHeading, 0);
-            //}
+
+            if (UseOriginScript)
+            {
+                //ArSessionOriginScript
+            }
 
             // If we moved away from the current layer
             //if (!CheckDistance())
@@ -547,9 +553,9 @@ namespace com.arpoise.arpoiseapp
                         message = message.Replace("{I}", string.Empty + TriggerImages.Count);
                         message = message.Replace("{S}", string.Empty + SlamObjects.Count(x => x.isActive));
 
-                        message = message.Replace("{IC}", InitialCameraAngle.ToString("F1", CultureInfo.InvariantCulture));
-                        message = message.Replace("{IH}", string.Empty + (int)InitialHeading);
-                        message = message.Replace("{H}", string.Empty + (int)Heading);
+                        message = message.Replace("{IC}", string.Empty + (int)_initialCameraAngle);
+                        message = message.Replace("{IH}", string.Empty + (int)_initialHeading);
+                        message = message.Replace("{H}", string.Empty + (int)_compassHeading);
                         message = message.Replace("{CY}", string.Empty + (int)ArCamera.transform.localEulerAngles.y);
                         message = message.Replace("{AY}", string.Empty + (int)SceneAnchor.transform.localEulerAngles.y);
                         //message = message.Replace("{D}", string.Empty + DeviceAngle);
@@ -583,6 +589,7 @@ namespace com.arpoise.arpoiseapp
                         //message = message.Replace("{DGPZ}", DisplayGoalPosition.z.ToString("F1", CultureInfo.InvariantCulture));
 
                         message = message.Replace("{DSF}", DurationStretchFactor?.ToString("F2", CultureInfo.InvariantCulture));
+#if HAS_AR_FOUNDATION
                         if (ArMutableLibrary != null)
                         {
                             message = message.Replace("{L}", string.Empty + ArMutableLibrary.count);
@@ -591,6 +598,7 @@ namespace com.arpoise.arpoiseapp
                         {
                             message = message.Replace("{M}", $"{(ArTrackedImageManager.enabled ? "T" : "F")} {ArTrackedImageManager.trackables.count}");
                         }
+#endif
                     }
                     SetInfoText(message);
                     return;

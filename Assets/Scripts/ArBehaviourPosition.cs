@@ -83,9 +83,7 @@ namespace com.arpoise.arpoiseapp
 
         protected float? FixedDeviceLatitude = null;
         protected float? FixedDeviceLongitude = null;
-        protected float InitialHeading = 0;
-        protected float Heading = 0;
-        protected float CurrentHeading = 0;
+        
         protected double LocationTimestamp = 0;
         protected float LocationHorizontalAccuracy = 0;
         protected float LocationLongitude = 0;
@@ -94,7 +92,7 @@ namespace com.arpoise.arpoiseapp
         protected float OriginalLongitude = 0;
         protected DeviceOrientation InitialDeviceOrientation = DeviceOrientation.LandscapeLeft;
 
-        protected bool CameraIsInitializing = true;
+
 
         public virtual bool InfoPanelIsActive()
         {
@@ -470,13 +468,6 @@ namespace com.arpoise.arpoiseapp
 
                     InitialDeviceOrientation = Input.deviceOrientation;
                 }
-
-                // For the first 500 milliseconds we remember the initial camera heading
-                if (CameraIsInitializing && StartTicks > 0 && DateTime.Now.Ticks > StartTicks + 5000000)
-                {
-                    CameraIsInitializing = false;
-                }
-                CurrentHeading = Input.compass.trueHeading;
 
                 var setLocation = true;
                 if (PositionUpdateInterval > 0)
