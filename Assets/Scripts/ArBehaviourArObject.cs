@@ -481,9 +481,20 @@ namespace com.arpoise.arpoiseapp
                     return result;
                 }
 
-                arObject.WrapperObject.transform.localPosition = arObject.TargetPosition = new Vector3(xOffset, arObject.RelativeAltitude, zOffset);
-                //Console.WriteLine($">> XW {arObject.WrapperObject.transform.localPosition.x.ToString("F3", CultureInfo.InvariantCulture)} YW {arObject.WrapperObject.transform.localPosition.y.ToString("F3", CultureInfo.InvariantCulture)} ZW {arObject.WrapperObject.transform.localPosition.z.ToString("F3", CultureInfo.InvariantCulture)}");
+                if (relativePosition.Contains('+')) // relative to starting direction of device, +z is ahead, +x is right, +y is up 
+                {
+                    var rotation = Quaternion.Euler(0, Input.compass.trueHeading, 0);
+                    arObject.WrapperObject.transform.localPosition = arObject.TargetPosition = rotation * new Vector3(xOffset, arObject.RelativeAltitude, zOffset);
+                    //Console.WriteLine($">> XW {arObject.WrapperObject.transform.localPosition.x.ToString("F3", CultureInfo.InvariantCulture)} YW {arObject.WrapperObject.transform.localPosition.y.ToString("F3", CultureInfo.InvariantCulture)} ZW {arObject.WrapperObject.transform.localPosition.z.ToString("F3", CultureInfo.InvariantCulture)}");
 
+                    arObject.WrapperObject.transform.localRotation = rotation;
+                    //Console.WriteLine($">> XR {arObject.WrapperObject.transform.localRotation.eulerAngles.x.ToString("F3", CultureInfo.InvariantCulture)} YR {arObject.WrapperObject.transform.localRotation.eulerAngles.y.ToString("F3", CultureInfo.InvariantCulture)} ZR {arObject.WrapperObject.transform.localRotation.eulerAngles.z.ToString("F3", CultureInfo.InvariantCulture)}");
+                }
+                else // relative to geografic directions of user device, +z is north, +x is east, +y is up 
+                {
+                    arObject.WrapperObject.transform.localPosition = arObject.TargetPosition = new Vector3(xOffset, arObject.RelativeAltitude, zOffset);
+                    //Console.WriteLine($">> XW {arObject.WrapperObject.transform.localPosition.x.ToString("F3", CultureInfo.InvariantCulture)} YW {arObject.WrapperObject.transform.localPosition.y.ToString("F3", CultureInfo.InvariantCulture)} ZW {arObject.WrapperObject.transform.localPosition.z.ToString("F3", CultureInfo.InvariantCulture)}");
+                }
                 if ((!string.IsNullOrWhiteSpace(poi?.title) && poi.title.Contains("bleached"))
                     || (!string.IsNullOrWhiteSpace(parentObject?.Text) && parentObject.Text.Contains("bleached")))
                 {
@@ -1071,10 +1082,6 @@ namespace com.arpoise.arpoiseapp
                         }
                     }
 
-                    //if (Vector3.Distance(arObject.WrapperObject.transform.localPosition, position) > 0.001)
-                    //{
-                    //    Console.WriteLine($"XW {arObject.WrapperObject.transform.localPosition.x.ToString("F3", CultureInfo.InvariantCulture)} YW {arObject.WrapperObject.transform.localPosition.y.ToString("F3", CultureInfo.InvariantCulture)} ZW {arObject.WrapperObject.transform.localPosition.z.ToString("F3", CultureInfo.InvariantCulture)}");
-                    //}
                     arObject.WrapperObject.transform.localPosition = position;
 
                     if (AreaSize > 0)
