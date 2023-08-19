@@ -283,8 +283,8 @@ namespace com.arpoise.arpoiseapp
                 }
             }
 
-            // All objects are below the scene anchor or the parent
-            var parentTransform = parentObjectTransform;
+            // All objects are below the scene anchor or the parent, or a child of the camera
+            var parentTransform = poi?.title is not null && poi.title.Contains("CameraChild") ? ArCamera.transform : parentObjectTransform;
 
             // Wrap the object into a wrapper, so it can be moved around when the device moves
             var wrapper = Instantiate(Wrapper);
