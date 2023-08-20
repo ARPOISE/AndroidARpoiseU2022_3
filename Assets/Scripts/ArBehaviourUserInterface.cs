@@ -49,7 +49,7 @@ namespace com.arpoise.arpoiseapp
         private ArLayerScrollList _layerScrollList = null;
         private float _initialHeading = 0;
         private float _compassHeading = 0;
-        private float _originAngeleY = 0;
+        private float _originAngleY = 0;
         private Quaternion _originQuaternion = Quaternion.identity;
         private float _initialCameraAngle = 0;
         private bool _cameraIsInitializing = true;
@@ -439,8 +439,8 @@ namespace com.arpoise.arpoiseapp
                 }
                 if (UseOriginScript)
                 {
-                    _originAngeleY = ArCamera.transform.localEulerAngles.y - Input.compass.trueHeading;
-                    XrOriginScript.MakeContentAppearAt(SceneAnchor.transform, _originQuaternion = Quaternion.Euler(0, _originAngeleY, 0));
+                    _originAngleY = ArCamera.transform.localEulerAngles.y - Input.compass.trueHeading;
+                    XrOriginScript.MakeContentAppearAt(SceneAnchor.transform, _originQuaternion = Quaternion.Euler(0, _originAngleY, 0));
                 }
             }
 
@@ -512,11 +512,11 @@ namespace com.arpoise.arpoiseapp
             if (UseOriginScript)
             {
                 var angleY = ArCamera.transform.localEulerAngles.y - Input.compass.trueHeading;
-                if (_originAngeleY != angleY)
+                if (_originAngleY != angleY)
                 {
                     velocity = 0.0f;
-                    _originAngeleY = Mathf.SmoothDampAngle(_originAngeleY, angleY, ref velocity, .75f);
-                    XrOriginScript.MakeContentAppearAt(SceneAnchor.transform, _originQuaternion = Quaternion.Euler(0, _originAngeleY, 0));
+                    _originAngleY = Mathf.SmoothDampAngle(_originAngleY, angleY, ref velocity, .75f);
+                    XrOriginScript.MakeContentAppearAt(SceneAnchor.transform, _originQuaternion = Quaternion.Euler(0, _originAngleY, 0));
                 }
             }
 
