@@ -555,7 +555,6 @@ namespace com.arpoise.arpoiseapp
         {
             if (layer is not null)
             {
-#if UNITY_IOS
                 var occlusionManager = ArCamera.GetComponent<AROcclusionManager>();
                 if (occlusionManager is not null)
                 {
@@ -564,7 +563,6 @@ namespace com.arpoise.arpoiseapp
                     occlusionManager.requestedHumanStencilMode = layer.OcclusionHumanSegmentationStencilMode;
                     occlusionManager.requestedHumanDepthMode = layer.OcclusionHumanSegmentationDepthMode;
                 }
-#endif
             }
         }
 #endif

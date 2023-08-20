@@ -752,7 +752,7 @@ namespace com.arpoise.arpoiseapp
             {
                 if (_occlusionEnvironmentDepthMode == null)
                 {
-                    _occlusionEnvironmentDepthMode = EnvironmentDepthMode.Best;
+                    _occlusionEnvironmentDepthMode = EnvironmentDepthMode.Disabled;
                     var value = _occlusionEnvironmentDepthMode.Value;
                     var action = actions?.FirstOrDefault(x => x.showActivity && nameof(OcclusionEnvironmentDepthMode).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
                     if (action != null && Enum.TryParse(action.activityMessage, out value))
@@ -774,7 +774,7 @@ namespace com.arpoise.arpoiseapp
             {
                 if (_occlusionPreferenceMode == null)
                 {
-                    _occlusionPreferenceMode = OcclusionPreferenceMode.PreferEnvironmentOcclusion;
+                    _occlusionPreferenceMode = OcclusionPreferenceMode.NoOcclusion;
                     var value = _occlusionPreferenceMode.Value;
                     var action = actions?.FirstOrDefault(x => x.showActivity && nameof(OcclusionPreferenceMode).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
                     if (action != null && Enum.TryParse(action.activityMessage, out value))
@@ -795,7 +795,7 @@ namespace com.arpoise.arpoiseapp
             {
                 if (_occlusionHumanSegmentationStencilMode == null)
                 {
-                    _occlusionHumanSegmentationStencilMode = HumanSegmentationStencilMode.Best;
+                    _occlusionHumanSegmentationStencilMode = HumanSegmentationStencilMode.Disabled;
                     var value = _occlusionHumanSegmentationStencilMode.Value;
                     var action = actions?.FirstOrDefault(x => x.showActivity && nameof(OcclusionHumanSegmentationStencilMode).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
                     if (action != null && Enum.TryParse(action.activityMessage, out value))
@@ -816,7 +816,7 @@ namespace com.arpoise.arpoiseapp
             {
                 if (_occlusionHumanSegmentationDepthMode == null)
                 {
-                    _occlusionHumanSegmentationDepthMode = HumanSegmentationDepthMode.Best;
+                    _occlusionHumanSegmentationDepthMode = HumanSegmentationDepthMode.Disabled;
                     var value = _occlusionHumanSegmentationDepthMode.Value;
                     var action = actions?.FirstOrDefault(x => x.showActivity && nameof(OcclusionHumanSegmentationDepthMode).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
                     if (action != null && Enum.TryParse(action.activityMessage, out value))
