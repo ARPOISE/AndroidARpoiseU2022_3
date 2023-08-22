@@ -34,9 +34,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
-#if HAS_AR_FOUNDATION
 using UnityEngine.XR.ARSubsystems;
-#endif
 
 namespace com.arpoise.arpoiseapp
 {
@@ -563,12 +561,10 @@ namespace com.arpoise.arpoiseapp
         [NonSerialized]
         private readonly HashSet<string> _actionLabels = new HashSet<string>(new string[] // Layer ActionLabel
         {
-#if HAS_AR_FOUNDATION
             nameof(OcclusionEnvironmentDepthMode),
             nameof(OcclusionPreferenceMode),
             nameof(OcclusionHumanSegmentationStencilMode),
             nameof(OcclusionHumanSegmentationDepthMode),
-#endif
             nameof(PositionUpdateInterval),
             nameof(TimeSync),
             nameof(ApplicationSleepInterval),
@@ -743,7 +739,6 @@ namespace com.arpoise.arpoiseapp
             }
         }
 
-#if HAS_AR_FOUNDATION
         [NonSerialized]
         private EnvironmentDepthMode? _occlusionEnvironmentDepthMode = null;
         public EnvironmentDepthMode OcclusionEnvironmentDepthMode // Layer ActionLabel
@@ -828,7 +823,6 @@ namespace com.arpoise.arpoiseapp
                 return _occlusionHumanSegmentationDepthMode.Value;
             }
         }
-#endif
         #endregion
 
         [NonSerialized]

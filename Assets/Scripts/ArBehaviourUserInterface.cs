@@ -573,7 +573,6 @@ namespace com.arpoise.arpoiseapp
                         message = message.Replace("{CY}", string.Empty + (int)ArCamera.transform.localEulerAngles.y);
                         message = message.Replace("{AY}", string.Empty + (int)SceneAnchor.transform.localEulerAngles.y);
                         message = message.Replace("{OY}", string.Empty + (int)_originQuaternion.eulerAngles.y);
-                        //message = message.Replace("{D}", string.Empty + DeviceAngle);
 
                         message = message.Replace("{LAT}", UsedLatitude.ToString("F6", CultureInfo.InvariantCulture));
                         message = message.Replace("{LON}", UsedLongitude.ToString("F6", CultureInfo.InvariantCulture));
@@ -604,7 +603,7 @@ namespace com.arpoise.arpoiseapp
                         //message = message.Replace("{DGPZ}", DisplayGoalPosition.z.ToString("F1", CultureInfo.InvariantCulture));
 
                         message = message.Replace("{DSF}", DurationStretchFactor?.ToString("F2", CultureInfo.InvariantCulture));
-#if HAS_AR_FOUNDATION
+
                         if (ArMutableLibrary != null)
                         {
                             message = message.Replace("{L}", string.Empty + ArMutableLibrary.count);
@@ -613,7 +612,6 @@ namespace com.arpoise.arpoiseapp
                         {
                             message = message.Replace("{M}", $"{(ArTrackedImageManager.enabled ? "T" : "F")} {ArTrackedImageManager.trackables.count}");
                         }
-#endif
                     }
                     SetInfoText(message);
                     return;
@@ -643,7 +641,6 @@ namespace com.arpoise.arpoiseapp
                     //+ " F " + _framesPerSecond
                     //+ " C " + _cameraTransform.eulerAngles.y.ToString("F", CultureInfo.InvariantCulture)
                     //+ " I " + (int)InitialHeading
-                    //+ " D " + (int)DeviceAngle
                     //+ " Y " + (int)SceneAnchor.transform.eulerAngles.y
                     //+ " H " + (int)HeadingShown
                     //+ " IH " + _initialHeading.ToString("F", CultureInfo.InvariantCulture)

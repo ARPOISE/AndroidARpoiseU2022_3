@@ -32,19 +32,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
-
-#if HAS_AR_CORE
-using GoogleARCore;
-#else
-#endif
-
-#if HAS_AR_FOUNDATION
-using UnityEngine.XR.ARSubsystems;
-using UnityEngine.XR.ARFoundation;
-using System.Globalization;
 using Unity.XR.CoreUtils;
-#endif
+using UnityEngine;
+using UnityEngine.XR.ARFoundation;
+using UnityEngine.XR.ARSubsystems;
 
 namespace com.arpoise.arpoiseapp
 {
@@ -78,14 +69,9 @@ namespace com.arpoise.arpoiseapp
         #endregion
 
         #region Protecteds
-#if HAS_AR_CORE
-        protected AugmentedImageDatabase AugmentedImageDatabase;
-#endif
-#if HAS_AR_FOUNDATION
         protected ARTrackedImageManager ArTrackedImageManager;
         protected MutableRuntimeReferenceImageLibrary ArMutableLibrary;
         protected XROrigin XrOriginScript;
-#endif
         protected bool HasTriggerImages = false;
         protected string InformationMessage = null;
         protected bool ShowInfo = false;
@@ -591,12 +577,6 @@ namespace com.arpoise.arpoiseapp
                     if (t == null)
                     {
                         int newIndex = isSlamUrl ? SlamObjects.Count : TriggerObjects.Count;
-#if HAS_AR_CORE
-                        if (!isSlamUrl)
-                        {
-                            newIndex = AugmentedImageDatabase.Count;
-                        }
-#endif
                         var width = poi.poiObject.triggerImageWidth;
                         t = new TriggerObject
                         {
@@ -618,18 +598,10 @@ namespace com.arpoise.arpoiseapp
                             TriggerObjects[t.index] = t;
                         }
 
-#if HAS_AR_FOUNDATION
                         if (!isSlamUrl)
                         {
                             ArMutableLibrary?.ScheduleAddImageWithValidationJob(texture, triggerImageURL, width);
                         }
-#endif
-#if HAS_AR_CORE
-                        if (!isSlamUrl)
-                        {
-                            AugmentedImageDatabase.AddImage(triggerImageURL, texture, width);
-                        }
-#endif
                     }
                     else
                     {
@@ -802,9 +774,7 @@ namespace com.arpoise.arpoiseapp
             AreaWidth = areaWidth;
             AllowTakeScreenshot = allowTakeScreenshot;
             TimeSync(timeSync);
-#if HAS_AR_FOUNDATION
             EnableOcclusion(layers.FirstOrDefault());
-#endif
             ApplicationSleepStartMinute = applicationSleepStartMinute;
             ApplicationSleepEndMinute = applicationSleepEndMinute;
 

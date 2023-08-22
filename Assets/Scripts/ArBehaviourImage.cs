@@ -45,7 +45,7 @@ namespace com.arpoise.arpoiseapp
         {
             base.Start();
 
-#if iOsArvosU2021_3
+#if iOsArvosU2022_3
             if (InfoPanel != null)
             {
                 var showInfoPanel = PlayerPrefs.GetString(nameof(InfoPanelIsActive));

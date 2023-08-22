@@ -33,14 +33,12 @@ using System.Collections;
 using System.Linq;
 using UnityEngine;
 
-#if PLATFORM_ANDROID
+#if UNITY_ANDROID
 using UnityEngine.Android;
 #endif
 
-#if HAS_AR_FOUNDATION
 using UnityEngine.XR.ARSubsystems;
 using UnityEngine.XR.ARFoundation;
-#endif
 
 namespace com.arpoise.arpoiseapp
 {
@@ -64,14 +62,10 @@ namespace com.arpoise.arpoiseapp
 
         protected static readonly long InitialSecond = DateTime.Now.Ticks / 10000000L;
 
-#if HAS_AR_CORE
-        protected const string AppName = "AR-vos";
-#else
-#if HAS_AR_KIT
+#if AndroidArvosU2022_3 || iOsArvosU2022_3
         protected const string AppName = "AR-vos";
 #else
         protected const string AppName = "ARpoise";
-#endif
 #endif
         protected const float PositionTolerance = 1.25f;
         protected int AreaSize = 0;
@@ -318,32 +312,6 @@ namespace com.arpoise.arpoiseapp
             }
             // End of quest mode
 #endif
-#if AndroidArvosU2021_3_Test
-            //Test mode, set a fixed initial location and forget about the location service
-            //
-            {
-                InitialHeading = 0;
-                FilteredLatitude = OriginalLatitude = 48.158f;
-                FilteredLongitude = OriginalLongitude = 11.58f;
-
-                Debug.Log("Fixed location, lat " + OriginalLatitude + ", lon " + OriginalLongitude);
-
-                var second = DateTime.Now.Ticks / 10000000L;
-                var random = new System.Random((int)second);
-                var nextMove = second + 5 + random.Next(0, 5);
-
-                while (second > 0)
-                {
-                    var arObjectState = ArObjectState;
-                    if (arObjectState != null)
-                    {
-                        PlaceArObjects(arObjectState);
-                    }
-                    yield return new WaitForSeconds(.1f);
-                }
-            }
-            // End of quest mode
-#endif
 #if UNITY_EDITOR
             // If in editor mode, set a fixed initial location and forget about the location service
             //
@@ -550,7 +518,6 @@ namespace com.arpoise.arpoiseapp
         protected bool ApplicationIsSleeping = false;
         protected int AllowTakeScreenshot = -1;
 
-#if HAS_AR_FOUNDATION
         public void EnableOcclusion(ArLayer layer)
         {
             if (layer is not null)
@@ -565,7 +532,6 @@ namespace com.arpoise.arpoiseapp
                 }
             }
         }
-#endif
 #endregion
 
         #region Misc
