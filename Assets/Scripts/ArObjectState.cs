@@ -171,13 +171,7 @@ namespace com.arpoise.arpoiseapp
             ArObjectsToDelete.Clear();
         }
 
-        public int Count
-        {
-            get
-            {
-                return _arObjects.Count;
-            }
-        }
+        public int Count => _arObjects.Count;
 
         public int CountArObjects(List<ArObject> arObjects = null)
         {
@@ -193,21 +187,9 @@ namespace com.arpoise.arpoiseapp
             return result;
         }
 
-        public int NumberOfAnimations
-        {
-            get
-            {
-                return AllAnimations.Length;
-            }
-        }
+        public int NumberOfAnimations => AllAnimations.Length;
 
-        public int NumberOfActiveAnimations
-        {
-            get
-            {
-                return AllAnimations.Where(x => x.IsActive).Count();
-            }
-        }
+        public int NumberOfActiveAnimations => AllAnimations.Where(x => x.IsActive).Count();
 
         public void RemoteActivate(string animationName, long startTicks, long nowTicks)
         {
@@ -225,13 +207,12 @@ namespace com.arpoise.arpoiseapp
             if (_billboardAnimations.Count > 0)
             {
                 Transform transform;
-                var cameraMain = Camera.main;
                 foreach (var arAnimation in _billboardAnimations)
                 {
                     var wrapper = arAnimation.Wrapper;
                     if (wrapper != null && (transform = wrapper.transform) != null)
                     {
-                        transform.LookAt(cameraMain.transform);
+                        transform.LookAt(Camera.main.transform);
                     }
                 }
             }
@@ -240,8 +221,7 @@ namespace com.arpoise.arpoiseapp
             if (_onFocusAnimations.Count > 0 || _inFocusAnimations.Count > 0)
             {
                 inFocusAnimationsToStop = new HashSet<ArAnimation>(_inFocusAnimations.Where(x => x.IsActive));
-                var cameraMain = Camera.main;
-                var ray = cameraMain.ScreenPointToRay(new Vector3(cameraMain.pixelWidth / 2, cameraMain.pixelHeight / 2, 0f));
+                var ray = Camera.main.ScreenPointToRay(new Vector3(Camera.main.pixelWidth / 2, Camera.main.pixelHeight / 2, 0f));
 
                 RaycastHit[] raycastHits = Physics.RaycastAll(ray, Mathf.Infinity);
                 for (int i = 0; i < raycastHits.Length; i++)
@@ -272,8 +252,7 @@ namespace com.arpoise.arpoiseapp
             var hasHit = false;
             if (_onClickAnimations.Count > 0 && Input.GetMouseButtonDown(0))
             {
-                var cameraMain = Camera.main;
-                var ray = cameraMain.ScreenPointToRay(Input.mousePosition);
+                var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
                 RaycastHit[] raycastHits = Physics.RaycastAll(ray, Mathf.Infinity);
                 for (int i = 0; i < raycastHits.Length; i++)

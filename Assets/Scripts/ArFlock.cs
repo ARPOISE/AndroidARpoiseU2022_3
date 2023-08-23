@@ -39,120 +39,50 @@ public class ArFlock : MonoBehaviour
     private float? _neighbourDistance;
     public float NeighbourDistance
     {
-        get
-        {
-            if (_neighbourDistance.HasValue)
-            {
-                return _neighbourDistance.Value;
-            }
-            return 2.5f;
-        }
-        set
-        {
-            _neighbourDistance = value;
-        }
+        get => _neighbourDistance.HasValue ? _neighbourDistance.Value : 2.5f;
+        set => _neighbourDistance = value;
     }
 
     private float? _minNeighbourDistance;
     public float MinNeighbourDistance
     {
-        get
-        {
-            if (_minNeighbourDistance.HasValue)
-            {
-                return _minNeighbourDistance.Value;
-            }
-            return 1.8f;
-        }
-        set
-        {
-            _minNeighbourDistance = value;
-        }
+        get => _minNeighbourDistance.HasValue ? _minNeighbourDistance.Value : 1.8f;
+        set => _minNeighbourDistance = value;
     }
 
     private float? _speedFactor;
     public float SpeedFactor
     {
-        get
-        {
-            if (_speedFactor.HasValue)
-            {
-                return _speedFactor.Value;
-            }
-            return 1f;
-        }
-        set
-        {
-            _speedFactor = value;
-        }
+        get => _speedFactor.HasValue ? _speedFactor.Value : 1f;
+        set => _speedFactor = value;
     }
 
     private float? _rotationSpeed;
     public float RotationSpeed
     {
-        get
-        {
-            if (_rotationSpeed.HasValue)
-            {
-                return _rotationSpeed.Value;
-            }
-            return 4f;
-        }
-        set
-        {
-            _rotationSpeed = value;
-        }
+        get => _rotationSpeed.HasValue ? _rotationSpeed.Value : 4f;
+        set => _rotationSpeed = value;
     }
 
     private float? _minimumSpeed;
     public float MinimumSpeed
     {
-        get
-        {
-            if (_minimumSpeed.HasValue)
-            {
-                return _minimumSpeed.Value;
-            }
-            return .7f;
-        }
-        set
-        {
-            _minimumSpeed = value;
-        }
+        get => _minimumSpeed.HasValue ? _minimumSpeed.Value : .7f;
+        set => _minimumSpeed = value;
     }
 
     private float? _maximumSpeed;
     public float MaximumSpeed
     {
-        get
-        {
-            if (_maximumSpeed.HasValue)
-            {
-                return _maximumSpeed.Value;
-            }
-            return 2f;
-        }
-        set
-        {
-            _maximumSpeed = value;
-        }
+        get => _maximumSpeed.HasValue ? _maximumSpeed.Value : 2f;
+        set => _maximumSpeed = value;
     }
 
     private float? _applyRulesPercentage;
     public float ApplyRulesPercentage
     {
-        get
-        {
-            if (_applyRulesPercentage.HasValue)
-            {
-                return _applyRulesPercentage.Value;
-            }
-            return 20f;
-        }
-        set
-        {
-            _applyRulesPercentage = value;
-        }
+        get => _applyRulesPercentage.HasValue ? _applyRulesPercentage.Value : 20f;
+        set => _applyRulesPercentage = value;
     }
 
     public virtual void SetParameter(bool setValue, string label, string value)
@@ -221,7 +151,7 @@ public class ArFlock : MonoBehaviour
     public Vector3 SwimLimits = new Vector3(42, 42, 42);
 
     private GameObject[] _allFish = null;
-    public GameObject[] AllFish { get { return _allFish; } set { _allFish = value; } }
+    public GameObject[] AllFish { get => _allFish; set => _allFish = value; }
 
     protected void Start()
     {
