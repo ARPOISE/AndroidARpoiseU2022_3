@@ -86,38 +86,9 @@ namespace com.arpoise.arpoiseapp
         protected float OriginalLongitude = 0;
         protected DeviceOrientation InitialDeviceOrientation = DeviceOrientation.LandscapeLeft;
 
-
-
-        public virtual bool InfoPanelIsActive()
-        {
-            return false;
-        }
-
-        protected float UsedLatitude
-        {
-            get
-            {
-                var latitude = FixedDeviceLatitude;
-                if (latitude.HasValue)
-                {
-                    return latitude.Value;
-                }
-                return FilteredLatitude;
-            }
-        }
-
-        protected float UsedLongitude
-        {
-            get
-            {
-                var longitude = FixedDeviceLongitude;
-                if (longitude.HasValue)
-                {
-                    return longitude.Value;
-                }
-                return FilteredLongitude;
-            }
-        }
+        public virtual bool InfoPanelIsActive() => false;
+        protected float UsedLatitude => FixedDeviceLatitude.HasValue ? FixedDeviceLatitude.Value : FilteredLatitude;
+        protected float UsedLongitude => FixedDeviceLongitude.HasValue ? FixedDeviceLongitude.Value : FilteredLongitude;
 
         #endregion
 
@@ -184,31 +155,12 @@ namespace com.arpoise.arpoiseapp
 
                     if (arObject.Latitude < UsedLatitude)
                     {
-                        if (latDistance > 0)
-                        {
-                            latDistance *= -1;
-                        }
+                        latDistance *= -1;
                     }
-                    else
-                    {
-                        if (latDistance < 0)
-                        {
-                            latDistance *= -1;
-                        }
-                    }
+
                     if (arObject.Longitude < UsedLongitude)
                     {
-                        if (lonDistance > 0)
-                        {
-                            lonDistance *= -1;
-                        }
-                    }
-                    else
-                    {
-                        if (lonDistance < 0)
-                        {
-                            lonDistance *= -1;
-                        }
+                        lonDistance *= -1;
                     }
 
                     if (AreaSize <= 0 && AreaWidth > 0)
@@ -241,6 +193,7 @@ namespace com.arpoise.arpoiseapp
                         {
                             latDistance += AreaSize;
                         }
+
                         var distanceToAreaBorder = Mathf.Min(Mathf.Abs(Mathf.Abs(latDistance) - halfSize), Mathf.Abs(Mathf.Abs(lonDistance) - halfWidth));
                         if (distanceToAreaBorder < 1)
                         {
@@ -264,7 +217,8 @@ namespace com.arpoise.arpoiseapp
 
         #region GetPosition
 
-        private LocationService _locationService = null;
+        private DateTime _nextPositionUpdate = DateTime.MinValue;
+        protected float PositionUpdateInterval = 0;
 
         // A Coroutine for retrieving the current location
         //
@@ -274,13 +228,6 @@ namespace com.arpoise.arpoiseapp
             // If in quest mode, set a fixed initial location and forget about the location service
             //
             {
-                // EOF
-                //FilteredLatitude = OriginalLatitude = 49.020586f;
-                //FilteredLongitude = OriginalLongitude = 12.09294f;
-                // Ay Corona!
-                //FilteredLatitude = OriginalLatitude = 48.158601475435f;
-                //FilteredLongitude = OriginalLongitude = 11.580199727856f;
-
                 // Quest Default
                 FilteredLatitude = OriginalLatitude = 48.158f;
                 FilteredLongitude = OriginalLongitude = -11.58f;
@@ -316,27 +263,15 @@ namespace com.arpoise.arpoiseapp
             // If in editor mode, set a fixed initial location and forget about the location service
             //
             {
-                // MUC-HDK
-                //FilteredLatitude = OriginalLatitude = 48.144f;
-                //FilteredLongitude = OriginalLongitude = 11.586f;
-
                 // MUC-AINMILLER
                 FilteredLatitude = OriginalLatitude = 48.158526f;
                 FilteredLongitude = OriginalLongitude = 11.578670f;
 
-                // R-Bahnhof
-                //FilteredLatitude = OriginalLatitude = 49.012142f;
-                //FilteredLongitude = OriginalLongitude = 12.098089f;
-
-                // DC SmithS...
-                //FilteredLatitude = OriginalLatitude = 38.888411f;
-                //FilteredLongitude = OriginalLongitude = -77.024183f;
-
                 Debug.Log("UNITY_EDITOR fixed location, lat " + OriginalLatitude + ", lon " + OriginalLongitude);
 
                 var second = DateTime.Now.Ticks / 10000000L;
-                var random = new System.Random((int)second);
-                var nextMove = second + 90000 + random.Next(0, 6);
+                //var random = new System.Random((int)second);
+                //var nextMove = second + 90000 + random.Next(0, 6);
 
                 while (second > 0 || second <= 0)
                 {
@@ -373,34 +308,28 @@ namespace com.arpoise.arpoiseapp
                     doInitialize = false;
                     Input.compass.enabled = true;
 
-                    int maxWait = 4500;
+                    int maxWait = 3500;
 #if UNITY_ANDROID
-                    bool first = true;
+                    if (!Permission.HasUserAuthorizedPermission(UnityEngine.Android.Permission.FineLocation))
+                    {
+                        Permission.RequestUserPermission(UnityEngine.Android.Permission.FineLocation);
+                    }
                     while (!Permission.HasUserAuthorizedPermission(Permission.FineLocation) && maxWait > 0)
                     {
-                        if (first)
-                        {
-                            Permission.RequestUserPermission(Permission.FineLocation);
-                            first = false;
-                        }
                         yield return new WaitForSeconds(.01f);
                         maxWait--;
                     }
 #endif
-                    if (_locationService == null)
+                    maxWait = 1000;
+                    while (!Input.location.isEnabledByUser && maxWait > 0)
                     {
-                        _locationService = new LocationService();
-                        maxWait = 1000;
-                        while (!_locationService.isEnabledByUser && maxWait > 0)
-                        {
-                            yield return new WaitForSeconds(.01f);
-                            maxWait--;
-                        }
-                        if (!_locationService.isEnabledByUser)
-                        {
-                            ErrorMessage = $"Please enable the location service for the {AppName} app!";
-                            yield break;
-                        }
+                        yield return new WaitForSeconds(.01f);
+                        maxWait--;
+                    }
+                    if (!Input.location.isEnabledByUser)
+                    {
+                        ErrorMessage = $"Please enable the location service for the {AppName} app!";
+                        yield break;
                     }
 
                     Input.location.Start(.1f, .1f);
@@ -477,9 +406,6 @@ namespace com.arpoise.arpoiseapp
             }
             yield break;
         }
-
-        private DateTime _nextPositionUpdate = DateTime.MinValue;
-        protected float PositionUpdateInterval = 0;
 
         public float? DurationStretchFactor { get; private set; }
 

@@ -169,19 +169,19 @@ namespace com.arpoise.arpoiseapp
   
         public void Animate(long startTicks, long nowTicks)
         {
-            JustStopped = JustActivated = false;
-            _durationStretchFactor = _behaviour.DurationStretchFactor;
-
             if (startTicks <= 0 || !IsActive || _lengthTicks < 1 || _delayTicks < 0)
             {
                 return;
             }
+
+            _durationStretchFactor = _behaviour.DurationStretchFactor;
             var delayTicks = (long)(_durationStretchFactor.HasValue ? _durationStretchFactor * _delayTicks : _delayTicks);
             if (delayTicks > 0 && startTicks + delayTicks > nowTicks)
             {
                 return;
             }
 
+            JustStopped = JustActivated = false;
             float animationValue = 0;
             if (_startTicks == 0)
             {
@@ -239,12 +239,7 @@ namespace com.arpoise.arpoiseapp
                     break;
             }
 
-            if (animationValue < 0)
-            {
-                animationValue = -animationValue;
-            }
-            var animationFactor = from + (to - from) * animationValue;
-
+            var animationFactor = from + (to - from) * Math.Abs(animationValue);
             switch (_animationType)
             {
                 case ArAnimationType.Rotate:
@@ -327,11 +322,11 @@ namespace com.arpoise.arpoiseapp
         }
 
         private static readonly string _openUrl = "openUrl:";
-        public bool HandleOpenUrl(string s)
+        public bool HandleOpenUrl(string name)
         {
-            if (!string.IsNullOrWhiteSpace(s) && s.StartsWith(_openUrl, StringComparison.InvariantCultureIgnoreCase))
+            if (!string.IsNullOrWhiteSpace(name) && name.StartsWith(_openUrl, StringComparison.InvariantCultureIgnoreCase))
             {
-                var url = s.Substring(_openUrl.Length);
+                var url = name.Substring(_openUrl.Length);
                 if (!string.IsNullOrWhiteSpace(url))
                 {
                     Application.OpenURL(url);
@@ -342,19 +337,19 @@ namespace com.arpoise.arpoiseapp
         }
 
         protected static readonly string SetInactive; 
-        public bool HandleSetActive(string s, bool onFollow)
+        public bool HandleSetActive(string name, bool onFollow)
         {
             var gameObject = GameObject;
-            if (gameObject != null && !string.IsNullOrWhiteSpace(s))
+            if (gameObject != null && !string.IsNullOrWhiteSpace(name))
             {
-                if (!onFollow || Name.Equals(s, StringComparison.InvariantCultureIgnoreCase))
+                if (!onFollow || Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    if (s.EndsWith(nameof(gameObject.SetActive), StringComparison.InvariantCultureIgnoreCase))
+                    if (name.EndsWith(nameof(gameObject.SetActive), StringComparison.InvariantCultureIgnoreCase))
                     {
                         SetActive(gameObject, true);
                         return true;
                     }
-                    if (s.EndsWith(nameof(SetInactive), StringComparison.InvariantCultureIgnoreCase))
+                    if (name.EndsWith(nameof(SetInactive), StringComparison.InvariantCultureIgnoreCase))
                     {
                         SetActive(gameObject, false);
                         return true;

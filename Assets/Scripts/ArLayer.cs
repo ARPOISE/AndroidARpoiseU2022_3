@@ -171,57 +171,13 @@ namespace com.arpoise.arpoiseapp
         [NonSerialized]
         public ArLayer ArLayer;
 
-        public string BaseUrl
-        {
-            get
-            {
-                string baseUrl = poiObject?.baseURL;
-                if (baseUrl != null)
-                {
-                    baseUrl = baseUrl.Trim();
-                }
-                return baseUrl;
-            }
-        }
+        public string BaseUrl => poiObject?.baseURL?.Trim();
 
-        public string TriggerImageURL
-        {
-            get
-            {
-                string triggerImageURL = poiObject?.triggerImageURL;
-                if (triggerImageURL != null)
-                {
-                    triggerImageURL = triggerImageURL.Trim();
-                }
-                return triggerImageURL;
-            }
-        }
+        public string TriggerImageURL => poiObject?.triggerImageURL?.Trim();
 
-        public string GameObjectName
-        {
-            get
-            {
-                string name = poiObject?.full;
-                if (name != null)
-                {
-                    name = name.Trim();
-                }
-                return name;
-            }
-        }
+        public string GameObjectName => poiObject?.full?.Trim();
 
-        public string InnerLayerName
-        {
-            get
-            {
-                string name = poiObject?.poiLayerName;
-                if (name != null)
-                {
-                    name = name.Trim();
-                }
-                return name;
-            }
-        }
+        public string InnerLayerName => poiObject?.poiLayerName?.Trim();
 
         public Poi Clone()
         {
@@ -559,7 +515,7 @@ namespace com.arpoise.arpoiseapp
         }
 
         [NonSerialized]
-        private readonly HashSet<string> _actionLabels = new HashSet<string>(new string[] // Layer ActionLabel
+        private static readonly HashSet<string> _actionLabels = new HashSet<string>(new string[] // Layer ActionLabel
         {
             nameof(OcclusionEnvironmentDepthMode),
             nameof(OcclusionPreferenceMode),
@@ -582,6 +538,10 @@ namespace com.arpoise.arpoiseapp
                 if (!_showInfo.HasValue)
                 {
                     _showInfo = (actions?.FirstOrDefault(x => !_actionLabels.Contains(x.label?.Trim()) && x.showActivity)) != null;
+                    if (_showInfo == null)
+                    {
+                        _showInfo = false;
+                    }
                 }
                 return _showInfo.Value;
             }
