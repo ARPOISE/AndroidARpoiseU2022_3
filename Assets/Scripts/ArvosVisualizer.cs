@@ -67,11 +67,6 @@ namespace com.arpoise.arpoiseapp
 
         private GameObject _gameObject = null;
         private bool _gameObjectCreated = false;
-
-        public void Start()
-        {
-        }
-
         private bool _first = true;
 
         public void Update()
@@ -99,7 +94,7 @@ namespace com.arpoise.arpoiseapp
                 //return;
             }
 
-            var arObjectState = ArBehaviour?.ArObjectState;
+            var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
             if (arObjectState != null && TriggerObject != null && !_gameObjectCreated)
             {
                 _gameObjectCreated = true;

@@ -45,46 +45,43 @@ namespace com.arpoise.arpoiseapp
 
         protected void Start()
         {
-            var flock = _flock;
-            if (flock == null)
+            if (_flock == null)
             {
                 return;
             }
-            _speed = Random.Range(flock.MinimumSpeed, flock.MaximumSpeed);
+            _speed = Random.Range(_flock.MinimumSpeed, _flock.MaximumSpeed);
         }
 
         protected void Update()
         {
-            var flock = _flock;
-            if (flock == null)
+            if (_flock == null)
             {
                 return;
             }
 
-            var allFish = flock.AllFish;
-            if (allFish == null)
+            if (_flock.AllFish == null)
             {
                 return;
             }
 
-            //determine the bounding box of the manager cube
-            var b = new Bounds(flock.transform.position, flock.SwimLimits * 2);
+            // determine the bounding box of the manager cube
+            var b = new Bounds(_flock.transform.position, _flock.SwimLimits * 2);
 
-            //if fish is outside the bounds of the cube then start turning around
+            // if fish is outside the bounds of the cube then start turning around
             if (!b.Contains(transform.position))
             {
-                //turn towards the centre of the manager cube
-                var direction = flock.transform.position - transform.position;
+                // turn towards the centre of the manager cube
+                var direction = _flock.transform.position - transform.position;
                 transform.rotation = Quaternion.Slerp(transform.rotation,
                                                       Quaternion.LookRotation(direction),
                                                       _flock.RotationSpeed * Time.deltaTime);
-                _speed = Random.Range(flock.MinimumSpeed, flock.MaximumSpeed) * _flock.SpeedFactor;
+                _speed = Random.Range(_flock.MinimumSpeed, _flock.MaximumSpeed) * _flock.SpeedFactor;
             }
             else
             {
                 if (Random.Range(0, 100) < _flock.ApplyRulesPercentage)
                 {
-                    ApplyRules(flock, allFish);
+                    ApplyRules(_flock, _flock.AllFish);
                 }
             }
             transform.Translate(0, 0, Time.deltaTime * _speed * _flock.SpeedFactor);
@@ -95,7 +92,6 @@ namespace com.arpoise.arpoiseapp
             var centerDirection = Vector3.zero;
             var avoidDirection = Vector3.zero;
             float groupSpeed = 0.01f;
-
             float distance;
 
             int groupSize = 0;
