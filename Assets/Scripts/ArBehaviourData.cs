@@ -131,7 +131,7 @@ namespace com.arpoise.arpoiseapp
         private readonly string _clientApplicationName = ArpoiseApplicationName;
 #endif
         private string _os = "Android";
-        private readonly string _bundle = "20230823";
+        private readonly string _bundle = "20230828";
 
         #endregion
 
@@ -308,7 +308,7 @@ namespace com.arpoise.arpoiseapp
 
                 #region Download the asset bundle for icons
                 var assetBundleUrls = new HashSet<string>();
-                var iconAssetBundleUrl = "www.arpoise.com/AB/arpoiseicons.ace";
+                var iconAssetBundleUrl = "www.arpoise.com/AB/U2022arpoiseicons.ace";
                 assetBundleUrls.Add(iconAssetBundleUrl);
                 foreach (var url in assetBundleUrls)
                 {
@@ -973,10 +973,6 @@ namespace com.arpoise.arpoiseapp
                 url += "i";
             }
 #endif
-            if (url.Contains("www.arpoise.com/AB/") && !url.Contains("www.arpoise.com/AB/U2021_3/"))
-            {
-                url = url.Replace("www.arpoise.com/AB/", "www.arpoise.com/AB/U2021_3/");
-            }
             return url;
         }
 
