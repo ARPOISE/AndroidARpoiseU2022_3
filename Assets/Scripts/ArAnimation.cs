@@ -52,7 +52,8 @@ namespace com.arpoise.arpoiseapp
         Destroy = 3,
         Duplicate = 4,
         Fade = 5,
-        Grow = 6
+        Grow = 6,
+        Volume = 7
     }
 
     public class ArAnimation
@@ -83,6 +84,7 @@ namespace com.arpoise.arpoiseapp
         private static readonly string _duplicate = nameof(ArAnimationType.Duplicate).ToLower();
         private static readonly string _fade = nameof(ArAnimationType.Fade).ToLower();
         private static readonly string _grow = nameof(ArAnimationType.Grow).ToLower();
+        private static readonly string _volume = nameof(ArAnimationType.Volume).ToLower();
         private static readonly string _cyclic = nameof(ArInterpolation.Cyclic).ToLower();
         private static readonly string _halfsine = nameof(ArInterpolation.Halfsine).ToLower();
         private static readonly string _sine = nameof(ArInterpolation.Sine).ToLower();
@@ -90,14 +92,33 @@ namespace com.arpoise.arpoiseapp
 
         private float? _durationStretchFactor;
         private float? _initialA = null;
+        private float? _initialVolume = null;
         private long _startTicks = 0;
         private List<Material> _materialsToFade = null;
+        private AudioSource _audioSource = null;
 
         public bool IsToBeDestroyed { get; private set; }
         public bool IsToBeDuplicated { get; set; }
 
-        public ArAnimation(long poiId, GameObject wrapper, GameObject gameObject, PoiAnimation poiAnimation, bool isActive, IArpoiseBehaviour behaviour)
+        public AudioRolloffMode? AudioRolloffMode { get; set; }
+        public float? AudioSpatialBlend { get; set; }
+        public bool? AudioSpatialize { get; set; }
+        public float? AudioVolume { get; set; } = 1;
+
+        public ArAnimation(
+            long poiId, GameObject wrapper, GameObject gameObject,
+            PoiAnimation poiAnimation, bool isActive, IArpoiseBehaviour behaviour,
+            AudioRolloffMode? audioRolloffMode = null,
+            float? audioSpatialBlend = null,
+            bool? audioSpatialize = null,
+            float? audioVolume = null
+            )
         {
+            AudioRolloffMode = audioRolloffMode;
+            AudioSpatialBlend = audioSpatialBlend;
+            AudioSpatialize = audioSpatialize;
+            AudioVolume = audioVolume;
+
             PoiId = poiId;
             GameObject = gameObject;
             IsActive = isActive;
@@ -124,6 +145,7 @@ namespace com.arpoise.arpoiseapp
                         : type.Contains(_duplicate) ? ArAnimationType.Duplicate
                         : type.Contains(_fade) ? ArAnimationType.Fade
                         : type.Contains(_grow) ? ArAnimationType.Grow
+                        : type.Contains(_volume) ? ArAnimationType.Volume
                         : ArAnimationType.Transform;
                 }
                 if (poiAnimation.interpolation != null)
@@ -317,6 +339,13 @@ namespace com.arpoise.arpoiseapp
                             Fade(_initialA.Value);
                         }
                         break;
+
+                    case ArAnimationType.Volume:
+                        if (_initialVolume.HasValue)
+                        {
+                            SetVolume(_initialVolume.Value);
+                        }
+                        break;
                 }
             }
         }
@@ -389,10 +418,30 @@ namespace com.arpoise.arpoiseapp
             var gameObject = GameObject;
             if (gameObject != null)
             {
-                var audioSource = gameObject.GetComponent<AudioSource>();
-                if (audioSource != null)
+                if (_audioSource == null)
                 {
-                    audioSource.Play();
+                    _audioSource = gameObject.GetComponent<AudioSource>();
+                }
+                if (_audioSource != null)
+                {
+                    if (AudioRolloffMode.HasValue)
+                    {
+                        _audioSource.rolloffMode = AudioRolloffMode.Value;
+                    }
+                    if (AudioSpatialBlend.HasValue)
+                    {
+                        _audioSource.spatialBlend = AudioSpatialBlend.Value;
+                    }
+                    if (AudioSpatialize.HasValue)
+                    {
+                        _audioSource.spatialize = AudioSpatialize.Value;
+                    }
+                    if (AudioVolume.HasValue)
+                    {
+                        _audioSource.volume = AudioVolume.Value;
+                    }
+
+                    _audioSource.Play();
                 }
             }
         }
@@ -444,6 +493,29 @@ namespace com.arpoise.arpoiseapp
                     _initialA = color.a;
                 }
                 material.color = new Color(color.r, color.g, color.b, value);
+            }
+        }
+
+        private void SetVolume(float value)
+        {
+            if (_audioSource == null && GameObject != null)
+            {
+                _audioSource = GameObject.GetComponent<AudioSource>();
+            }
+            if (_audioSource != null)
+            {
+                if (!_initialVolume.HasValue)
+                {
+                    _initialVolume = _audioSource.volume;
+                }
+                if (AudioVolume.HasValue)
+                {
+                    _audioSource.volume = AudioVolume.Value;
+                }
+                else
+                {
+                    _audioSource.volume = value;
+                }
             }
         }
 

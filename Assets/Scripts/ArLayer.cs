@@ -517,6 +517,10 @@ namespace com.arpoise.arpoiseapp
         [NonSerialized]
         private static readonly HashSet<string> _actionLabels = new HashSet<string>(new string[] // Layer ActionLabel
         {
+            nameof(AudioRolloffMode),
+            nameof(AudioSpatialBlend),
+            nameof(AudioSpatialize),
+            nameof(AudioVolume),
             nameof(OcclusionEnvironmentDepthMode),
             nameof(OcclusionPreferenceMode),
             nameof(OcclusionHumanSegmentationStencilMode),
@@ -566,6 +570,102 @@ namespace com.arpoise.arpoiseapp
         }
 
         #region ActionLabels
+
+        [NonSerialized]
+        private AudioRolloffMode? _audioRolloffMode;
+        public AudioRolloffMode? AudioRolloffMode // Layer ActionLabel
+        {
+            get
+            {
+                if (!_audioRolloffMode.HasValue)
+                {
+                    _audioRolloffMode = (AudioRolloffMode)(-1);
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(AudioRolloffMode).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        AudioRolloffMode value;
+                        if (Enum.TryParse(action.activityMessage.Trim(), out value))
+                        {
+                            _audioRolloffMode = value;
+                        }
+                    }
+                    //Console.WriteLine($"----> AudioAudioRolloffMode is {_audioAudioRolloffMode}");
+                }
+                return _audioRolloffMode.Value >= 0 ? _audioRolloffMode.Value : null;
+            }
+        }
+
+        [NonSerialized]
+        private float? _audioSpatialBlend;
+        public float? AudioSpatialBlend // Layer ActionLabel
+        {
+            get
+            {
+                if (_audioSpatialBlend == null)
+                {
+                    _audioSpatialBlend = -1;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(AudioSpatialBlend).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        float value;
+                        if (float.TryParse(action.activityMessage.Trim(), out value))
+                        {
+                            _audioSpatialBlend = value;
+                        }
+                    }
+                    //Console.WriteLine($"----> AudioSpatialBlend is {_audioSpatialBlend}");
+                }
+                return _audioSpatialBlend.Value >= 0 ?_audioSpatialBlend.Value : null;
+            }
+        }
+
+        [NonSerialized]
+        private int? _audioSpatialize;
+        public bool? AudioSpatialize // Layer ActionLabel
+        {
+            get
+            {
+                if (_audioSpatialize == null)
+                {
+                    _audioSpatialize = -1;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(AudioSpatialize).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        bool value;
+                        if (bool.TryParse(action.activityMessage.Trim(), out value))
+                        {
+                            _audioSpatialize = value ? 1 : 0;
+                        }
+                    }
+                    //Console.WriteLine($"----> AudioSpatialize is {_audioSpatialize}");
+                }
+                return _audioSpatialize.Value >= 0 ?_audioSpatialize.Value == 1 : null;
+            }
+        }
+
+        [NonSerialized]
+        private float? _audioVolume;
+        public float AudioVolume // Layer ActionLabel
+        {
+            get
+            {
+                if (_audioVolume == null)
+                {
+                    _audioVolume = 1;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(AudioVolume).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        float value;
+                        if (float.TryParse(action.activityMessage.Trim(), out value))
+                        {
+                            _audioVolume = value;
+                        }
+                    }
+                    //Console.WriteLine($"----> AudioVolume is {_audioVolume}");
+                }
+                return _audioVolume.Value;
+            }
+        }
 
         [NonSerialized]
         private float? _positionUpdateInterval;
