@@ -264,6 +264,22 @@ namespace com.arpoise.arpoiseapp
             var animationFactor = from + (to - from) * Math.Abs(animationValue);
             switch (_animationType)
             {
+                case ArAnimationType.Destroy:
+                    IsToBeDestroyed = true;
+                    break;
+
+                case ArAnimationType.Duplicate:
+                    IsToBeDuplicated |= JustActivated;
+                    break;
+
+                case ArAnimationType.Fade:
+                    Fade(animationFactor);
+                    break;
+
+                case ArAnimationType.Grow:
+                    Grow(animationFactor);
+                    break;
+
                 case ArAnimationType.Rotate:
                     Rotate(animationFactor);
                     break;
@@ -276,20 +292,8 @@ namespace com.arpoise.arpoiseapp
                     Transform(animationFactor);
                     break;
 
-                case ArAnimationType.Grow:
-                    Grow(animationFactor);
-                    break;
-
-                case ArAnimationType.Fade:
-                    Fade(animationFactor);
-                    break;
-
-                case ArAnimationType.Destroy:
-                    IsToBeDestroyed = true;
-                    break;
-
-                case ArAnimationType.Duplicate:
-                    IsToBeDuplicated |= JustActivated;
+                case ArAnimationType.Volume:
+                    SetVolume(animationFactor);
                     break;
             }
 
@@ -312,6 +316,13 @@ namespace com.arpoise.arpoiseapp
                 HandleSetActive(Name, false);
                 switch (_animationType)
                 {
+                    case ArAnimationType.Fade:
+                        if (_initialA.HasValue)
+                        {
+                            Fade(_initialA.Value);
+                        }
+                        break;
+
                     case ArAnimationType.Rotate:
                         if (_transform != null)
                         {
@@ -330,13 +341,6 @@ namespace com.arpoise.arpoiseapp
                         if (_transform != null)
                         {
                             _transform.localPosition = Vector3.zero;
-                        }
-                        break;
-
-                    case ArAnimationType.Fade:
-                        if (_initialA.HasValue)
-                        {
-                            Fade(_initialA.Value);
                         }
                         break;
 
