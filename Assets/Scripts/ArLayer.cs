@@ -903,7 +903,7 @@ namespace com.arpoise.arpoiseapp
                         if (parts.Length > 1)
                         {
                             int value;
-                            if (TryParseMinutes(parts[0], out value))
+                            if (ArAnimation.TryParseMinutes(parts[0], out value))
                             {
                                 _applicationSleepStartMinute = value;
                             }
@@ -931,7 +931,7 @@ namespace com.arpoise.arpoiseapp
                         if (parts.Length > 1)
                         {
                             int value;
-                            if (TryParseMinutes(parts[1], out value))
+                            if (ArAnimation.TryParseMinutes(parts[1], out value))
                             {
                                 _applicationSleepEndMinute = value;
                             }
@@ -940,47 +940,6 @@ namespace com.arpoise.arpoiseapp
                 }
                 return _applicationSleepEndMinute.Value;
             }
-        }
-
-        private bool TryParseMinutes(string s, out int result)
-        {
-            result = -1;
-            if (string.IsNullOrWhiteSpace(s))
-            {
-                return false;
-            }
-            if (s.Contains(':'))
-            {
-                var parts = s.Split(':');
-                if (parts.Length > 0)
-                {
-                    int hours;
-                    if (!int.TryParse(parts[0], out hours))
-                    {
-                        return false;
-                    }
-                    if (parts.Length > 1)
-                    {
-                        int minutes;
-                        if (!int.TryParse(parts[1], out minutes))
-                        {
-                            return false;
-                        }
-                        result = hours * 60 + minutes;
-                        return true;
-                    }
-                    result = hours * 60;
-                    return true;
-                }
-                return false;
-            }
-
-            if (int.TryParse(s, out result))
-            {
-                result *= 60;
-                return true;
-            }
-            return false;
         }
     }
 }

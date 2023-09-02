@@ -29,6 +29,7 @@ ARpoise, see www.ARpoise.com/
 */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -192,7 +193,7 @@ namespace com.arpoise.arpoiseapp
             _startTicks = 0;
             Animate(startTicks, nowTicks);
         }
-  
+
         public void Animate(long startTicks, long nowTicks)
         {
             if (startTicks <= 0 || !IsActive || _lengthTicks < 1 || _delayTicks < 0)
@@ -373,7 +374,7 @@ namespace com.arpoise.arpoiseapp
             return false;
         }
 
-        protected static readonly string SetInactive; 
+        protected static readonly string SetInactive;
         public bool HandleSetActive(string name, bool onFollow)
         {
             var gameObject = GameObject;
@@ -421,15 +422,68 @@ namespace com.arpoise.arpoiseapp
             }
         }
 
+        private int? _startMinute;
+        public int StartMinute
+        {
+            get
+            {
+                if (_startMinute == null)
+                {
+                    _startMinute = -1;
+
+                    var interval = Name?.Replace("Time:", string.Empty).Trim(); ;
+                    if (!string.IsNullOrWhiteSpace(interval))
+                    {
+                        var parts = interval.Split('-');
+                        if (parts.Length > 1)
+                        {
+                            int value;
+                            if (TryParseMinutes(parts[0], out value))
+                            {
+                                _startMinute = value;
+                            }
+                        }
+                    }
+                }
+                return _startMinute.Value;
+            }
+        }
+
+        private int? _endMinute;
+        public int EndMinute
+        {
+            get
+            {
+                if (_endMinute == null)
+                {
+                    _endMinute = -1;
+
+                    var interval = Name?.Replace("Time:", string.Empty).Trim(); ;
+                    if (!string.IsNullOrWhiteSpace(interval))
+                    {
+                        var parts = interval.Split('-');
+                        if (parts.Length > 1)
+                        {
+                            int value;
+                            if (TryParseMinutes(parts[1], out value))
+                            {
+                                _endMinute = value;
+                            }
+                        }
+                    }
+                }
+                return _endMinute.Value;
+            }
+        }
+
         public bool ShouldBeActive()
         {
-            if (_from < 0 || _from > 23.59 || _to < 0 || _to > 23.59)
+            var startMinute = StartMinute;
+            var endMinute = EndMinute;
+            if (startMinute < 0 || startMinute > 24 * 60 || endMinute < 0 || endMinute > 24 * 60)
             {
-                return false; 
+                return false;
             }
-
-            var startMinute = (int)(((int)_from) * 60 + 100 * (_from - ((int)_from)));
-            var endMinute = (int)(((int)_to) * 60 + 100 * (_to - ((int)_to)));
             var minute = DateTime.Now.Hour * 60 + DateTime.Now.Minute;
             var shouldNotBeActive = startMinute < 0 || endMinute < 0
                    || (startMinute <= endMinute && (minute < startMinute || minute >= endMinute))
@@ -573,6 +627,47 @@ namespace com.arpoise.arpoiseapp
                     // GetMaterialsToFade(transform.gameObject, materials);
                 }
             }
+        }
+
+        public static bool TryParseMinutes(string s, out int result)
+        {
+            result = -1;
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                return false;
+            }
+            if (s.Contains(':'))
+            {
+                var parts = s.Split(':');
+                if (parts.Length > 0)
+                {
+                    int hours;
+                    if (!int.TryParse(parts[0], out hours))
+                    {
+                        return false;
+                    }
+                    if (parts.Length > 1)
+                    {
+                        int minutes;
+                        if (!int.TryParse(parts[1], out minutes))
+                        {
+                            return false;
+                        }
+                        result = hours * 60 + minutes;
+                        return true;
+                    }
+                    result = hours * 60;
+                    return true;
+                }
+                return false;
+            }
+
+            if (int.TryParse(s, out result))
+            {
+                result *= 60;
+                return true;
+            }
+            return false;
         }
 
         // This does not really work, it was work in progress from October 2020, a version of Nothing of Him
