@@ -45,6 +45,7 @@ namespace com.arpoise.arpoiseapp
         private readonly List<ArAnimation> _inFocusAnimations = new List<ArAnimation>();
         private readonly List<ArAnimation> _onClickAnimations = new List<ArAnimation>();
         private readonly List<ArAnimation> _billboardAnimations = new List<ArAnimation>();
+        private readonly List<ArAnimation> _inMinutesAnimations = new List<ArAnimation>();
 
         private ArAnimation[] _allAnimations = null;
         private ArAnimation[] AllAnimations
@@ -58,6 +59,7 @@ namespace com.arpoise.arpoiseapp
                         .Concat(_onFocusAnimations)
                         .Concat(_inFocusAnimations)
                         .Concat(_onClickAnimations)
+                        .Concat(_inMinutesAnimations)
                         .ToArray();
                 }
                 return _allAnimations;
@@ -122,6 +124,12 @@ namespace com.arpoise.arpoiseapp
             AllAnimations = null;
         }
 
+        public void AddInMinutesAnimation(ArAnimation animation)
+        {
+            _inMinutesAnimations.Add(animation);
+            AllAnimations = null;
+        }
+
         public void AddOnClickAnimation(ArAnimation animation)
         {
             _onClickAnimations.Add(animation);
@@ -142,6 +150,7 @@ namespace com.arpoise.arpoiseapp
             _onFocusAnimations.RemoveAll(x => arObject.Id == x.PoiId);
             _inFocusAnimations.RemoveAll(x => arObject.Id == x.PoiId);
             _onClickAnimations.RemoveAll(x => arObject.Id == x.PoiId);
+            _inMinutesAnimations.RemoveAll(x => arObject.Id == x.PoiId);
             AllAnimations = null;
         }
 
@@ -249,6 +258,20 @@ namespace com.arpoise.arpoiseapp
                 }
             }
 
+            HashSet<ArAnimation> inMinutesAnimationsToStop = null;
+            if (_inMinutesAnimations.Count > 0)
+            {
+                inMinutesAnimationsToStop = new HashSet<ArAnimation>(_inMinutesAnimations.Where(x => x.IsActive));
+                foreach (var arAnimation in _inMinutesAnimations.Where(x => x.ShouldBeActive()))
+                {
+                    if (!arAnimation.IsActive)
+                    {
+                        arAnimation.Activate(startTicks, nowTicks);
+                    }
+                    inMinutesAnimationsToStop.Remove(arAnimation);
+                }
+            }
+
             var hasHit = false;
             if (_onClickAnimations.Count > 0 && Input.GetMouseButtonDown(0))
             {
@@ -281,6 +304,11 @@ namespace com.arpoise.arpoiseapp
                 {
                     animation.Stop(startTicks, nowTicks);
                     inFocusAnimationsToStop.Remove(animation);
+                }
+                else if (inMinutesAnimationsToStop != null && inMinutesAnimationsToStop.Contains(animation))
+                {
+                    animation.Stop(startTicks, nowTicks);
+                    inMinutesAnimationsToStop.Remove(animation);
                 }
                 else
                 {

@@ -417,6 +417,32 @@ namespace com.arpoise.arpoiseapp
                     }
                 }
 
+                if (poi.animations.inMinutes != null)
+                {
+                    foreach (var poiAnimation in poi.animations.inMinutes)
+                    {
+                        var animationWrapper = GetWrapper(wrappers, poiAnimation);
+                        if (animationWrapper == null)
+                        {
+                            return "Instantiate(InMinutesWrapper) failed";
+                        }
+                        arObjectState.AddInMinutesAnimation(
+                            new ArAnimation(
+                                arObjectId, animationWrapper, objectToAdd, poiAnimation, false, this,
+                                poi?.ArLayer?.AudioRolloffMode,
+                                poi?.ArLayer?.AudioSpatialBlend,
+                                poi?.ArLayer?.AudioSpatialize,
+                                poi?.ArLayer?.AudioVolume
+                            ));
+                        if (animationWrapper.transform.parent == null)
+                        {
+                            animationWrapper.name = "InMinutesWrapper";
+                            animationWrapper.transform.parent = parentTransform;
+                            parentTransform = animationWrapper.transform;
+                        }
+                    }
+                }
+
                 if (poi.animations.onClick != null)
                 {
                     foreach (var poiAnimation in poi.animations.onClick)

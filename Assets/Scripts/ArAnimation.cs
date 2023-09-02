@@ -103,11 +103,15 @@ namespace com.arpoise.arpoiseapp
         public AudioRolloffMode? AudioRolloffMode { get; set; }
         public float? AudioSpatialBlend { get; set; }
         public bool? AudioSpatialize { get; set; }
-        public float? AudioVolume { get; set; } = 1;
+        public float? AudioVolume { get; set; }
 
         public ArAnimation(
-            long poiId, GameObject wrapper, GameObject gameObject,
-            PoiAnimation poiAnimation, bool isActive, IArpoiseBehaviour behaviour,
+            long poiId,
+            GameObject wrapper,
+            GameObject gameObject,
+            PoiAnimation poiAnimation,
+            bool isActive,
+            IArpoiseBehaviour behaviour,
             AudioRolloffMode? audioRolloffMode = null,
             float? audioSpatialBlend = null,
             bool? audioSpatialize = null,
@@ -417,6 +421,23 @@ namespace com.arpoise.arpoiseapp
             }
         }
 
+        public bool ShouldBeActive()
+        {
+            if (_from < 0 || _from > 23.59 || _to < 0 || _to > 23.59)
+            {
+                return false; 
+            }
+
+            var startMinute = (int)(((int)_from) * 60 + 100 * (_from - ((int)_from)));
+            var endMinute = (int)(((int)_to) * 60 + 100 * (_to - ((int)_to)));
+            var minute = DateTime.Now.Hour * 60 + DateTime.Now.Minute;
+            var shouldNotBeActive = startMinute < 0 || endMinute < 0
+                   || (startMinute <= endMinute && (minute < startMinute || minute >= endMinute))
+                   || (startMinute > endMinute && (minute < startMinute && minute >= endMinute));
+
+            return !shouldNotBeActive;
+        }
+
         private void HandleAudioSource()
         {
             var gameObject = GameObject;
@@ -440,7 +461,7 @@ namespace com.arpoise.arpoiseapp
                     {
                         _audioSource.spatialize = AudioSpatialize.Value;
                     }
-                    if (AudioVolume.HasValue)
+                    if (AudioVolume.HasValue && AudioVolume.Value >= 0)
                     {
                         _audioSource.volume = AudioVolume.Value;
                     }
@@ -512,7 +533,7 @@ namespace com.arpoise.arpoiseapp
                 {
                     _initialVolume = _audioSource.volume;
                 }
-                if (AudioVolume.HasValue)
+                if (AudioVolume.HasValue && AudioVolume.Value >= 0)
                 {
                     _audioSource.volume = AudioVolume.Value;
                 }

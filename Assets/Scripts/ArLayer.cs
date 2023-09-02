@@ -95,6 +95,7 @@ namespace com.arpoise.arpoiseapp
         public PoiAnimation[] onFocus = null;
         public PoiAnimation[] inFocus = null;
         public PoiAnimation[] onClick = null;
+        public PoiAnimation[] inMinutes = null;
     }
 
     [Serializable]
@@ -651,7 +652,7 @@ namespace com.arpoise.arpoiseapp
             {
                 if (_audioVolume == null)
                 {
-                    _audioVolume = 1;
+                    _audioVolume = -1;
                     var action = actions?.FirstOrDefault(x => x.showActivity && nameof(AudioVolume).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
                     if (action != null)
                     {
