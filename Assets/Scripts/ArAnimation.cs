@@ -210,7 +210,6 @@ namespace com.arpoise.arpoiseapp
                 return;
             }
 
-
             float animationValue = 0;
             if (_startTicks == 0)
             {
