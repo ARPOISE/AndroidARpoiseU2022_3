@@ -60,10 +60,9 @@ namespace com.arpoise.arpoiseapp
                 }
             }
 #endif
-            // Start GetPosition() coroutine 
             StartCoroutine(nameof(GetPosition));
-            // Start GetData() coroutine 
             StartCoroutine(nameof(GetData));
+            StartCoroutine(nameof(TakeScreenshotRoutine));
         }
         #endregion
 

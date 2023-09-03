@@ -197,13 +197,13 @@ namespace com.arpoise.arpoiseapp
         public void Animate(long startTicks, long nowTicks)
         {
             JustStopped = JustActivated = false;
-            _durationStretchFactor = _behaviour.DurationStretchFactor;
 
             if (startTicks <= 0 || !IsActive || _lengthTicks < 1 || _delayTicks < 0)
             {
                 return;
             }
 
+            _durationStretchFactor = _behaviour.DurationStretchFactor;
             var delayTicks = (long)(_durationStretchFactor.HasValue ? _durationStretchFactor * _delayTicks : _delayTicks);
             if (delayTicks > 0 && startTicks + delayTicks > nowTicks)
             {

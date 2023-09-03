@@ -100,7 +100,7 @@ namespace com.arpoise.arpoiseapp
                     continue;
                 }
 
-                var name = $"Screenshot_{DateTime.Now:yyMMdd_HHmmss_fff}.jpg";
+                var name = $"Screenshot_{DateTime.Now:yyMMdd_HHmmss_fff}.png";
                 ScreenCapture.CaptureScreenshot(name, AllowTakeScreenshot);
                 //Console.WriteLine($"----> TakeScreenshotRoutine name {name}, size {AllowTakeScreenshot}");
 
