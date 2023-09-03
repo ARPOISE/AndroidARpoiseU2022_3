@@ -102,7 +102,7 @@ namespace com.arpoise.arpoiseapp
 
                 var name = $"Screenshot_{DateTime.Now:yyMMdd_HHmmss_fff}.png";
                 ScreenCapture.CaptureScreenshot(name, AllowTakeScreenshot);
-                //Console.WriteLine($"----> TakeScreenshotRoutine name {name}, size {AllowTakeScreenshot}");
+                //Console.WriteLine($"----> Screenshot, path {Application.persistentDataPath}, name {name}, size {AllowTakeScreenshot}");
 
                 TakeScreenshot = false;
             }
