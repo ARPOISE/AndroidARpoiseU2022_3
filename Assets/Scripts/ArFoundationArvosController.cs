@@ -407,7 +407,9 @@ public class ArFoundationArvosController : ArBehaviourSlam
     private void SetAllPlanesActive(bool value)
     {
         foreach (var plane in _arPlaneManager.trackables)
+        {
             plane.gameObject.SetActive(value);
+        }
     }
     #endregion
 }

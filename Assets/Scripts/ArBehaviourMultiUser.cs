@@ -574,7 +574,7 @@ namespace com.arpoise.arpoiseapp
             _messages.Add(message);
         }
 
-        public string GetMessage()
+        private string GetMessage()
         {
             if (_messages.Any())
             {
