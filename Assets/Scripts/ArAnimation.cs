@@ -525,7 +525,6 @@ namespace com.arpoise.arpoiseapp
                 }
             }
         }
-
         private void Rotate(float value)
         {
             if (_transform != null)

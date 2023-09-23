@@ -832,7 +832,7 @@ namespace com.arpoise.arpoiseapp
                     {
                         yield break;
                     }
-                    if (!arObjectState.ArObjects.Any() && !ArvosApplicationName.Equals(_clientApplicationName))
+                    if (!arObjectState.ArObjects.Any() && !IsSlam &&!HasTriggerImages)
                     {
                         var message = layers.Select(x => x.noPoisMessage).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
                         if (string.IsNullOrWhiteSpace(message))

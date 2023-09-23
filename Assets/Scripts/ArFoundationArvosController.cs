@@ -34,9 +34,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.XR.CoreUtils;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.XR.ARFoundation;
-using UnityEngine.XR.ARFoundation.Samples;
 using UnityEngine.XR.ARSubsystems;
 
 public class ArFoundationArvosController : ArBehaviourSlam
@@ -46,7 +44,6 @@ public class ArFoundationArvosController : ArBehaviourSlam
 
     private ARPlaneManager _arPlaneManager;
     private ARRaycastManager _arRaycastManager;
-    private PlaceOnPlane _placeOnPlane;
 
     private readonly Dictionary<string, ArvosVisualizer> _imageVisualizers = new Dictionary<string, ArvosVisualizer>();
     private readonly Dictionary<int, ArvosVisualizer> _slamVisualizers = new Dictionary<int, ArvosVisualizer>();
@@ -62,7 +59,6 @@ public class ArFoundationArvosController : ArBehaviourSlam
 
         _arPlaneManager = XrOrigin.GetComponent<ARPlaneManager>();
         _arRaycastManager = XrOrigin.GetComponent<ARRaycastManager>();
-        _placeOnPlane = XrOrigin.GetComponent<PlaceOnPlane>();
 
         XrOriginScript = XrOrigin.GetComponent<XROrigin>();
         ArTrackedImageManager = XrOrigin.GetComponent<ARTrackedImageManager>();
@@ -73,7 +69,6 @@ public class ArFoundationArvosController : ArBehaviourSlam
     {
         _arPlaneManager = XrOrigin.GetComponent<ARPlaneManager>();
         _arRaycastManager = XrOrigin.GetComponent<ARRaycastManager>();
-        _placeOnPlane = XrOrigin.GetComponent<PlaceOnPlane>();
 
         XrOriginScript = XrOrigin.GetComponent<XROrigin>();
         ArTrackedImageManager = XrOrigin.GetComponent<ARTrackedImageManager>();
@@ -215,18 +210,20 @@ public class ArFoundationArvosController : ArBehaviourSlam
             }
 
             // If the player has not touched the screen, we are done with this update.
-            if (Input.touchCount < 1 || Pointer.current == null || !Pointer.current.IsPressed())
+            if (Input.touchCount < 1 || Input.GetTouch(0).phase != UnityEngine.TouchPhase.Began)
             {
                 return;
             }
-            var touchPosition = Pointer.current.position.ReadValue();
 
             List<ARRaycastHit> hits = new List<ARRaycastHit>();
-            if (_arRaycastManager.Raycast(touchPosition, hits, TrackableType.Planes))
+            if (_arRaycastManager.Raycast(Input.GetTouch(0).position, hits, TrackableType.Planes))
             {
                 // Raycast hits are sorted by distance, so the first one
                 // will be the closest hit.
                 var hitPose = hits[0].pose;
+
+                //Debug.Log($"Hit on plane, Pose {hitPose.position}, {hitPose.rotation}");
+                //Debug.Log($"Available {AvailableSlamObjects.Count}");
 
                 int index = _slamHitCount++ % AvailableSlamObjects.Count;
                 var triggerObject = AvailableSlamObjects[index];
@@ -238,6 +235,8 @@ public class ArFoundationArvosController : ArBehaviourSlam
 
                 _slamVisualizers.Add(_slamHitCount, visualizer);
                 VisualizedSlamObjects.Add(triggerObject);
+
+                //Debug.Log($"VisualizedSlamObjects {VisualizedSlamObjects.Count}");
             }
         }
 
