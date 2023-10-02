@@ -19,7 +19,7 @@
 //-----------------------------------------------------------------------
 
 /*
-ArvosVisualizer.cs - MonoBehaviour for handling detected image triggers of the ArFoundation version of image trigger ARpoise, aka AR-vos.
+ArvosVisualizer.cs - MonoBehaviour for handling detected image triggers of the ArFoundation version of image trigger ARpoise.
 
 This file is part of ARpoise.
 
@@ -39,9 +39,8 @@ ARpoise, see www.ARpoise.com/
 
 namespace com.arpoise.arpoiseapp
 {
-    using UnityEngine.XR.ARFoundation;
-    using UnityEngine.XR.ARSubsystems;
     using UnityEngine;
+    using UnityEngine.XR.ARFoundation;
 
     public class ArvosVisualizer : MonoBehaviour
     {
@@ -71,29 +70,6 @@ namespace com.arpoise.arpoiseapp
 
         public void Update()
         {
-            if (Pose != null)
-            {
-                // Check that motion tracking is tracking.
-                //if (Session.Status != SessionStatus.Tracking)
-                //{
-                //    if (_gameObject != null)
-                //    {
-                //        _gameObject.SetActive(false);
-                //        _first = true;
-                //    }
-                //    return;
-                //}
-            }
-            else if (Image == null || Image.trackingState != TrackingState.Tracking)
-            {
-                //if (_gameObject != null)
-                //{
-                //    _gameObject.SetActive(false);
-                //    _first = true;
-                //}
-                //return;
-            }
-
             var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
             if (arObjectState != null && TriggerObject != null && !_gameObjectCreated)
             {
