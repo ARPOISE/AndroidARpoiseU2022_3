@@ -1,4 +1,4 @@
-﻿/*
+/*
 ArBehaviourData.cs - MonoBehaviour for ARpoise data handling.
 
 Copyright (C) 2018, Tamiko Thiel and Peter Graf - All Rights Reserved
@@ -131,7 +131,7 @@ namespace com.arpoise.arpoiseapp
         private readonly string _clientApplicationName = ArpoiseApplicationName;
 #endif
         private string _os = "Android";
-        private readonly string _bundle = "20230924";
+        private readonly string _bundle = "20231002";
 
         #endregion
 
