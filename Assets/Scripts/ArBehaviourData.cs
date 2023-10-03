@@ -200,16 +200,16 @@ namespace com.arpoise.arpoiseapp
                     ;
 
                     url = FixUrl(url);
-                    //Debug.Log("Loading Url " + url);
                     var request = UnityWebRequest.Get(url);
                     request.certificateHandler = new ArpoiseCertificateHandler();
                     request.timeout = 30;
-                    //Debug.Log("SendWebRequest " + url);
                     yield return request.SendWebRequest();
-                    //Debug.Log("Webrequest sent " + url);
 
                     var maxWait = request.timeout * 100;
-                    while (!(request.isNetworkError || request.isHttpError)
+                    while (request.result != UnityWebRequest.Result.Success
+                        && request.result != UnityWebRequest.Result.ConnectionError
+                        && request.result != UnityWebRequest.Result.ProtocolError
+                        && request.result != UnityWebRequest.Result.DataProcessingError
                         && !request.isDone && maxWait > 0)
                     {
                         yield return new WaitForSeconds(.01f);
@@ -220,45 +220,29 @@ namespace com.arpoise.arpoiseapp
                     {
                         if (setError)
                         {
-                            ErrorMessage = "Layer '" + layerName + "' download timeout.";
+                            ErrorMessage = $"Layer '{layerName}' download timeout.";
+                            yield break;
+                        }
+                        break;
+                    }
+                    if (request.result == UnityWebRequest.Result.ConnectionError
+                        || request.result == UnityWebRequest.Result.ProtocolError
+                        || request.result == UnityWebRequest.Result.DataProcessingError)
+                    {
+                        if (setError)
+                        {
+                            ErrorMessage = $"Layer '{layerName}' {request.result}, {request.error}";
                             yield break;
                         }
                         break;
                     }
 
-                    if (request.isNetworkError)
-                    {
-                        if (setError)
-                        {
-                            ErrorMessage = "Layer '" + layerName + "': NetworkError, " + request.error;
-                            yield break;
-                        }
-                        break;
-                    }
-                    if (request.isHttpError)
-                    {
-                        if (setError)
-                        {
-                            ErrorMessage = "Layer '" + layerName + "': HttpError, " + request.error;
-                            yield break;
-                        }
-                        break;
-                    }
-                    if (request.result == UnityWebRequest.Result.DataProcessingError)
-                    {
-                        if (setError)
-                        {
-                            ErrorMessage = "Layer '" + layerName + "': DataProcessingError, " + request.error;
-                            yield break;
-                        }
-                        continue;
-                    }
                     var text = request.downloadHandler.text;
                     if (string.IsNullOrWhiteSpace(text))
                     {
                         if (setError)
                         {
-                            ErrorMessage = "Layer '" + layerName + "', empty text.";
+                            ErrorMessage = $"Layer '{layerName}', empty text.";
                             yield break;
                         }
                         break;
@@ -323,7 +307,10 @@ namespace com.arpoise.arpoiseapp
                     yield return request.SendWebRequest();
 
                     var maxWait = request.timeout * 100;
-                    while (!(request.isNetworkError || request.isHttpError)
+                    while (request.result != UnityWebRequest.Result.Success
+                        && request.result != UnityWebRequest.Result.ConnectionError
+                        && request.result != UnityWebRequest.Result.ProtocolError
+                        && request.result != UnityWebRequest.Result.DataProcessingError
                         && !request.isDone && maxWait > 0)
                     {
                         yield return new WaitForSeconds(.01f);
@@ -334,44 +321,29 @@ namespace com.arpoise.arpoiseapp
                     {
                         if (setError)
                         {
-                            ErrorMessage = "Icons '" + assetBundleUri + "' download timeout.";
+                            ErrorMessage = $"Icons '{assetBundleUri}' download timeout.";
                             yield break;
                         }
                         continue;
                     }
-                    if (request.isNetworkError)
+                    if (request.result == UnityWebRequest.Result.ConnectionError
+                        || request.result == UnityWebRequest.Result.ProtocolError
+                        || request.result == UnityWebRequest.Result.DataProcessingError)
                     {
                         if (setError)
                         {
-                            ErrorMessage = "Icons '" + assetBundleUri + "': NetworkError, " + request.error;
+                            ErrorMessage = $"Icons '{assetBundleUri}' {request.result}, {request.error}";
                             yield break;
                         }
-                        continue;
+                        break;
                     }
-                    if (request.isHttpError)
-                    {
-                        if (setError)
-                        {
-                            ErrorMessage = "Icons '" + assetBundleUri + "': HttpError, " + request.error;
-                            yield break;
-                        }
-                        continue;
-                    }
-                    if (request.result == UnityWebRequest.Result.DataProcessingError)
-                    {
-                        if (setError)
-                        {
-                            ErrorMessage = "Icons '" + assetBundleUri + "': DataProcessingError, " + request.error;
-                            yield break;
-                        }
-                        continue;
-                    }
+
                     var assetBundle = DownloadHandlerAssetBundle.GetContent(request);
                     if (assetBundle == null)
                     {
                         if (setError)
                         {
-                            ErrorMessage = "Icons '" + assetBundleUri + "', is null.";
+                            ErrorMessage = $"Icons '{assetBundleUri}' is null.";
                             yield break;
                         }
                         continue;
@@ -499,7 +471,10 @@ namespace com.arpoise.arpoiseapp
                         yield return request.SendWebRequest();
 
                         var maxWait = request.timeout * 100;
-                        while (!(request.isNetworkError || request.isHttpError)
+                        while (request.result != UnityWebRequest.Result.Success
+                            && request.result != UnityWebRequest.Result.ConnectionError
+                            && request.result != UnityWebRequest.Result.ProtocolError
+                            && request.result != UnityWebRequest.Result.DataProcessingError
                             && !request.isDone && maxWait > 0)
                         {
                             yield return new WaitForSeconds(.01f);
@@ -510,44 +485,29 @@ namespace com.arpoise.arpoiseapp
                         {
                             if (setError)
                             {
-                                ErrorMessage = "Layer '" + innerLayer + "' download timeout.";
+                                ErrorMessage = $"Layer '{innerLayer}' download timeout.";
                                 yield break;
                             }
                             break;
                         }
-                        if (request.isNetworkError)
+                        if (request.result == UnityWebRequest.Result.ConnectionError
+                            || request.result == UnityWebRequest.Result.ProtocolError
+                            || request.result == UnityWebRequest.Result.DataProcessingError)
                         {
                             if (setError)
                             {
-                                ErrorMessage = "Layer '" + innerLayer + "': NetworkError, " + request.error;
+                                ErrorMessage = $"Layer '{innerLayer}' {request.result}, {request.error}";
                                 yield break;
                             }
                             break;
                         }
-                        if (request.isHttpError)
-                        {
-                            if (setError)
-                            {
-                                ErrorMessage = "Layer '" + innerLayer + "': HttpError, " + request.error;
-                                yield break;
-                            }
-                            break;
-                        }
-                        if (request.result == UnityWebRequest.Result.DataProcessingError)
-                        {
-                            if (setError)
-                            {
-                                ErrorMessage = "Layer '" + innerLayer + "': DataProcessingError, " + request.error;
-                                yield break;
-                            }
-                            continue;
-                        }
+
                         var text = request.downloadHandler.text;
                         if (string.IsNullOrWhiteSpace(text))
                         {
                             if (setError)
                             {
-                                ErrorMessage = "Layer '" + innerLayer + "', empty text.";
+                                ErrorMessage = $"Layer '{innerLayer}', empty text.";
                                 yield break;
                             }
                             break;
@@ -633,7 +593,10 @@ namespace com.arpoise.arpoiseapp
                     var request = tuple.Item3;
 
                     var maxWait = request.timeout * 100;
-                    while (!(request.isNetworkError || request.isHttpError)
+                    while (request.result != UnityWebRequest.Result.Success
+                        && request.result != UnityWebRequest.Result.ConnectionError
+                        && request.result != UnityWebRequest.Result.ProtocolError
+                        && request.result != UnityWebRequest.Result.DataProcessingError
                         && !request.isDone && maxWait > 0)
                     {
                         yield return new WaitForSeconds(.01f);
@@ -644,45 +607,29 @@ namespace com.arpoise.arpoiseapp
                     {
                         if (setError)
                         {
-                            ErrorMessage = "Bundle '" + assetBundleUri + "' download timeout.";
+                            ErrorMessage = $"Bundle '{assetBundleUri}' download timeout.";
                             yield break;
                         }
                         continue;
+                    }
+                    if (request.result == UnityWebRequest.Result.ConnectionError
+                        || request.result == UnityWebRequest.Result.ProtocolError
+                        || request.result == UnityWebRequest.Result.DataProcessingError)
+                    {
+                        if (setError)
+                        {
+                            ErrorMessage = $"Bundle '{assetBundleUri}' {request.result}, {request.error}";
+                            yield break;
+                        }
+                        break;
                     }
 
-                    if (request.isNetworkError)
-                    {
-                        if (setError)
-                        {
-                            ErrorMessage = "Bundle '" + assetBundleUri + "': NetworkError, " + request.error;
-                            yield break;
-                        }
-                        continue;
-                    }
-                    if (request.isHttpError)
-                    {
-                        if (setError)
-                        {
-                            ErrorMessage = "Bundle '" + assetBundleUri + "': HttpError, " + request.error;
-                            yield break;
-                        }
-                        continue;
-                    }
-                    if (request.result == UnityWebRequest.Result.DataProcessingError)
-                    {
-                        if (setError)
-                        {
-                            ErrorMessage = "Bundle '" + assetBundleUri + "': DataProcessingError, " + request.error;
-                            yield break;
-                        }
-                        continue;
-                    }
                     var assetBundle = DownloadHandlerAssetBundle.GetContent(request);
                     if (assetBundle == null)
                     {
                         if (setError)
                         {
-                            ErrorMessage = "Bundle '" + assetBundleUri + "',is null.";
+                            ErrorMessage = $"Bundle '{assetBundleUri}' is null.";
                             yield break;
                         }
                         continue;
@@ -739,7 +686,10 @@ namespace com.arpoise.arpoiseapp
                     var request = tuple.Item3;
 
                     var maxWait = request.timeout * 100;
-                    while (!(request.isNetworkError || request.isHttpError)
+                    while (request.result != UnityWebRequest.Result.Success
+                        && request.result != UnityWebRequest.Result.ConnectionError
+                        && request.result != UnityWebRequest.Result.ProtocolError
+                        && request.result != UnityWebRequest.Result.DataProcessingError
                         && !request.isDone && maxWait > 0)
                     {
                         yield return new WaitForSeconds(.01f);
@@ -750,44 +700,29 @@ namespace com.arpoise.arpoiseapp
                     {
                         if (setError)
                         {
-                            ErrorMessage = "Image '" + triggerImageUri + "' download timeout.";
+                            ErrorMessage = $"Image '{triggerImageUri}' download timeout.";
                             yield break;
                         }
                         continue;
                     }
-                    if (request.isNetworkError)
+                    if (request.result == UnityWebRequest.Result.ConnectionError
+                        || request.result == UnityWebRequest.Result.ProtocolError
+                        || request.result == UnityWebRequest.Result.DataProcessingError)
                     {
                         if (setError)
                         {
-                            ErrorMessage = "Image '" + triggerImageUri + "': NetworkError, " + request.error;
+                            ErrorMessage = $"Image '{triggerImageUri}' {request.result}, {request.error}";
                             yield break;
                         }
-                        continue;
+                        break;
                     }
-                    if (request.isHttpError)
-                    {
-                        if (setError)
-                        {
-                            ErrorMessage = "Image '" + triggerImageUri + "': HttpError, " + request.error;
-                            yield break;
-                        }
-                        continue;
-                    }
-                    if (request.result == UnityWebRequest.Result.DataProcessingError)
-                    {
-                        if (setError)
-                        {
-                            ErrorMessage = "Image '" + triggerImageUri + "': DataProcessingError, " + request.error;
-                            yield break;
-                        }
-                        continue;
-                    }
+
                     var texture = DownloadHandlerTexture.GetContent(request);
                     if (texture == null)
                     {
                         if (setError)
                         {
-                            ErrorMessage = "Image '" + triggerImageUri + "', empty texture.";
+                            ErrorMessage = $"Image '{triggerImageUri}', empty texture.";
                             yield break;
                         }
                         continue;

@@ -218,7 +218,7 @@ namespace com.arpoise.arpoiseapp
 
             if (objectToAdd == null)
             {
-                return "Instantiate(" + objectName + ") failed";
+                return $"Instantiate({objectName}) failed";
             }
 
             if ("EvolutionOfFish" == objectName)
@@ -609,13 +609,13 @@ namespace com.arpoise.arpoiseapp
             string assetBundleUrl = poi.BaseUrl;
             if (string.IsNullOrWhiteSpace(assetBundleUrl))
             {
-                return "Poi with id " + poi.id + ", empty asset bundle url";
+                return $"Poi with id {poi.id}, empty asset bundle url";
             }
 
             AssetBundle assetBundle = null;
             if (!AssetBundles.TryGetValue(assetBundleUrl, out assetBundle))
             {
-                return "?: '" + assetBundleUrl + "'";
+                return $"Missing asset bundle '{assetBundleUrl}'.";
             }
 
             string objectName = poi.GameObjectName;
@@ -627,7 +627,7 @@ namespace com.arpoise.arpoiseapp
             var objectToAdd = assetBundle.LoadAsset<GameObject>(objectName);
             if (objectToAdd == null)
             {
-                return "Poi with id " + poi.id + ", unknown game object: '" + objectName + "'";
+                return $"Poi with id {poi.id}, unknown game object: '{objectName}'";
             }
 
             var triggerImageURL = poi.TriggerImageURL;
@@ -641,7 +641,7 @@ namespace com.arpoise.arpoiseapp
                     {
                         if (!isSlamUrl)
                         {
-                            return "?t " + triggerImageURL;
+                            return $"Missing trigger image '{triggerImageURL}'.";
                         }
                     }
 
