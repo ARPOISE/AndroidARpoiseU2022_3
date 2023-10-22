@@ -273,6 +273,24 @@ namespace com.arpoise.arpoiseapp
                     //Console.WriteLine("----> arpoiseObjectRain is null");
                 }
             }
+            if (objectName != null && objectName.Contains(nameof(ArpoiseVeraPlastica)))
+            {
+                var arpoiseVeraPlastica = objectToAdd.GetComponent<ArpoiseVeraPlastica>();
+                if (arpoiseVeraPlastica != null)
+                {
+                    arpoiseVeraPlastica.ArBehavior = this;
+                    //Console.WriteLine("----> arpoiseVeraPlastica is not null");
+                    foreach (var action in poi.actions)
+                    {
+                        //Console.WriteLine($"----> arpoiseVeraPlastica parameter setValue {action.showActivity}, '{action.label.Trim()}' is '{action.activityMessage}'");
+                        arpoiseVeraPlastica.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                    }
+                }
+                else
+                {
+                    //Console.WriteLine("----> arpoiseObjectRain is null");
+                }
+            }
 
             // All objects are below the scene anchor or the parent, or a child of the camera
             var parentTransform = poi?.title is not null && poi.title.Contains("CameraChild") ? ArCamera.transform : parentObjectTransform;

@@ -33,13 +33,21 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using UnityEngine;
 
 namespace com.arpoise.arpoiseapp
 {
+    public interface IRemoteCallback
+    {
+        public void Set(string tag, string value, DateTime startDateTime, DateTime now);
+    }
+
     public class ArBehaviourMultiUser : MonoBehaviour
     {
+        public const string AnimationTag = "Animation";
+        public const string LockTag = "Lock";
+        public const string VeraPlasticTag = "VePl";
+
         protected long StartTicks = 0;
         public ArObjectState ArObjectState { get; protected set; }
 
@@ -57,72 +65,96 @@ namespace com.arpoise.arpoiseapp
             }
         }
 
+        protected DateTime ConnectionStart { get; private set; }
+
         protected long CurrentSecond { get; private set; }
 
         protected virtual void Start()
         {
         }
 
-        private byte[] _readBuffer = new byte[2048];
+        private byte[] _readBuffer = new byte[32 * 1024];
         private int _nRead = 0;
 
         private void Receive(ref TcpClient tcpClient, ref NetworkStream netStream)
         {
-            if (tcpClient == null || netStream == null)
+            var socket = tcpClient?.Client;
+            if (socket == null || netStream == null)
             {
                 return;
             }
 
-            var socket = tcpClient.Client;
-            if (socket != null)
+            for (; ; )
             {
-                for (; ; )
+                int length = 0;
+                if (_nRead >= 2)
                 {
-                    int length = 0;
-                    if (_nRead >= 2)
+                    length = _readBuffer[0] * 0x100 + _readBuffer[1];
+                    if (length < 8)
                     {
-                        length = _readBuffer[0] * 0xff;
-                        length += _readBuffer[1];
-
-                        if (length < 8)
-                        {
-                            netStream.Close();
-                            netStream = null;
-                            tcpClient.Close();
-                            tcpClient = null;
-                            return;
-                        }
+                        netStream.Close();
+                        netStream = null;
+                        tcpClient.Close();
+                        tcpClient = null;
+                        return;
                     }
+                }
 
-                    if (length > 0 && length + 2 <= _nRead)
+                if (length > 0 && length + 2 <= _nRead)
+                {
+                    byte[] bytes = new byte[length - 8];
+                    Array.Copy(_readBuffer, 10, bytes, 0, bytes.Length);
+                    var message = Encoding.ASCII.GetString(bytes);
+                    AddMessage(message);
+
+                    if (_nRead > length + 2)
                     {
-                        byte[] bytes = new byte[length - 8];
-                        Array.Copy(_readBuffer, 10, bytes, 0, bytes.Length);
-                        var message = Encoding.ASCII.GetString(bytes);
-                        AddMessage(message);
-
-                        if (_nRead > length + 2)
-                        {
-                            byte[] newBuffer = new byte[2048];
-                            Array.Copy(_readBuffer, length + 2, newBuffer, 0, _nRead - length + 2);
-                            _nRead -= length + 2;
-                            _readBuffer = newBuffer;
-                        }
-                        else
-                        {
-                            _nRead = 0;
-                        }
-                        continue;
+                        byte[] newBuffer = new byte[32 * 1024];
+                        Array.Copy(_readBuffer, length + 2, newBuffer, 0, _nRead - length + 2);
+                        _nRead -= length + 2;
+                        _readBuffer = newBuffer;
                     }
+                    else
+                    {
+                        _nRead = 0;
+                    }
+                    continue;
+                }
 
-                    List<Socket> readList = new List<Socket>();
-                    List<Socket> errorList = new List<Socket>();
-                    readList.Add(socket);
-                    errorList.Add(socket);
+                List<Socket> readList = new List<Socket>();
+                List<Socket> errorList = new List<Socket>();
+                readList.Add(socket);
+                errorList.Add(socket);
 
+                try
+                {
+                    Socket.Select(readList, null, errorList, 1);
+                }
+                catch (Exception)
+                {
+                    netStream.Close();
+                    netStream = null;
+                    tcpClient.Close();
+                    tcpClient = null;
+                    return;
+                }
+                if (errorList.Count > 0)
+                {
+                    netStream.Close();
+                    netStream = null;
+                    tcpClient.Close();
+                    tcpClient = null;
+                    return;
+                }
+                if (readList.Count > 0)
+                {
                     try
                     {
-                        Socket.Select(readList, null, errorList, 1);
+                        var rc = netStream.Read(_readBuffer, _nRead, _readBuffer.Length - _nRead);
+                        if (rc > 0)
+                        {
+                            _nRead += rc;
+                        }
                     }
                     catch (Exception)
                     {
@@ -130,37 +162,10 @@ namespace com.arpoise.arpoiseapp
                         netStream = null;
                         tcpClient.Close();
                         tcpClient = null;
-                        return;
                     }
-                    if (errorList.Count > 0)
-                    {
-                        netStream.Close();
-                        netStream = null;
-                        tcpClient.Close();
-                        tcpClient = null;
-                        return;
-                    }
-                    if (readList.Count > 0)
-                    {
-                        try
-                        {
-                            var rc = netStream.Read(_readBuffer, _nRead, _readBuffer.Length - _nRead);
-                            if (rc > 0)
-                            {
-                                _nRead += rc;
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            netStream.Close();
-                            netStream = null;
-                            tcpClient.Close();
-                            tcpClient = null;
-                        }
-                        continue;
-                    }
-                    break;
+                    continue;
                 }
+                break;
             }
         }
 
@@ -171,7 +176,7 @@ namespace com.arpoise.arpoiseapp
             byte[] bytes = new byte[dataBytes.Length + 10];
             var length = bytes.Length - 2;
 
-            bytes[i++] = (byte)(length / 0xff);
+            bytes[i++] = (byte)(length / 0x100);
             bytes[i++] = (byte)length;
 
             bytes[i++] = 1; // Protocol version 
@@ -189,7 +194,7 @@ namespace com.arpoise.arpoiseapp
             }
 
             var port = ipEndPoint.Port;
-            bytes[i++] = (byte)(port / 0xff);
+            bytes[i++] = (byte)(port / 0x100);
             bytes[i++] = (byte)port;
 
             for (int l = 0; l < dataBytes.Length; l++)
@@ -213,7 +218,7 @@ namespace com.arpoise.arpoiseapp
             return true;
         }
 
-        public bool SendToRemote(string animationName)
+        public bool SendToRemote(string tag, string value)
         {
             if (_tcpClient == null || _netStream == null || _clientId == null || _sceneId == null || _connectionId == null)
             {
@@ -236,12 +241,22 @@ namespace com.arpoise.arpoiseapp
             sb.Append('\0');
             sb.Append("0");
             sb.Append('\0');
-            sb.Append("Animation");
+            sb.Append(tag);
             sb.Append('\0');
-            sb.Append(animationName);
+            sb.Append(value);
             sb.Append('\0');
 
             return Send(ref _tcpClient, ref _netStream, sb.ToString());
+        }
+
+        public bool SendAnimationToRemote(string name)
+        {
+            return SendToRemote(AnimationTag, name);
+        }
+
+        public void CallUpdate()
+        {
+            Update();
         }
 
         protected virtual void Update()
@@ -296,11 +311,11 @@ namespace com.arpoise.arpoiseapp
 
                 if (_clientId == null || _sceneId == null || _connectionId == null)
                 {
-                    if (parts.Length < 1 || !"AN".Equals(parts[0]))
+                    if (parts.Length < 1 || "AN" != parts[0])
                     {
                         continue;
                     }
-                    if (parts.Length < 2 || !"0".Equals(parts[1]))
+                    if (parts.Length < 2 || "0" !=parts[1])
                     {
                         continue;
                     }
@@ -308,21 +323,21 @@ namespace com.arpoise.arpoiseapp
                     {
                         continue;
                     }
-                    if (parts.Length < 4 || !"HI".Equals(parts[3]))
+                    if (parts.Length < 4 || "HI" != parts[3])
                     {
                         continue;
                     }
                     for (int i = 4; i < parts.Length - 1; i++)
                     {
-                        if ("CLID".Equals(parts[i]))
+                        if ("CLID" == parts[i])
                         {
                             _clientId = parts[++i];
                         }
-                        else if ("NNM".Equals(parts[i]) && !parts[++i].Equals(_name))
+                        else if ("NNM" == parts[i] && parts[++i] != _name)
                         {
                             break;
                         }
-                        else if ("SCID".Equals(parts[i]))
+                        else if ("SCID" == parts[i])
                         {
                             _sceneId = parts[++i];
                         }
@@ -333,19 +348,24 @@ namespace com.arpoise.arpoiseapp
                         continue;
                     }
                     _connectionId = parts[2];
+                    ConnectionStart = DateTime.Now;
+                    if (_callback != null)
+                    {
+                        _callback.Set(string.Empty, string.Empty, ConnectionStart, DateTime.Now);
+                    }
                     continue;
                 }
-                if ("AN".Equals(parts[0]))
+                if ("AN" == parts[0])
                 {
                     continue;
                 }
-                if ("RQ".Equals(parts[0]))
+                if ("RQ" == parts[0])
                 {
                     if (parts.Length < 4)
                     {
                         continue;
                     }
-                    if ("PING".Equals(parts[3]))
+                    if ("PING" == parts[3])
                     {
                         var sb = new StringBuilder();
                         sb.Append("AN");
@@ -360,27 +380,38 @@ namespace com.arpoise.arpoiseapp
                         Send(ref _tcpClient, ref _netStream, sb.ToString());
                         continue;
                     }
-                    if ("SET".Equals(parts[3]))
+                    if ("SET" == parts[3])
                     {
-                        string animationName = string.Empty;
+                        string tag = string.Empty;
+                        string value = string.Empty;
 
                         for (int i = 4; i < parts.Length - 1; i++)
                         {
-                            if ("SCID".Equals(parts[i]) && !parts[++i].Equals(_sceneId))
+                            if ("SCID" == parts[i] && parts[++i] != _sceneId)
                             {
                                 break;
                             }
-                            else if ("Animation".Equals(parts[i]))
+                            else if (AnimationTag == parts[i])
                             {
-                                animationName = parts[++i];
+                                value = parts[++i];
+                                break;
+                            }
+                            else if (LockTag == parts[i] || VeraPlasticTag == parts[i])
+                            {
+                                tag = parts[i];
+                                value = parts[++i];
                                 break;
                             }
                         }
 
                         var arObjectState = ArObjectState;
-                        if (arObjectState != null && !string.IsNullOrWhiteSpace(animationName))
+                        if (arObjectState != null && !string.IsNullOrWhiteSpace(value))
                         {
-                            arObjectState.RemoteActivate(animationName, StartTicks, NowTicks);
+                            arObjectState.RemoteActivate(value, StartTicks, NowTicks);
+                        }
+                        if (_callback != null && !string.IsNullOrWhiteSpace(value))
+                        {
+                            _callback.Set(tag, value, ConnectionStart, DateTime.Now);
                         }
                     }
                     if (parts.Length > 3)
@@ -415,6 +446,14 @@ namespace com.arpoise.arpoiseapp
         private string _sceneId;
         private string _connectionId;
         private int _packetId;
+
+        public bool IsRemotingActivated { get { return !string.IsNullOrWhiteSpace(_url); } }
+
+        private IRemoteCallback _callback;
+        public void SetRemoteCallback(IRemoteCallback callback)
+        {
+            _callback = callback;
+        }
 
         public void SetRemoteServerUrl(string url, string sceneUrl, string sceneName)
         {
@@ -459,6 +498,7 @@ namespace com.arpoise.arpoiseapp
             _clientId = null;
             _sceneId = null;
             _connectionId = null;
+            ConnectionStart = DateTime.MinValue;
             _lastSendTime = DateTime.MinValue;
             _url = null;
             if (string.IsNullOrWhiteSpace(url))
@@ -522,7 +562,7 @@ namespace com.arpoise.arpoiseapp
                 _tcpClient = new TcpClient(_hostName, _port);
                 _netStream = _tcpClient.GetStream();
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 if (_netStream != null)
                 {
@@ -583,6 +623,39 @@ namespace com.arpoise.arpoiseapp
                 return result;
             }
             return null;
+        }
+
+        private const string _b64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        public static byte ToBase64(int i)
+        {
+            return (byte)_b64Chars[Math.Abs(i) % 64];
+        }
+
+        public static int FromBase64(char c)
+        {
+            if (c >= 'A' && c <= 'Z')
+            {
+                return c - 'A';
+            }
+            if (c >= 'a' && c <= 'z')
+            {
+                return 26 + c - 'a';
+            }
+            if (c >= '0' && c <= '9')
+            {
+                return 52 + c - '0';
+            }
+            if (c == '+')
+            {
+                return 62;
+            }
+            return 63;
+        }
+
+        private static System.Random _random = new System.Random((int)DateTime.Now.Ticks);
+        public static string RandomString(int length)
+        {
+            return new string(Enumerable.Range(1, length).Select(_ => _b64Chars[_random.Next(_b64Chars.Length)]).ToArray());
         }
     }
 }

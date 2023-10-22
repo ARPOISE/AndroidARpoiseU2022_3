@@ -44,7 +44,7 @@ namespace com.arpoise.arpoiseapp
 {
     public interface IArpoiseBehaviour
     {
-        bool SendToRemote(string animationName);
+        bool SendAnimationToRemote(string animationName);
         float? DurationStretchFactor { get; }
         void TimeSync();
     }

@@ -151,7 +151,6 @@ public class ArpoiseObjectRain : MonoBehaviour
         return defaultValue;
     }
 
-
     private readonly List<GameObject> _rainObjects = new List<GameObject>();
     private readonly List<GameObject> _instantiatedRainObjects = new List<GameObject>();
     private readonly List<GameObject> _instantiatedClickObjects = new List<GameObject>();

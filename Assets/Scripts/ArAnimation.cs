@@ -183,7 +183,7 @@ namespace com.arpoise.arpoiseapp
         {
             if (!isRemote && _behaviour != null && !string.IsNullOrWhiteSpace(Name) && Name.Contains("Remoted"))
             {
-                if (_behaviour.SendToRemote(Name))
+                if (_behaviour.SendAnimationToRemote(Name))
                 {
                     return;
                 }
