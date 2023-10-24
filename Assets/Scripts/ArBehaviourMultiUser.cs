@@ -453,6 +453,10 @@ namespace com.arpoise.arpoiseapp
         public void SetRemoteCallback(IRemoteCallback callback)
         {
             _callback = callback;
+            if (_callback != null && ConnectionStart != DateTime.MinValue)
+            {
+                _callback.Set(string.Empty, string.Empty, ConnectionStart, DateTime.Now);
+            }
         }
 
         public void SetRemoteServerUrl(string url, string sceneUrl, string sceneName)
