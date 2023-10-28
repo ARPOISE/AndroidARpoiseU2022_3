@@ -229,55 +229,55 @@ public class AbEvolutionOfFish : ArFlock
     {
         if (label.Equals(nameof(NumberOfFish)))
         {
-            _numberOfFish = SetParameter(setValue, value, (int?)null);
+            _numberOfFish = ParameterHelper.SetParameter(setValue, value, (int?)null);
         }
         else if (label.Equals(nameof(ToForward)))
         {
-            _toForward = SetParameter(setValue, value, (float?)null);
+            _toForward = ParameterHelper.SetParameter(setValue, value, (float?)null);
         }
         else if (label.Equals(nameof(FromForward)))
         {
-            _fromForward = SetParameter(setValue, value, (float?)null);
+            _fromForward = ParameterHelper.SetParameter(setValue, value, (float?)null);
         }
         else if (label.Equals(nameof(ToRight)))
         {
-            _toRight = SetParameter(setValue, value, (float?)null);
+            _toRight = ParameterHelper.SetParameter(setValue, value, (float?)null);
         }
         else if (label.Equals(nameof(CycleDurationForward)))
         {
-            _cycleDurationForward = SetParameter(setValue, value, (float?)null);
+            _cycleDurationForward = ParameterHelper.SetParameter(setValue, value, (float?)null);
         }
         else if (label.Equals(nameof(CycleDurationRight)))
         {
-            _cycleDurationRight = SetParameter(setValue, value, (float?)null);
+            _cycleDurationRight = ParameterHelper.SetParameter(setValue, value, (float?)null);
         }
         else if (label.Equals(nameof(GoalPositionX)))
         {
-            _goalPositionX = SetParameter(setValue, value, (float?)null);
+            _goalPositionX = ParameterHelper.SetParameter(setValue, value, (float?)null);
         }
         else if (label.Equals(nameof(MovementThreshold)))
         {
-            _movementThreshold = SetParameter(setValue, value, (float?)null);
+            _movementThreshold = ParameterHelper.SetParameter(setValue, value, (float?)null);
         }
         else if (label.Equals(nameof(MovementFactor)))
         {
-            _movementFactor = SetParameter(setValue, value, (float?)null);
+            _movementFactor = ParameterHelper.SetParameter(setValue, value, (float?)null);
         }
         else if (label.Equals(nameof(SwimLimitX)))
         {
-            _swimLimitX = SetParameter(setValue, value, (int?)null);
+            _swimLimitX = ParameterHelper.SetParameter(setValue, value, (int?)null);
         }
         else if (label.Equals(nameof(SwimLimitY)))
         {
-            _swimLimitY = SetParameter(setValue, value, (int?)null);
+            _swimLimitY = ParameterHelper.SetParameter(setValue, value, (int?)null);
         }
         else if (label.Equals(nameof(SwimLimitZ)))
         {
-            _swimLimitZ = SetParameter(setValue, value, (int?)null);
+            _swimLimitZ = ParameterHelper.SetParameter(setValue, value, (int?)null);
         }
         else if (label.Equals(nameof(Percentage)))
         {
-            _percentage = SetParameter(setValue, value, (int?)null);
+            _percentage = ParameterHelper.SetParameter(setValue, value, (int?)null);
         }
         else
         {

@@ -531,7 +531,8 @@ namespace com.arpoise.arpoiseapp
             nameof(ApplicationSleepInterval),
             nameof(AllowTakeScreenshot),
             nameof(RemoteServerUrl),
-            nameof(SceneUrl)
+            nameof(SceneUrl),
+            nameof(MaximumActiveTriggerObjects)
         });
 
         [NonSerialized]
@@ -616,7 +617,7 @@ namespace com.arpoise.arpoiseapp
                     }
                     //Console.WriteLine($"----> AudioSpatialBlend is {_audioSpatialBlend}");
                 }
-                return _audioSpatialBlend.Value >= 0 ?_audioSpatialBlend.Value : null;
+                return _audioSpatialBlend.Value >= 0 ? _audioSpatialBlend.Value : null;
             }
         }
 
@@ -640,7 +641,7 @@ namespace com.arpoise.arpoiseapp
                     }
                     //Console.WriteLine($"----> AudioSpatialize is {_audioSpatialize}");
                 }
-                return _audioSpatialize.Value >= 0 ?_audioSpatialize.Value == 1 : null;
+                return _audioSpatialize.Value >= 0 ? _audioSpatialize.Value == 1 : null;
             }
         }
 
@@ -757,6 +758,29 @@ namespace com.arpoise.arpoiseapp
                     //Console.WriteLine($"----> AllowTakeScreenshot is {_allowTakeScreenshot}");
                 }
                 return _allowTakeScreenshot.Value;
+            }
+        }
+
+        [NonSerialized]
+        private int? _maximumActiveTriggerObjects;
+        public int MaximumActiveTriggerObjects // Layer ActionLabel
+        {
+            get
+            {
+                if (_maximumActiveTriggerObjects == null)
+                {
+                    _maximumActiveTriggerObjects = -1;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(MaximumActiveTriggerObjects).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        int value;
+                        if (int.TryParse(action.activityMessage.Trim(), out value))
+                        {
+                            _maximumActiveTriggerObjects = value;
+                        }
+                    }
+                }
+                return _maximumActiveTriggerObjects.Value;
             }
         }
 

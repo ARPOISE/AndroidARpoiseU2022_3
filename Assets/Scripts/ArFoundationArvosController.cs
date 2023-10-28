@@ -353,6 +353,15 @@ public class ArFoundationArvosController : ArBehaviourSlam
                     triggerObject.gameObject.SetActive(false);
                     continue;
                 }
+                var maximumActiveTriggerObjects = triggerObject?.poi?.ArLayer?.MaximumActiveTriggerObjects;
+                if (maximumActiveTriggerObjects.HasValue && maximumActiveTriggerObjects.Value >= 0)
+                {
+                    var activeTriggerObjectCount = _imageVisualizers.Values.Count(x => x.gameObject != null && x.gameObject.activeSelf);
+                    if (activeTriggerObjectCount >= maximumActiveTriggerObjects.Value)
+                    {
+                        continue;
+                    }
+                }
 
                 visualizer = Instantiate(ArvosVisualizer, image.transform.position, image.transform.rotation);
                 visualizer.Image = image;
@@ -375,6 +384,15 @@ public class ArFoundationArvosController : ArBehaviourSlam
                 visualizer.TriggerObject.LastUpdateTime = DateTime.Now;
                 if (!visualizer.gameObject.activeSelf)
                 {
+                    var maximumActiveTriggerObjects = visualizer?.TriggerObject?.poi?.ArLayer?.MaximumActiveTriggerObjects;
+                    if (maximumActiveTriggerObjects.HasValue && maximumActiveTriggerObjects.Value >= 0)
+                    {
+                        var activeTriggerObjectCount = _imageVisualizers.Values.Count(x => x.gameObject != null && x.gameObject.activeSelf);
+                        if (activeTriggerObjectCount >= maximumActiveTriggerObjects.Value)
+                        {
+                            continue;
+                        }
+                    }
                     visualizer.gameObject.SetActive(true);
                 }
             }

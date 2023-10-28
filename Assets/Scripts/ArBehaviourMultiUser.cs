@@ -315,7 +315,7 @@ namespace com.arpoise.arpoiseapp
                     {
                         continue;
                     }
-                    if (parts.Length < 2 || "0" !=parts[1])
+                    if (parts.Length < 2 || "0" != parts[1])
                     {
                         continue;
                     }
@@ -349,10 +349,7 @@ namespace com.arpoise.arpoiseapp
                     }
                     _connectionId = parts[2];
                     ConnectionStart = DateTime.Now;
-                    if (_callback != null)
-                    {
-                        _callback.Set(string.Empty, string.Empty, ConnectionStart, DateTime.Now);
-                    }
+                    _callbacks.ForEach(x => x.Set(string.Empty, string.Empty, ConnectionStart, DateTime.Now));
                     continue;
                 }
                 if ("AN" == parts[0])
@@ -409,9 +406,9 @@ namespace com.arpoise.arpoiseapp
                         {
                             arObjectState.RemoteActivate(value, StartTicks, NowTicks);
                         }
-                        if (_callback != null && !string.IsNullOrWhiteSpace(value))
+                        if (!string.IsNullOrWhiteSpace(value))
                         {
-                            _callback.Set(tag, value, ConnectionStart, DateTime.Now);
+                            _callbacks.ForEach(x => x.Set(tag, value, ConnectionStart, DateTime.Now));
                         }
                     }
                     if (parts.Length > 3)
@@ -449,13 +446,16 @@ namespace com.arpoise.arpoiseapp
 
         public bool IsRemotingActivated { get { return !string.IsNullOrWhiteSpace(_url); } }
 
-        private IRemoteCallback _callback;
+        private List<IRemoteCallback> _callbacks = new List<IRemoteCallback>();
         public void SetRemoteCallback(IRemoteCallback callback)
         {
-            _callback = callback;
-            if (_callback != null && ConnectionStart != DateTime.MinValue)
+            if (callback != null && !_callbacks.Contains(callback))
             {
-                _callback.Set(string.Empty, string.Empty, ConnectionStart, DateTime.Now);
+                _callbacks.Add(callback);
+                if (ConnectionStart != DateTime.MinValue)
+                {
+                    callback.Set(string.Empty, string.Empty, ConnectionStart, DateTime.Now);
+                }
             }
         }
 

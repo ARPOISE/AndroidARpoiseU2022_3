@@ -172,6 +172,105 @@ namespace com.arpoise.arpoiseapp
         private int _abEvolutionOfFishIndex = 0;
         private int _bleachingValue = -1;
 
+        // There are a number of scripts used by prefabs that the app has compiled in, load them
+        private void GetPrefabScriptComponents(GameObject objectToAdd, Poi poi)
+        {
+            var objectName = objectToAdd.name;
+            if (objectName == null)
+            {
+                return;
+            }
+            if ("EvolutionOfFish" == objectName)
+            {
+                var evolutionOfFish = objectToAdd.GetComponent<EvolutionOfFish>();
+                if (evolutionOfFish != null)
+                {
+                    evolutionOfFish.ArCamera = ArCamera;
+                }
+            }
+
+            if (objectName.Contains(nameof(AbEvolutionOfFish)) || objectName.Contains("AB_EvolutionOfFish"))
+            {
+                var evolutionOfFish = objectToAdd.GetComponent<AbEvolutionOfFish>();
+                if (evolutionOfFish != null)
+                {
+                    evolutionOfFish.Index = _abEvolutionOfFishIndex++ % 2;
+                    evolutionOfFish.ArCamera = ArCamera;
+
+                    foreach (var action in poi.actions)
+                    {
+                        evolutionOfFish.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                    }
+                }
+            }
+            if (objectName.Contains(nameof(ArpoiseObjectRain)))
+            {
+                var arpoiseObjectRain = objectToAdd.GetComponent<ArpoiseObjectRain>();
+                if (arpoiseObjectRain != null)
+                {
+                    foreach (var action in poi.actions)
+                    {
+                        arpoiseObjectRain.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                    }
+                }
+            }
+            if (objectName.Contains(nameof(ArpoiseVeraPlastica)))
+            {
+                var arpoiseVeraPlastica = objectToAdd.GetComponent<ArpoiseVeraPlastica>();
+                if (arpoiseVeraPlastica != null)
+                {
+                    arpoiseVeraPlastica.ArBehavior = this;
+                    foreach (var action in poi.actions)
+                    {
+                        arpoiseVeraPlastica.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                    }
+                }
+            }
+            if (objectName.Contains(nameof(CurrentBlendShapeLoop)))
+            {
+                var currentBlendShapeLoop = objectToAdd.GetComponent<CurrentBlendShapeLoop>();
+                if (currentBlendShapeLoop != null)
+                {
+                    currentBlendShapeLoop.SkinnedMeshRenderer = objectToAdd.GetComponent<SkinnedMeshRenderer>();
+                    currentBlendShapeLoop.SkinnedMesh = objectToAdd.GetComponent<SkinnedMeshRenderer>().sharedMesh;
+                    foreach (var action in poi.actions)
+                    {
+                        currentBlendShapeLoop.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                    }
+                }
+            }
+            if (objectName.Contains(nameof(CurrentSwarm)))
+            {
+                objectToAdd.GetComponent<CurrentSwarm>();
+            }
+            if (objectName.Contains(nameof(CurrentAnimatedTexture)))
+            {
+                var currentAnimatedTexture = objectToAdd.GetComponent<CurrentAnimatedTexture>();
+                if (currentAnimatedTexture != null)
+                {
+                    foreach (var action in poi.actions)
+                    {
+                        currentAnimatedTexture.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                    }
+                }
+                for (int i = 0; i < objectToAdd.transform.childCount; i++)
+                {
+                    var child = objectToAdd.transform.GetChild(i);
+                    if (child != null && child.name != null && child.name.Contains(nameof(CurrentAnimatedTexture)))
+                    {
+                        currentAnimatedTexture = child.GetComponent<CurrentAnimatedTexture>();
+                        if (currentAnimatedTexture != null)
+                        {
+                            foreach (var action in poi.actions)
+                            {
+                                currentAnimatedTexture.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Create ar object for a poi and link it
         public string CreateArObject(
             ArObjectState arObjectState,
@@ -184,7 +283,6 @@ namespace com.arpoise.arpoiseapp
             )
         {
             createdObject = null;
-            var objectName = objectToAdd.name;
 
             // Create a copy of the object
             if (string.IsNullOrWhiteSpace(poi.LindenmayerString))
@@ -215,82 +313,13 @@ namespace com.arpoise.arpoiseapp
                     parentObjectTransform
                     );
             }
-
             if (objectToAdd == null)
             {
-                return $"Instantiate({objectName}) failed";
+                return $"Instantiate({objectToAdd.name}) failed";
             }
 
-            if ("EvolutionOfFish" == objectName)
-            {
-                var evolutionOfFish = objectToAdd.GetComponent<EvolutionOfFish>();
-                if (evolutionOfFish != null)
-                {
-                    //Console.WriteLine("----> EvolutionOfFish is not null");
-                    evolutionOfFish.ArCamera = ArCamera;
-                }
-                else
-                {
-                    //Console.WriteLine("----> EvolutionOfFish is null");
-                }
-            }
-            else if ("AB_EvolutionOfFish" == objectName)
-            {
-                var evolutionOfFish = objectToAdd.GetComponent<AbEvolutionOfFish>();
-                if (evolutionOfFish != null)
-                {
-                    //Console.WriteLine("----> AB_EvolutionOfFish is not null");
-
-                    evolutionOfFish.Index = _abEvolutionOfFishIndex++ % 2;
-                    evolutionOfFish.ArCamera = ArCamera;
-
-                    foreach (var action in poi.actions)
-                    {
-                        //Console.WriteLine($"----> AB_EvolutionOfFish parameter setValue {action.showActivity}, '{action.label.Trim()}' is '{action.activityMessage}'");
-                        evolutionOfFish.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
-                    }
-                }
-                else
-                {
-                    //Console.WriteLine("----> AB_EvolutionOfFish is null");
-                }
-            }
-
-            if (objectName != null && objectName.Contains(nameof(ArpoiseObjectRain)))
-            {
-                var arpoiseObjectRain = objectToAdd.GetComponent<ArpoiseObjectRain>();
-                if (arpoiseObjectRain != null)
-                {
-                    //Console.WriteLine("----> arpoiseObjectRain is not null");
-                    foreach (var action in poi.actions)
-                    {
-                        //Console.WriteLine($"----> arpoiseObjectRain parameter setValue {action.showActivity}, '{action.label.Trim()}' is '{action.activityMessage}'");
-                        arpoiseObjectRain.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
-                    }
-                }
-                else
-                {
-                    //Console.WriteLine("----> arpoiseObjectRain is null");
-                }
-            }
-            if (objectName != null && objectName.Contains(nameof(ArpoiseVeraPlastica)))
-            {
-                var arpoiseVeraPlastica = objectToAdd.GetComponent<ArpoiseVeraPlastica>();
-                if (arpoiseVeraPlastica != null)
-                {
-                    arpoiseVeraPlastica.ArBehavior = this;
-                    //Console.WriteLine("----> arpoiseVeraPlastica is not null");
-                    foreach (var action in poi.actions)
-                    {
-                        //Console.WriteLine($"----> arpoiseVeraPlastica parameter setValue {action.showActivity}, '{action.label.Trim()}' is '{action.activityMessage}'");
-                        arpoiseVeraPlastica.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
-                    }
-                }
-                else
-                {
-                    //Console.WriteLine("----> arpoiseObjectRain is null");
-                }
-            }
+            // Load script components that are not in the prefab, but are compiled into the app
+            GetPrefabScriptComponents(objectToAdd, poi);
 
             // All objects are below the scene anchor or the parent, or a child of the camera
             var parentTransform = poi?.title is not null && poi.title.Contains("CameraChild") ? ArCamera.transform : parentObjectTransform;

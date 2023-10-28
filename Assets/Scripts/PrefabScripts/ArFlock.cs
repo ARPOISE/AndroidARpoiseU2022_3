@@ -89,58 +89,32 @@ public class ArFlock : MonoBehaviour
     {
         if (label.Equals(nameof(NeighbourDistance)))
         {
-            _neighbourDistance = SetParameter(setValue, value, (float?)null);
+            _neighbourDistance = ParameterHelper.SetParameter(setValue, value, (float?)null);
         }
         else if (label.Equals(nameof(MinNeighbourDistance)))
         {
-            _minNeighbourDistance = SetParameter(setValue, value, (float?)null);
+            _minNeighbourDistance = ParameterHelper.SetParameter(setValue, value, (float?)null);
         }
         else if (label.Equals(nameof(SpeedFactor)))
         {
-            _speedFactor = SetParameter(setValue, value, (float?)null).Value;
+            _speedFactor = ParameterHelper.SetParameter(setValue, value, (float?)null).Value;
         }
         else if (label.Equals(nameof(RotationSpeed)))
         {
-            _rotationSpeed = SetParameter(setValue, value, (float?)null).Value;
+            _rotationSpeed = ParameterHelper.SetParameter(setValue, value, (float?)null).Value;
         }
         else if (label.Equals(nameof(ApplyRulesPercentage)))
         {
-            _applyRulesPercentage = SetParameter(setValue, value, (float?)null).Value;
+            _applyRulesPercentage = ParameterHelper.SetParameter(setValue, value, (float?)null).Value;
         }
         else if (label.Equals(nameof(MinimumSpeed)))
         {
-            _minimumSpeed = SetParameter(setValue, value, (float?)null).Value;
+            _minimumSpeed = ParameterHelper.SetParameter(setValue, value, (float?)null).Value;
         }
         else if (label.Equals(nameof(MaximumSpeed)))
         {
-            _maximumSpeed = SetParameter(setValue, value, (float?)null).Value;
+            _maximumSpeed = ParameterHelper.SetParameter(setValue, value, (float?)null).Value;
         }
-    }
-
-    protected int? SetParameter(bool setValue, string value, int? defaultValue)
-    {
-        if (setValue && !string.IsNullOrWhiteSpace(value))
-        {
-            int intValue;
-            if (int.TryParse(value, out intValue))
-            {
-                return intValue;
-            }
-        }
-        return defaultValue;
-    }
-
-    protected float? SetParameter(bool setValue, string value, float? defaultValue)
-    {
-        if (setValue && !string.IsNullOrWhiteSpace(value))
-        {
-            float floatValue;
-            if (float.TryParse(value, out floatValue))
-            {
-                return floatValue;
-            }
-        }
-        return defaultValue;
     }
     #endregion
 
