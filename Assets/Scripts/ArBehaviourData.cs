@@ -131,7 +131,7 @@ namespace com.arpoise.arpoiseapp
         private readonly string _clientApplicationName = ArpoiseApplicationName;
 #endif
         private string _os = "Android";
-        private readonly string _bundle = "20231028";
+        private readonly string _bundle = "20231029";
 
         #endregion
 
