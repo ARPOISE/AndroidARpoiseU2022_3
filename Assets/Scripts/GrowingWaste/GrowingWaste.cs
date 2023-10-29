@@ -158,8 +158,8 @@ namespace com.arpoise.arpoiseapp.GrowingWaste
                 return;
             }
 
-            var milliSeconds = DateTime.Now.Ticks / 10000;
-            if (milliSeconds - _lastUpdateMilliseconds < 200)
+            var milliseconds = DateTime.Now.Ticks / 10000;
+            if (milliseconds - _lastUpdateMilliseconds < 200)
             {
                 if (_creature != null)
                 {
@@ -192,7 +192,7 @@ namespace com.arpoise.arpoiseapp.GrowingWaste
                 return;
             }
             Year++;
-            _lastUpdateMilliseconds = milliSeconds;
+            _lastUpdateMilliseconds = milliseconds;
             Weights = Creature.Weights;
 
             if (_creature != null)

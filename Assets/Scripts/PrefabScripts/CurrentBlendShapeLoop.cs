@@ -40,18 +40,17 @@ public class CurrentBlendShapeLoop : MonoBehaviour
         }
     }
 
-    private long _lastMilliSecond;
+    private DateTime _lastUpdateDate = DateTime.MinValue;
     // Update is called once per frame
     void Update()
     {
         if (FramesPerSecond > 0)
         {
-            long milliSecond = DateTime.Now.Ticks / 10000 - _dateAtStart.Ticks / 10000;
-            if (milliSecond - _lastMilliSecond < 1000f / FramesPerSecond)
+            if ((DateTime.Now - _lastUpdateDate).TotalMilliseconds < 1000f / FramesPerSecond)
             {
                 return;
             }
-            _lastMilliSecond = milliSecond;
+            _lastUpdateDate = DateTime.Now;
         }
 
         if (_playIndex > 0)

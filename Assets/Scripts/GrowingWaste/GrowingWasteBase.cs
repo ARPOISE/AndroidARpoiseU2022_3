@@ -151,12 +151,12 @@ namespace com.arpoise.arpoiseapp.GrowingWaste
 
             for (KeepAlive = 1000; KeepAlive > 0; KeepAlive -= 1)
             {
-                var milliSeconds = DateTime.Now.Ticks / 10000;
-                if (milliSeconds - _backendLastUpdateMilliseconds < 90)
+                var milliseconds = DateTime.Now.Ticks / 10000;
+                if (milliseconds - _backendLastUpdateMilliseconds < 90)
                 {
                     yield return new WaitForSeconds(.01f);
                 }
-                _backendLastUpdateMilliseconds = milliSeconds;
+                _backendLastUpdateMilliseconds = milliseconds;
 
                 #region Update
                 {

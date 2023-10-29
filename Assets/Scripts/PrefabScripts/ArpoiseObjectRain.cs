@@ -156,11 +156,11 @@ public class ArpoiseObjectRain : MonoBehaviour
     private readonly List<GameObject> _instantiatedClickObjects = new List<GameObject>();
     private readonly List<GameObject> _instantiatedTapSounds = new List<GameObject>();
     private int _numberOfRainObjects = 0;
-    private long _milliSecondAtStart;
+    private long _millisecondAtStart;
 
     protected void Start()
     {
-        _milliSecondAtStart = DateTime.Now.Ticks / 10000;
+        _millisecondAtStart = DateTime.Now.Ticks / 10000;
 
         foreach (var rainObject in new[] {
             RainObject0, RainObject1, RainObject2, RainObject3, RainObject4,
@@ -241,18 +241,17 @@ public class ArpoiseObjectRain : MonoBehaviour
                 HandleHit(hit, RainObject9, ClickObject9, TapSound9);
             }
         }
-        long milliSecond = DateTime.Now.Ticks / 10000 - _milliSecondAtStart;
-
-        if (milliSecond / 1000 < StartSecond)
+        long millisecond = DateTime.Now.Ticks / 10000 - _millisecondAtStart;
+        if (millisecond / 1000 < StartSecond)
         {
             return;
         }
-        if (milliSecond / 1000 >= EndSecond)
+        if (millisecond / 1000 >= EndSecond)
         {
             return;
         }
 
-        while (_numberOfRainObjects < (milliSecond - StartSecond * 1000) * NumberOfNewRainObjectsPerSecond / 1000)
+        while (_numberOfRainObjects < (millisecond - StartSecond * 1000) * NumberOfNewRainObjectsPerSecond / 1000)
         {
             Vector3 position = new Vector3(
                 UnityEngine.Random.Range(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f + OffsetX,

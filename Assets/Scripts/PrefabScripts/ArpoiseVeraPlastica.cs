@@ -212,13 +212,12 @@ public class ArpoiseVeraPlastica : MonoBehaviour, IRemoteCallback
             return;
         }
 
-        long milliSecond = DateTime.Now.Ticks / 10000 - _dateAtStart.Ticks / 10000;
-
-        if (milliSecond / 1000 < StartSecond)
+        long millisecond = DateTime.Now.Ticks / 10000 - _dateAtStart.Ticks / 10000;
+        if (millisecond / 1000 < StartSecond)
         {
             return;
         }
-        if (EndSecond >= 0 && milliSecond / 1000 > EndSecond)
+        if (EndSecond >= 0 && millisecond / 1000 > EndSecond)
         {
             return;
         }
@@ -227,7 +226,7 @@ public class ArpoiseVeraPlastica : MonoBehaviour, IRemoteCallback
         {
             if (_myLock == _serverLock)
             {
-                var expectedPlastics = (milliSecond - StartSecond * 1000) * NumberOfNewPlasticsPerSecond / 1000f;
+                var expectedPlastics = (millisecond - StartSecond * 1000) * NumberOfNewPlasticsPerSecond / 1000f;
                 if (expectedPlastics < _expectedPlastics)
                 {
                     expectedPlastics = _expectedPlastics;
@@ -268,7 +267,7 @@ public class ArpoiseVeraPlastica : MonoBehaviour, IRemoteCallback
             }
             else
             {
-                var waitMilliseconds = 2000f + UnityEngine.Random.Range(0f, 500f);
+                var waitMilliseconds = WaitMillisecondsDefault + UnityEngine.Random.Range(0f, 500f);
                 if ((DateTime.Now - _connectionStartTime).TotalMilliseconds > waitMilliseconds
                     && (DateTime.Now - _lastSendTime).TotalMilliseconds > waitMilliseconds
                     && (DateTime.Now - _lastReceiveTime).TotalMilliseconds > waitMilliseconds)
@@ -284,6 +283,7 @@ public class ArpoiseVeraPlastica : MonoBehaviour, IRemoteCallback
         }
     }
 
+    public float WaitMillisecondsDefault = 2000f;
     public float RandomOffsetInX = 0.005f; // +/- 5mm random offset + 7cm wide column * 13 columns
     public float ColumnWidth = 0.07f;
     public float RandomColumnIndex = 7f;
@@ -459,6 +459,9 @@ public class ArpoiseVeraPlastica : MonoBehaviour, IRemoteCallback
                 break;
             case nameof(RandomDegreesInZ):
                 RandomDegreesInZ = SetParameter(setValue, value, RandomDegreesInZ).Value;
+                break;
+            case nameof(WaitMillisecondsDefault):
+                WaitMillisecondsDefault = SetParameter(setValue, value, WaitMillisecondsDefault).Value;
                 break;
         }
     }
