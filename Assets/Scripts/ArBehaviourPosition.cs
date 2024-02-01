@@ -53,7 +53,6 @@ namespace com.arpoise.arpoiseapp
     {
         #region Globals
 
-        public GameObject ArCamera = null;
         public string ErrorMessage { get; set; }
         public float RecordingFrameRate = 0;
         #endregion
@@ -70,14 +69,7 @@ namespace com.arpoise.arpoiseapp
         protected const float PositionTolerance = 1.25f;
         protected int AreaSize = 0;
         protected int AreaWidth = 0;
-
-        protected float FilteredLongitude = 0;
-        protected float FilteredLatitude = 0;
         protected bool ApplyKalmanFilter = true;
-
-        protected float? FixedDeviceLatitude = null;
-        protected float? FixedDeviceLongitude = null;
-        
         protected double LocationTimestamp = 0;
         protected float LocationHorizontalAccuracy = 0;
         protected float LocationLongitude = 0;
@@ -87,8 +79,6 @@ namespace com.arpoise.arpoiseapp
         protected DeviceOrientation InitialDeviceOrientation = DeviceOrientation.LandscapeLeft;
 
         public virtual bool InfoPanelIsActive() => false;
-        protected float UsedLatitude => FixedDeviceLatitude.HasValue ? FixedDeviceLatitude.Value : FilteredLatitude;
-        protected float UsedLongitude => FixedDeviceLongitude.HasValue ? FixedDeviceLongitude.Value : FilteredLongitude;
 
         #endregion
 

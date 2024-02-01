@@ -105,8 +105,7 @@ namespace com.arpoise.arpoiseapp
         public const string ArpoiseDirectoryLayer = "Arpoise-Directory";
         public const string ArvosDirectoryLayer = "AR-vos-Directory";
         public const string ArpoiseDirectoryUrl = "www.arpoise.com/cgi-bin/ArpoiseDirectory.cgi";
-        public const string ArvosApplicationName = "Arvos";
-        public const string ArpoiseApplicationName = "Arpoise";
+
         #endregion
         
         #region Globals
@@ -123,25 +122,10 @@ namespace com.arpoise.arpoiseapp
         protected MenuButtonClickActivity MenuButtonClick;
         #endregion
 
-        #region Privates
-
-#if AndroidArvosU2022_3 || iOsArvosU2022_3
-        private readonly string _clientApplicationName = ArvosApplicationName;
-#else
-        private readonly string _clientApplicationName = ArpoiseApplicationName;
-#endif
-        private string _os = "Android";
-        private readonly string _bundle = "20231030";
-
-        #endregion
-
         #region GetData
         // A coroutine retrieving the objects
         protected override IEnumerator GetData()
         {
-#if UNITY_IOS
-            _os = "iOS";
-#endif
             long count = 0;
             string layerName = ArpoiseDirectoryLayer;
             string uri = ArpoiseDirectoryUrl;
@@ -193,9 +177,9 @@ namespace com.arpoise.arpoiseapp
                         + "&layerName=" + layerName
                         + (!string.IsNullOrWhiteSpace(nextPageKey) ? "&pageKey=" + nextPageKey : string.Empty)
                         + "&userId=" + SystemInfo.deviceUniqueIdentifier
-                        + "&client=" + _clientApplicationName
-                        + "&bundle=" + _bundle
-                        + "&os=" + _os
+                        + "&client=" + ApplicationName
+                        + "&bundle=" + Bundle
+                        + "&os=" + OperatingSystem
                         + "&count=" + count
                     ;
 
@@ -459,9 +443,9 @@ namespace com.arpoise.arpoiseapp
                         + "&layerName=" + innerLayer
                         + (!string.IsNullOrWhiteSpace(nextPageKey) ? "&pageKey=" + nextPageKey : string.Empty)
                         + "&userId=" + SystemInfo.deviceUniqueIdentifier
-                        + "&client=" + _clientApplicationName
-                        + "&bundle=" + _bundle
-                        + "&os=" + _os
+                        + "&client=" + ApplicationName
+                        + "&bundle=" + Bundle
+                        + "&os=" + OperatingSystem
                         ;
 
                         url = FixUrl(url);
@@ -740,11 +724,11 @@ namespace com.arpoise.arpoiseapp
                 var layerWithRemoteServerUrl = layers.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.RemoteServerUrl));
                 if (layerWithRemoteServerUrl != null)
                 {
-                    SetRemoteServerUrl(layerWithRemoteServerUrl.RemoteServerUrl, layerWithRemoteServerUrl.SceneUrl, layerTitle);
+                    SetRemoteServerUrl(layerWithRemoteServerUrl.RemoteServerUrl, layerWithRemoteServerUrl.SceneUrl, layerTitle, null);
                 }
                 else
                 {
-                    SetRemoteServerUrl(null, null, null);
+                    SetRemoteServerUrl(null, null, null, null);
                 }
                 #endregion
 

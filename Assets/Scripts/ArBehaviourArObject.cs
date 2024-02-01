@@ -606,7 +606,7 @@ namespace com.arpoise.arpoiseapp
                 {
                     arObject.SetBleachingValue(85);
                 }
-                else if (_bleachingValue >= 0)
+                else if (_bleachingValue > 0)
                 {
                     arObject.SetBleachingValue(_bleachingValue);
                 }
@@ -643,7 +643,7 @@ namespace com.arpoise.arpoiseapp
                 {
                     arObject.SetBleachingValue(85);
                 }
-                else if (_bleachingValue >= 0)
+                else if (_bleachingValue > 0)
                 {
                     arObject.SetBleachingValue(_bleachingValue);
                 }
@@ -931,7 +931,7 @@ namespace com.arpoise.arpoiseapp
                     }
                     else
                     {
-                        if (setBleachingValues && _bleachingValue >= 0)
+                        if (setBleachingValues && _bleachingValue > 0)
                         {
                             arObject.SetBleachingValue(_bleachingValue);
                         }

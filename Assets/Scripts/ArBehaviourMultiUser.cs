@@ -29,6 +29,7 @@ ARpoise, see www.ARpoise.com/
 */
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -44,11 +45,32 @@ namespace com.arpoise.arpoiseapp
 
     public class ArBehaviourMultiUser : MonoBehaviour
     {
+#if UNITY_IOS
+        public const string OperatingSystem = "iOS";
+#else
+        public const string OperatingSystem = "Android";
+#endif
+        public const string Bundle = "20240201";
+        public const string ArvosApplicationName = "Arvos";
+        public const string ArpoiseApplicationName = "Arpoise";
+#if AndroidArvosU2022_3 || iOsArvosU2022_3
+        protected readonly string ApplicationName = ArvosApplicationName;
+#else
+        protected readonly string ApplicationName = ArpoiseApplicationName;
+#endif
+        public GameObject ArCamera = null;
         public const string AnimationTag = "Animation";
         public const string LockTag = "Lock";
         public const string VeraPlasticTag = "VePl";
 
+        protected float FilteredLongitude = 0;
+        protected float FilteredLatitude = 0;
+        protected float? FixedDeviceLatitude = null;
+        protected float? FixedDeviceLongitude = null;
+        protected float UsedLatitude => FixedDeviceLatitude.HasValue ? FixedDeviceLatitude.Value : FilteredLatitude;
+        protected float UsedLongitude => FixedDeviceLongitude.HasValue ? FixedDeviceLongitude.Value : FilteredLongitude;
         protected long StartTicks = 0;
+
         public ArObjectState ArObjectState { get; protected set; }
 
         private long _nowTicks;
@@ -92,9 +114,9 @@ namespace com.arpoise.arpoiseapp
                     length = _readBuffer[0] * 0x100 + _readBuffer[1];
                     if (length < 8)
                     {
-                        netStream.Close();
+                        netStream?.Close();
                         netStream = null;
-                        tcpClient.Close();
+                        tcpClient?.Close();
                         tcpClient = null;
                         return;
                     }
@@ -132,17 +154,17 @@ namespace com.arpoise.arpoiseapp
                 }
                 catch (Exception)
                 {
-                    netStream.Close();
+                    netStream?.Close();
                     netStream = null;
-                    tcpClient.Close();
+                    tcpClient?.Close();
                     tcpClient = null;
                     return;
                 }
                 if (errorList.Count > 0)
                 {
-                    netStream.Close();
+                    netStream?.Close();
                     netStream = null;
-                    tcpClient.Close();
+                    tcpClient?.Close();
                     tcpClient = null;
                     return;
                 }
@@ -158,10 +180,11 @@ namespace com.arpoise.arpoiseapp
                     }
                     catch (Exception)
                     {
-                        netStream.Close();
+                        netStream?.Close();
                         netStream = null;
-                        tcpClient.Close();
+                        tcpClient?.Close();
                         tcpClient = null;
+                        return;
                     }
                     continue;
                 }
@@ -208,9 +231,9 @@ namespace com.arpoise.arpoiseapp
             }
             catch (Exception)
             {
-                netStream.Close();
+                netStream?.Close();
                 netStream = null;
-                tcpClient.Close();
+                tcpClient?.Close();
                 tcpClient = null;
             }
 
@@ -218,11 +241,20 @@ namespace com.arpoise.arpoiseapp
             return true;
         }
 
+        private bool _reconnected = false;
         public bool SendToRemote(string tag, string value)
         {
-            if (_tcpClient == null || _netStream == null || _clientId == null || _sceneId == null || _connectionId == null)
+            if (_clientId == null || _sceneId == null || _connectionId == null)
             {
                 return false;
+            }
+            if (_tcpClient == null && _netStream == null && !string.IsNullOrWhiteSpace(_hostName) && _port > 0)
+            {
+                if (!CreateTcpClient(_hostName, _port))
+                {
+                    return false;
+                }
+                _reconnected = true;
             }
             var sb = new StringBuilder();
             sb.Append("RQ");
@@ -271,11 +303,19 @@ namespace com.arpoise.arpoiseapp
                 {
                     var url = _url;
                     _url = null;
-                    SetRemoteServerUrl(url, _sceneUrl, _sceneName);
+                    SetRemoteServerUrl(url, _sceneUrl, _sceneName, null);
                     return;
                 }
             }
 
+            if (_tcpClient == null && _netStream == null && !string.IsNullOrWhiteSpace(_hostName) && _port > 0)
+            {
+                if (!CreateTcpClient(_hostName, _port))
+                {
+                    return;
+                }
+                _reconnected = true;
+            }
             if (_tcpClient != null && _netStream != null && _connectionId != null && (DateTime.Now - _lastSendTime).TotalSeconds > 12)
             {
                 var sb = new StringBuilder();
@@ -351,6 +391,28 @@ namespace com.arpoise.arpoiseapp
                     ConnectionStart = DateTime.Now;
                     _callbacks.ForEach(x => x.Set(string.Empty, string.Empty, ConnectionStart, DateTime.Now));
                     continue;
+                }
+                else if(_reconnected)
+                {
+                    if (parts.Length >= 4 && "AN" == parts[0] && "0" == parts[1] && !string.IsNullOrWhiteSpace(parts[2]) && "HI" == parts[3])
+                    {
+                        for (int i = 4; i < parts.Length - 1; i++)
+                        {
+                            if ("CLID" == parts[i])
+                            {
+                                _clientId = parts[++i];
+                            }
+                            else if ("SCID" == parts[i])
+                            {
+                                _sceneId = parts[++i];
+                            }
+                        }
+                        _connectionId = parts[2];
+                        ConnectionStart = DateTime.Now;
+                        _callbacks.ForEach(x => x.Set(string.Empty, string.Empty, ConnectionStart, DateTime.Now));
+                        _reconnected = false;
+                        continue;
+                    }
                 }
                 if ("AN" == parts[0])
                 {
@@ -459,7 +521,7 @@ namespace com.arpoise.arpoiseapp
             }
         }
 
-        public void SetRemoteServerUrl(string url, string sceneUrl, string sceneName)
+        public void SetRemoteServerUrl(string url, string sceneUrl, string sceneName, string scriptName)
         {
             if (_url == url && _sceneUrl == sceneUrl && _sceneName == sceneName && _tcpClient != null && _netStream != null)
             {
@@ -532,8 +594,10 @@ namespace com.arpoise.arpoiseapp
             {
                 return;
             }
-
-            _name += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            _name += $"/{(string.IsNullOrWhiteSpace(scriptName) ? ApplicationName : scriptName)}/{OperatingSystem}/{Bundle}";
+            _name += $"/{UsedLatitude.ToString("F6", CultureInfo.InvariantCulture)}";
+            _name += $"/{UsedLongitude.ToString("F6", CultureInfo.InvariantCulture)}";
+            _name += DateTime.Now.ToString("/HH:mm:ss.fff");
 
             _hostName = null;
             _port = 0;
@@ -561,9 +625,17 @@ namespace com.arpoise.arpoiseapp
                 return;
             }
 
+            if (CreateTcpClient(_hostName, _port))
+            {
+                _url = url;
+            }
+        }
+
+        private bool CreateTcpClient(string hostName, int port)
+        {
             try
             {
-                _tcpClient = new TcpClient(_hostName, _port);
+                _tcpClient = new TcpClient(hostName, port);
                 _netStream = _tcpClient.GetStream();
             }
             catch (Exception e)
@@ -578,7 +650,7 @@ namespace com.arpoise.arpoiseapp
                     _tcpClient.Close();
                     _tcpClient = null;
                 }
-                return;
+                return false;
             }
 
             _packetId = 0;
@@ -608,9 +680,8 @@ namespace com.arpoise.arpoiseapp
 
                 Send(ref _tcpClient, ref _netStream, sb.ToString());
             }
-            _url = url;
+            return true;
         }
-
         private readonly List<string> _messages = new List<string>();
 
         private void AddMessage(string message)
