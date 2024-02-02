@@ -312,7 +312,9 @@ public class ArpoiseVeraPlastica : MonoBehaviour, IRemoteCallback
     public float RandomOffsetInX = 0.005f; // +/- 5mm random offset + 7cm wide column * 13 columns
     public float ColumnWidth = 0.07f;
     public float RandomColumnIndex = 7f;
+    public float PlasticOffsetInX = 0f;
     public float PlasticOffsetInY = 0f;
+    public float PlasticOffsetInZ = 0f;
     public float RandomOffsetInZ = 0.004f; // +/- 4mm random offset + 6cm wide row * 7 rows
     public float RowWidth = 0.06f;
     public float RandomRowIndex = 4f;
@@ -416,7 +418,10 @@ public class ArpoiseVeraPlastica : MonoBehaviour, IRemoteCallback
                 {
                     var plastic = GetPlastic(veraPlastic.PlasticType);
 
-                    var position = new Vector3(veraPlastic.PositionX, PlasticOffsetInY, veraPlastic.PositionZ);
+                    var position = new Vector3(
+                        veraPlastic.PositionX + PlasticOffsetInX,
+                        PlasticOffsetInY,
+                        veraPlastic.PositionZ + PlasticOffsetInZ);
                     var rotation = Quaternion.Euler(veraPlastic.RotationEulerX, veraPlastic.RotationEulerY, veraPlastic.RotationEulerZ);
                     var bottle = veraPlastic.Bottle = Instantiate(plastic, this.transform);
                     bottle.transform.localPosition = position;
@@ -511,8 +516,14 @@ public class ArpoiseVeraPlastica : MonoBehaviour, IRemoteCallback
             case nameof(RandomOffsetInX):
                 RandomOffsetInX = SetParameter(setValue, value, RandomOffsetInX).Value;
                 break;
+            case nameof(PlasticOffsetInX):
+                PlasticOffsetInX = SetParameter(setValue, value, PlasticOffsetInX).Value;
+                break;
             case nameof(PlasticOffsetInY):
                 PlasticOffsetInY = SetParameter(setValue, value, PlasticOffsetInY).Value;
+                break;
+            case nameof(PlasticOffsetInZ):
+                PlasticOffsetInZ = SetParameter(setValue, value, PlasticOffsetInZ).Value;
                 break;
             case nameof(ColumnWidth):
                 ColumnWidth = SetParameter(setValue, value, ColumnWidth).Value;

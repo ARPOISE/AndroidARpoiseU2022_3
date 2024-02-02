@@ -895,7 +895,7 @@ namespace com.arpoise.arpoiseapp
             return url;
         }
 
-        private string FixUrl(string url)
+        public static string FixUrl(string url)
         {
             while (url.Contains('\\'))
             {
