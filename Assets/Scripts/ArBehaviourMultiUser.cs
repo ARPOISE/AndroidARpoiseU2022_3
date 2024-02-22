@@ -1,4 +1,4 @@
-﻿/*
+/*
 ArBehaviourMultiUser.cs - MonoBehaviour for ARpoise multi-user handling.
 
 Copyright (C) 2020, Tamiko Thiel and Peter Graf - All Rights Reserved
@@ -50,7 +50,7 @@ namespace com.arpoise.arpoiseapp
 #else
         public const string OperatingSystem = "Android";
 #endif
-        public const string Bundle = "20240201";
+        public const string Bundle = "20240207";
         public const string ArvosApplicationName = "Arvos";
         public const string ArpoiseApplicationName = "Arpoise";
 #if AndroidArvosU2022_3 || iOsArvosU2022_3

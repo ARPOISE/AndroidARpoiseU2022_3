@@ -35,7 +35,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-public class ArpoiseVeraPlastica : MonoBehaviour, IRemoteCallback
+public class ArpoiseVeraPlastica : MonoBehaviour
 {
     public class VeraPlastic
     {
@@ -123,36 +123,91 @@ public class ArpoiseVeraPlastica : MonoBehaviour, IRemoteCallback
     public GameObject Plastic4;
     public GameObject Plastic5;
 
-    public int StartSecond = 0;
-    public int EndSecond = -1;
     public float NumberOfNewPlasticsPerSecond = 0.25f;
     public int MaxNumberOfPlastics = 70;
     public int MinNumberOfPlastics = 10;
 
     private readonly List<GameObject> _plastics = new List<GameObject>();
     private readonly List<VeraPlastic> _veraPlasticsList = new List<VeraPlastic>();
-    private readonly List<VeraPlastic> _veraPlasticsToDestroy = new List<VeraPlastic>();
     private readonly Dictionary<string, VeraPlastic> _veraPlastics = new Dictionary<string, VeraPlastic>();
     private readonly Dictionary<string, VeraPlastic> _visibleVeraPlastics = new Dictionary<string, VeraPlastic>();
-    private string _myLock = string.Empty;
-    private string _serverLock = string.Empty;
-    private DateTime _connectionStartTime = DateTime.MinValue;
-    private DateTime _lastReceiveTime = DateTime.MinValue;
-    private DateTime _lastSendTime = DateTime.MinValue;
-    private DateTime _dateAtStart;
-    private DateTime _lastCreationTime = DateTime.MinValue;
-    private DateTime _lastRemoveTime = DateTime.MinValue;
+    private readonly List<VeraPlastic> _veraPlasticsToDestroy = new List<VeraPlastic>();
+
     private int _direction = 1;
 
-    public ArBehaviourArObject ArBehavior { get; set; }
+    private DateTime _dateAtStart;
+    private DateTime _today;
+    private int _second;
+
+    private int _lastSeedMinute = -1;
+    private int _lastCreationSecond = 0;
+    private int _lastRemoveSecond = 0;
+    private void HandleSecond(int second)
+    {
+        if (second % 60 < 8)
+        {
+            return;
+        }
+        var minute = second / 60;
+        if (_lastSeedMinute != minute)
+        {
+            _lastSeedMinute = minute;
+            UnityEngine.Random.InitState((int)_today.Ticks + _lastSeedMinute);
+        }
+
+        // Add NumberOfNewPlasticsPerSecond bottles
+        while (NumberOfNewPlasticsPerSecond > 0
+            && second - _lastCreationSecond > 1f / NumberOfNewPlasticsPerSecond
+            && _veraPlastics.Count <= MaxNumberOfPlastics)
+        {
+            AddOneBottleToGrid();
+            _lastCreationSecond = second;
+        }
+
+        // If in removal phase, remove 2 * NumberOfNewPlasticsPerSecond bottles
+        while (_direction != 1
+            && NumberOfNewPlasticsPerSecond > 0
+            && second - _lastRemoveSecond > 1f / (2 * NumberOfNewPlasticsPerSecond)
+            && _veraPlastics.Count >= MinNumberOfPlastics)
+        {
+            var veraPlastic = _veraPlasticsList[0];
+            _veraPlasticsList.RemoveAt(0);
+            _veraPlastics.Remove(veraPlastic.Key);
+            _lastRemoveSecond = second;
+            if (_veraPlastics.Count < MinNumberOfPlastics)
+            {
+                _direction = 1; // we reached the minimum, the removal phase is over
+            }
+        }
+
+        // If not in removal phase, remove 0.5 * NumberOfNewPlasticsPerSecond bottles
+        while (_direction == 1
+            && NumberOfNewPlasticsPerSecond > 0
+            && second - _lastRemoveSecond > 1f / (0.5 * NumberOfNewPlasticsPerSecond)
+            && _veraPlastics.Count >= MinNumberOfPlastics)
+        {
+            var veraPlastic = _veraPlasticsList[0];
+            _veraPlasticsList.RemoveAt(0);
+            _veraPlastics.Remove(veraPlastic.Key);
+            _lastRemoveSecond = second;
+        }
+
+        while (_veraPlasticsList.Count > MaxNumberOfPlastics)
+        {
+            var veraPlastic = _veraPlasticsList[0];
+            _veraPlasticsList.RemoveAt(0);
+            _veraPlastics.Remove(veraPlastic.Key);
+            _lastRemoveSecond = second;
+            _direction = -1; // we reached the maximum, the removal phase starts
+        }
+    }
 
     protected void Start()
     {
-        _dateAtStart = DateTime.Now;
-        _myLock = ArBehaviourMultiUser.RandomString(8);
-        UnityEngine.Random.InitState((int)DateTime.Now.Ticks);
+        _today = DateTime.Today;
 
-        ArBehavior.SetRemoteCallback(this);
+        var now = DateTime.Now;
+        _second = now.Hour * 60 * 60 + now.Minute * 60 + now.Second;
 
         if (Plastic1 != null)
         {
@@ -176,139 +231,50 @@ public class ArpoiseVeraPlastica : MonoBehaviour, IRemoteCallback
         }
     }
 
-    private bool SendToRemote(string tag, string value)
-    {
-        _lastSendTime = DateTime.Now;
-        return ArBehavior.SendToRemote(tag, value);
-    }
-
-    private void OnLockReceived(string tag, string lockFromServer)
-    {
-        if (ArBehaviourMultiUser.LockTag == tag && lockFromServer == _myLock && _serverLock != _myLock)
-        {
-            _veraPlastics.Clear();
-            _veraPlasticsList.Clear();
-            foreach (var veraPlastic in _visibleVeraPlastics.Values)
-            {
-                _veraPlastics[veraPlastic.Key] = veraPlastic;
-                _veraPlasticsList.Add(veraPlastic);
-            }
-            _serverLock = lockFromServer;
-            return;
-        }
-        if (lockFromServer != _myLock)
-        {
-            if (_veraPlastics.Any())
-            {
-                _veraPlastics.Clear();
-            }
-            if (_veraPlasticsList.Any())
-            {
-                _veraPlasticsList.Clear();
-            }
-        }
-        if (ArBehaviourMultiUser.LockTag == tag || lockFromServer != _myLock)
-        {
-            _serverLock = lockFromServer;
-        }
-    }
-
+    private bool _first = true;
     protected void Update()
     {
-        var now = DateTime.Now;
         if (_plastics.Count < 1)
         {
             return;
         }
+        var today = DateTime.Today;
+        var now = DateTime.Now;
+        if (_first)
+        {
+            _first = false;
+            _second = now.Hour * 60 * 60 + now.Minute * 60 + now.Second;
 
-        long millisecond = now.Ticks / 10000 - _dateAtStart.Ticks / 10000;
-        if (millisecond / 1000 < StartSecond)
-        {
-            return;
-        }
-        if (EndSecond >= 0 && millisecond / 1000 > EndSecond)
-        {
-            return;
-        }
-
-        if (_connectionStartTime != DateTime.MinValue || !ArBehavior.IsRemotingActivated)
-        {
-            if (_myLock == _serverLock)
+            for (int s = 0; s < _second; s++)
             {
-                // Add NumberOfNewPlasticsPerSecond bottles
-                while (NumberOfNewPlasticsPerSecond > 0
-                    && (now - _lastCreationTime).TotalMilliseconds > 1000f / NumberOfNewPlasticsPerSecond
-                    && _veraPlastics.Count <= MaxNumberOfPlastics)
-                {
-                    AddOneBottleToGrid();
-                    _lastCreationTime = now;
-                }
-
-                // If in removal phase, remove 2 * NumberOfNewPlasticsPerSecond bottles
-                while (_direction != 1
-                    && NumberOfNewPlasticsPerSecond > 0
-                    && (now - _lastRemoveTime).TotalMilliseconds > 1000f / (2 * NumberOfNewPlasticsPerSecond)
-                    && _veraPlastics.Count >= MinNumberOfPlastics)
-                {
-                    var veraPlastic = _veraPlasticsList[0];
-                    _veraPlasticsList.RemoveAt(0);
-                    _veraPlastics.Remove(veraPlastic.Key);
-                    _lastRemoveTime = now;
-                    if(_veraPlastics.Count < MinNumberOfPlastics)
-                    {
-                        _direction = 1; // we reached the minimum, the removal phase is over
-                    }
-                }
-
-                if ((now - _lastSendTime).TotalMilliseconds > 1000)
-                {
-                    while (_veraPlasticsList.Count > MaxNumberOfPlastics)
-                    {
-                        var veraPlastic = _veraPlasticsList[0];
-                        _veraPlasticsList.RemoveAt(0);
-                        _veraPlastics.Remove(veraPlastic.Key);
-                        _lastRemoveTime = now;
-                        _direction = -1; // we reached the maximum, the removal phase starts
-                    }
-
-                    var sb = new StringBuilder();
-                    sb.Append(_myLock);
-                    foreach (var plastic in _veraPlastics.Keys)
-                    {
-                        sb.Append(sb.Length == 0 ? plastic : ";" + plastic);
-                    }
-                    var message = sb.ToString();
-                    if (!SendToRemote(ArBehaviourMultiUser.VeraPlasticTag, message))
-                    {
-                        Set(ArBehaviourMultiUser.VeraPlasticTag, message,
-                            _connectionStartTime == DateTime.MinValue ? now : _connectionStartTime, now);
-                    }
-                }
-            }
-            else
-            {
-                var waitMilliseconds = WaitMillisecondsDefault + UnityEngine.Random.Range(0f, 500f);
-                if ((now - _connectionStartTime).TotalMilliseconds > waitMilliseconds
-                    && (now - _lastSendTime).TotalMilliseconds > waitMilliseconds
-                    && (now - _lastReceiveTime).TotalMilliseconds > waitMilliseconds)
-                {
-                    if (!SendToRemote(ArBehaviourMultiUser.LockTag, _myLock))
-                    {
-                        Set(ArBehaviourMultiUser.LockTag, _myLock,
-                            _connectionStartTime == DateTime.MinValue ? now : _connectionStartTime, now);
-                    }
-                }
+                HandleSecond(s);
             }
         }
-
-        foreach (var veraPlastic in _veraPlasticsToDestroy.Where(x => x.DestroyDate.HasValue && x.DestroyDate < now).ToArray())
+        if (_today != today)
         {
-            _veraPlasticsToDestroy.Remove(veraPlastic);
-            DestroyPlastic(veraPlastic);
+            _today = today;
+            _veraPlastics.Clear();
+            _veraPlasticsList.Clear();
+        }
+
+        now = DateTime.Now;
+        var second = now.Hour * 60 * 60 + now.Minute * 60 + now.Second;
+        if (_second != second)
+        {
+            for (int s = _second; s <= second; s++)
+            {
+                HandleSecond(s);
+            }
+            _second = second;
+            UpdateVisiblePlastics();
+            foreach (var veraPlastic in _veraPlasticsToDestroy.Where(x => x.DestroyDate.HasValue && x.DestroyDate < now).ToArray())
+            {
+                _veraPlasticsToDestroy.Remove(veraPlastic);
+                DestroyPlastic(veraPlastic);
+            }
         }
     }
 
-    public float WaitMillisecondsDefault = 2000f;
     public float RandomOffsetInX = 0.005f; // +/- 5mm random offset + 7cm wide column * 13 columns
     public float ColumnWidth = 0.07f;
     public float RandomColumnIndex = 7f;
@@ -388,65 +354,40 @@ public class ArpoiseVeraPlastica : MonoBehaviour, IRemoteCallback
         return plastic;
     }
 
-    public void Set(string tag, string value, DateTime start, DateTime now)
+    public void UpdateVisiblePlastics()
     {
-        _lastReceiveTime = now;
-        if (_connectionStartTime == DateTime.MinValue)
+        var currentVeraPlastics = new HashSet<string>();
+        foreach (var veraPlastic in _veraPlastics.Values)
         {
-            _connectionStartTime = start;
-        }
-        if (ArBehaviourMultiUser.LockTag == tag)
-        {
-            OnLockReceived(tag, value);
-            return;
-        }
-        if (ArBehaviourMultiUser.VeraPlasticTag == tag)
-        {
-            var parts = value?.Split(";");
-            if (parts == null || parts.Length < 1)
+            currentVeraPlastics.Add(veraPlastic.Key);
+
+            if (!_visibleVeraPlastics.ContainsKey(veraPlastic.Key))
             {
-                return;
+                var plastic = GetPlastic(veraPlastic.PlasticType);
+
+                var position = new Vector3(
+                    veraPlastic.PositionX + PlasticOffsetInX,
+                    PlasticOffsetInY,
+                    veraPlastic.PositionZ + PlasticOffsetInZ);
+                var rotation = Quaternion.Euler(veraPlastic.RotationEulerX, veraPlastic.RotationEulerY, veraPlastic.RotationEulerZ);
+                var bottle = veraPlastic.Bottle = Instantiate(plastic, this.transform);
+                bottle.transform.localPosition = position;
+                bottle.transform.localRotation = rotation;
+                _visibleVeraPlastics[veraPlastic.Key] = veraPlastic;
             }
+        }
 
-            var currentVeraPlastics = new HashSet<string>();
-            for (int i = 1; i < parts.Length; i++)
+        foreach (var key in _visibleVeraPlastics.Keys.ToList())
+        {
+            if (!currentVeraPlastics.Contains(key))
             {
-                var veraPlastic = new VeraPlastic(parts[i]);
-                currentVeraPlastics.Add(veraPlastic.Key);
-
-                if (!_visibleVeraPlastics.ContainsKey(veraPlastic.Key))
+                VeraPlastic veraPlastic;
+                if (_visibleVeraPlastics.TryGetValue(key, out veraPlastic))
                 {
-                    var plastic = GetPlastic(veraPlastic.PlasticType);
-
-                    var position = new Vector3(
-                        veraPlastic.PositionX + PlasticOffsetInX,
-                        PlasticOffsetInY,
-                        veraPlastic.PositionZ + PlasticOffsetInZ);
-                    var rotation = Quaternion.Euler(veraPlastic.RotationEulerX, veraPlastic.RotationEulerY, veraPlastic.RotationEulerZ);
-                    var bottle = veraPlastic.Bottle = Instantiate(plastic, this.transform);
-                    bottle.transform.localPosition = position;
-                    bottle.transform.localRotation = rotation;
-                    _visibleVeraPlastics[veraPlastic.Key] = veraPlastic;
-                    if (_myLock != _serverLock)
-                    {
-                        _lastCreationTime = DateTime.Now;
-                    }
+                    _visibleVeraPlastics.Remove(key);
+                    StartScaleDownPlastic(veraPlastic);
                 }
             }
-
-            foreach (var key in _visibleVeraPlastics.Keys.ToList())
-            {
-                if (!currentVeraPlastics.Contains(key))
-                {
-                    VeraPlastic veraPlastic;
-                    if (_visibleVeraPlastics.TryGetValue(key, out veraPlastic))
-                    {
-                        _visibleVeraPlastics.Remove(key);
-                        StartScaleDownPlastic(veraPlastic);
-                    }
-                }
-            }
-            OnLockReceived(tag, parts[0]);
         }
     }
 
@@ -498,12 +439,6 @@ public class ArpoiseVeraPlastica : MonoBehaviour, IRemoteCallback
     {
         switch (label)
         {
-            case nameof(StartSecond):
-                StartSecond = SetParameter(setValue, value, StartSecond).Value;
-                break;
-            case nameof(EndSecond):
-                EndSecond = SetParameter(setValue, value, EndSecond).Value;
-                break;
             case nameof(NumberOfNewPlasticsPerSecond):
                 NumberOfNewPlasticsPerSecond = SetParameter(setValue, value, NumberOfNewPlasticsPerSecond).Value;
                 break;
@@ -548,9 +483,6 @@ public class ArpoiseVeraPlastica : MonoBehaviour, IRemoteCallback
                 break;
             case nameof(RandomDegreesInZ):
                 RandomDegreesInZ = SetParameter(setValue, value, RandomDegreesInZ).Value;
-                break;
-            case nameof(WaitMillisecondsDefault):
-                WaitMillisecondsDefault = SetParameter(setValue, value, WaitMillisecondsDefault).Value;
                 break;
         }
     }

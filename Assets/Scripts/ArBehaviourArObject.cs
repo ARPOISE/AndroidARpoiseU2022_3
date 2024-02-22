@@ -219,7 +219,6 @@ namespace com.arpoise.arpoiseapp
                 var arpoiseVeraPlastica = objectToAdd.GetComponent<ArpoiseVeraPlastica>();
                 if (arpoiseVeraPlastica != null)
                 {
-                    arpoiseVeraPlastica.ArBehavior = this;
                     foreach (var action in poi.actions)
                     {
                         arpoiseVeraPlastica.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
