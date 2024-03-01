@@ -50,7 +50,7 @@ namespace com.arpoise.arpoiseapp
 #else
         public const string OperatingSystem = "Android";
 #endif
-        public const string Bundle = "20240207";
+        public const string Bundle = "20240224";
         public const string ArvosApplicationName = "Arvos";
         public const string ArpoiseApplicationName = "Arpoise";
 #if AndroidArvosU2022_3 || iOsArvosU2022_3
@@ -548,7 +548,7 @@ namespace com.arpoise.arpoiseapp
             }
 
             _sceneUrl = sceneUrl;
-            _sceneName = sceneName;
+            _sceneName = string.IsNullOrWhiteSpace(sceneName) ? sceneUrl : sceneName;
 
             if (_netStream != null)
             {
