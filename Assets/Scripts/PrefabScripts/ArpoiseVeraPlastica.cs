@@ -370,7 +370,7 @@ public class ArpoiseVeraPlastica : MonoBehaviour
                     PlasticOffsetInY,
                     veraPlastic.PositionZ + PlasticOffsetInZ);
                 var rotation = Quaternion.Euler(veraPlastic.RotationEulerX, veraPlastic.RotationEulerY, veraPlastic.RotationEulerZ);
-                var bottle = veraPlastic.Bottle = Instantiate(plastic, this.transform);
+                var bottle = veraPlastic.Bottle = Instantiate(plastic, transform);
                 bottle.transform.localPosition = position;
                 bottle.transform.localRotation = rotation;
                 _visibleVeraPlastics[veraPlastic.Key] = veraPlastic;

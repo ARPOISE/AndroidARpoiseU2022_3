@@ -46,6 +46,7 @@ namespace com.arpoise.arpoiseapp
         private readonly List<ArAnimation> _onClickAnimations = new List<ArAnimation>();
         private readonly List<ArAnimation> _billboardAnimations = new List<ArAnimation>();
         private readonly List<ArAnimation> _inMinutesAnimations = new List<ArAnimation>();
+        private readonly List<ArAnimation> _whenActiveAnimations = new List<ArAnimation>();
 
         private ArAnimation[] _allAnimations = null;
         private ArAnimation[] AllAnimations
@@ -60,6 +61,7 @@ namespace com.arpoise.arpoiseapp
                         .Concat(_inFocusAnimations)
                         .Concat(_onClickAnimations)
                         .Concat(_inMinutesAnimations)
+                        .Concat(_whenActiveAnimations)
                         .ToArray();
                 }
                 return _allAnimations;
@@ -130,6 +132,12 @@ namespace com.arpoise.arpoiseapp
             AllAnimations = null;
         }
 
+        public void AddWhenActiveAnimation(ArAnimation animation)
+        {
+            _whenActiveAnimations.Add(animation);
+            AllAnimations = null;
+        }
+
         public void AddOnClickAnimation(ArAnimation animation)
         {
             _onClickAnimations.Add(animation);
@@ -151,6 +159,7 @@ namespace com.arpoise.arpoiseapp
             _inFocusAnimations.RemoveAll(x => arObject.Id == x.PoiId);
             _onClickAnimations.RemoveAll(x => arObject.Id == x.PoiId);
             _inMinutesAnimations.RemoveAll(x => arObject.Id == x.PoiId);
+            _whenActiveAnimations.RemoveAll(x => arObject.Id == x.PoiId);
             AllAnimations = null;
         }
 
@@ -200,15 +209,18 @@ namespace com.arpoise.arpoiseapp
 
         public int NumberOfActiveAnimations => AllAnimations.Where(x => x.IsActive).Count();
 
-        public void RemoteActivate(string animationName, long startTicks, long nowTicks)
+        public bool RemoteActivate(string animationName, long startTicks, long nowTicks)
         {
+            bool rc = false;
             foreach (var animation in AllAnimations.Where(x => animationName.Equals(x.Name)))
             {
                 if (!animation.IsActive)
                 {
+                    rc = true;
                     animation.Activate(startTicks, nowTicks, true);
                 }
             }
+            return rc;
         }
 
         public bool HandleAnimations(ArBehaviourArObject arBehaviour, long startTicks, long nowTicks)
@@ -272,6 +284,19 @@ namespace com.arpoise.arpoiseapp
                 }
             }
 
+            HashSet<ArAnimation> whenActiveAnimationsToStop = null;
+            if (_whenActiveAnimations.Count > 0)
+            {
+                whenActiveAnimationsToStop = new HashSet<ArAnimation>(_whenActiveAnimations.Where(x => x.IsActive));
+                foreach (var arAnimation in _whenActiveAnimations)
+                {
+                    if (arAnimation.GameObject.activeSelf)
+                    {
+                        whenActiveAnimationsToStop.Remove(arAnimation);
+                    }
+                }
+            }
+
             var hasHit = false;
             if (_onClickAnimations.Count > 0 && Input.GetMouseButtonDown(0))
             {
@@ -310,6 +335,11 @@ namespace com.arpoise.arpoiseapp
                     animation.Stop(startTicks, nowTicks);
                     inMinutesAnimationsToStop.Remove(animation);
                 }
+                else if (whenActiveAnimationsToStop != null && whenActiveAnimationsToStop.Contains(animation))
+                {
+                    animation.Stop(startTicks, nowTicks);
+                    whenActiveAnimationsToStop.Remove(animation);
+                }
                 else
                 {
                     animation.Animate(startTicks, nowTicks);
@@ -337,7 +367,10 @@ namespace com.arpoise.arpoiseapp
                         {
                             if (!animationToFollow.IsActive)
                             {
-                                animationToFollow.Activate(startTicks, nowTicks);
+                                if (animationToFollow.ArEventType != ArEventType.WhenActive || animationToFollow.GameObject.activeSelf)
+                                {
+                                    animationToFollow.Activate(startTicks, nowTicks);
+                                }
                             }
                         }
                     }

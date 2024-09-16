@@ -56,6 +56,18 @@ namespace com.arpoise.arpoiseapp
         Volume = 7
     }
 
+    public enum ArEventType
+    {
+        Billboard = 0,
+        OnCreate = 1,
+        OnFocus = 2,
+        InFocus = 3,
+        InMinutes = 4,
+        WhenActive = 5,
+        OnClick = 6,
+        OnFollow = 7
+    }
+
     public class ArAnimation
     {
         public readonly long PoiId;
@@ -63,6 +75,7 @@ namespace com.arpoise.arpoiseapp
         public readonly GameObject GameObject;
         public readonly string Name = string.Empty;
         public readonly string[] FollowedBy = Array.Empty<string>();
+        public readonly ArEventType ArEventType;
 
         private readonly ArCreature _creature;
         private readonly Transform _transform;
@@ -110,6 +123,7 @@ namespace com.arpoise.arpoiseapp
             GameObject wrapper,
             GameObject gameObject,
             PoiAnimation poiAnimation,
+            ArEventType arEventType,
             bool isActive,
             IArpoiseBehaviour behaviour,
             AudioRolloffMode? audioRolloffMode = null,
@@ -124,6 +138,7 @@ namespace com.arpoise.arpoiseapp
             AudioVolume = audioVolume;
 
             PoiId = poiId;
+            ArEventType = arEventType;
             GameObject = gameObject;
             IsActive = isActive;
             if ((Wrapper = wrapper) != null)
@@ -188,6 +203,11 @@ namespace com.arpoise.arpoiseapp
                 }
             }
 
+            if (ArEventType == ArEventType.WhenActive && !GameObject.activeSelf)
+            {
+                return;
+            }
+
             IsActive = true;
             _startTicks = 0;
             Animate(startTicks, nowTicks);
@@ -221,7 +241,7 @@ namespace com.arpoise.arpoiseapp
                 var endTicks = _startTicks + lengthTicks;
                 if (endTicks < nowTicks)
                 {
-                    if (!_repeating)
+                    if (!_repeating || (ArEventType == ArEventType.WhenActive && !GameObject.activeSelf))
                     {
                         Stop(startTicks, endTicks);
                         return;

@@ -96,6 +96,7 @@ namespace com.arpoise.arpoiseapp
         public PoiAnimation[] inFocus = null;
         public PoiAnimation[] onClick = null;
         public PoiAnimation[] inMinutes = null;
+        public PoiAnimation[] whenActive = null;
     }
 
     [Serializable]
@@ -518,21 +519,27 @@ namespace com.arpoise.arpoiseapp
         [NonSerialized]
         private static readonly HashSet<string> _actionLabels = new HashSet<string>(new string[] // Layer ActionLabel
         {
+            nameof(AllowTakeScreenshot),
+            nameof(ApplicationSleepInterval),
             nameof(AudioRolloffMode),
             nameof(AudioSpatialBlend),
             nameof(AudioSpatialize),
             nameof(AudioVolume),
+            nameof(DirectionalLightN_Intensity),
+            nameof(DirectionalLightN_IsActive),
+            nameof(DirectionalLightSEE_Intensity),
+            nameof(DirectionalLightSEE_IsActive),
+            nameof(DirectionalLightSWW_Intensity),
+            nameof(DirectionalLightSWW_IsActive),
+            nameof(MaximumActiveTriggerObjects),
             nameof(OcclusionEnvironmentDepthMode),
-            nameof(OcclusionPreferenceMode),
-            nameof(OcclusionHumanSegmentationStencilMode),
             nameof(OcclusionHumanSegmentationDepthMode),
+            nameof(OcclusionHumanSegmentationStencilMode),
+            nameof(OcclusionPreferenceMode),
             nameof(PositionUpdateInterval),
-            nameof(TimeSync),
-            nameof(ApplicationSleepInterval),
-            nameof(AllowTakeScreenshot),
             nameof(RemoteServerUrl),
             nameof(SceneUrl),
-            nameof(MaximumActiveTriggerObjects)
+            nameof(TimeSync),
         });
 
         [NonSerialized]
@@ -572,6 +579,50 @@ namespace com.arpoise.arpoiseapp
         }
 
         #region ActionLabels
+
+        [NonSerialized]
+        private int? _allowTakeScreenshot;
+        public int AllowTakeScreenshot // Layer ActionLabel
+        {
+            get
+            {
+                if (_allowTakeScreenshot == null)
+                {
+                    _allowTakeScreenshot = 0;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(AllowTakeScreenshot).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        int value;
+                        if (int.TryParse(action.activityMessage.Trim(), out value))
+                        {
+                            _allowTakeScreenshot = value;
+                        }
+                    }
+                    //Console.WriteLine($"----> AllowTakeScreenshot is {_allowTakeScreenshot}");
+                }
+                return _allowTakeScreenshot.Value;
+            }
+        }
+
+        [NonSerialized]
+        private string _applicationSleepInterval;
+        public string ApplicationSleepInterval // Layer ActionLabel
+        {
+            get
+            {
+                if (_applicationSleepInterval == null)
+                {
+                    _applicationSleepInterval = string.Empty;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(ApplicationSleepInterval).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        _applicationSleepInterval = action.activityMessage.Trim();
+                    }
+                    //Console.WriteLine($"----> ApplicationSleepInterval is {_applicationSleepInterval}");
+                }
+                return _applicationSleepInterval;
+            }
+        }
 
         [NonSerialized]
         private AudioRolloffMode? _audioRolloffMode;
@@ -670,94 +721,146 @@ namespace com.arpoise.arpoiseapp
         }
 
         [NonSerialized]
-        private float? _positionUpdateInterval;
-        public float PositionUpdateInterval // Layer ActionLabel
+        private float? _directionalLightN_Intensity;
+        public float DirectionalLightN_Intensity // Layer ActionLabel
         {
             get
             {
-                if (_positionUpdateInterval == null)
+                if (_directionalLightN_Intensity == null)
                 {
-                    _positionUpdateInterval = 0;
-                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(PositionUpdateInterval).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    _directionalLightN_Intensity = 1;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(DirectionalLightN_Intensity).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
                     if (action != null)
                     {
                         float value;
                         if (float.TryParse(action.activityMessage.Trim(), out value))
                         {
-                            _positionUpdateInterval = value;
+                            _directionalLightN_Intensity = value;
                         }
                     }
-                    //Console.WriteLine($"----> PositionUpdateInterval is {_positionUpdateInterval}");
+                    //Console.WriteLine($"----> DirectionalLightN_Intensity is {_directionalLightN_Intensity}");
                 }
-                return _positionUpdateInterval.Value;
+                return _directionalLightN_Intensity.Value;
             }
         }
 
         [NonSerialized]
-        private float? _timeSync;
-        public float TimeSync // Layer ActionLabel
+        private bool? _directionalLightN_IsActive;
+        public bool DirectionalLightN_IsActive // Layer ActionLabel
         {
             get
             {
-                if (_timeSync == null)
+                if (_directionalLightN_IsActive == null)
                 {
-                    _timeSync = 0;
-                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(TimeSync).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    _directionalLightN_IsActive = true;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(DirectionalLightN_IsActive).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        bool value;
+                        if (bool.TryParse(action.activityMessage.Trim(), out value))
+                        {
+                            _directionalLightN_IsActive = value;
+                        }
+                    }
+                    //Console.WriteLine($"----> DirectionalLightN_IsActive is {_directionalLightN_IsActive}");
+                }
+                return _directionalLightN_IsActive.Value;
+            }
+        }
+
+        [NonSerialized]
+        private float? _directionalLightSEE_Intensity;
+        public float DirectionalLightSEE_Intensity // Layer ActionLabel
+        {
+            get
+            {
+                if (_directionalLightSEE_Intensity == null)
+                {
+                    _directionalLightSEE_Intensity = 1;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(DirectionalLightSEE_Intensity).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
                     if (action != null)
                     {
                         float value;
                         if (float.TryParse(action.activityMessage.Trim(), out value))
                         {
-                            _timeSync = value;
+                            _directionalLightSEE_Intensity = value;
                         }
                     }
-                    //Console.WriteLine($"----> TimeSync is {_timeSync}");
+                    //Console.WriteLine($"----> DirectionalLightSEE_Intensity is {_directionalLightSEE_Intensity}");
                 }
-                return _timeSync.Value;
+                return _directionalLightSEE_Intensity.Value;
             }
         }
 
         [NonSerialized]
-        private string _applicationSleepInterval;
-        public string ApplicationSleepInterval // Layer ActionLabel
+        private bool? _directionalLightSEE_IsActive;
+        public bool DirectionalLightSEE_IsActive // Layer ActionLabel
         {
             get
             {
-                if (_applicationSleepInterval == null)
+                if (_directionalLightSEE_IsActive == null)
                 {
-                    _applicationSleepInterval = string.Empty;
-                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(ApplicationSleepInterval).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    _directionalLightSEE_IsActive = true;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(DirectionalLightSEE_IsActive).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
                     if (action != null)
                     {
-                        _applicationSleepInterval = action.activityMessage.Trim();
-                    }
-                    //Console.WriteLine($"----> ApplicationSleepInterval is {_applicationSleepInterval}");
-                }
-                return _applicationSleepInterval;
-            }
-        }
-
-        [NonSerialized]
-        private int? _allowTakeScreenshot;
-        public int AllowTakeScreenshot // Layer ActionLabel
-        {
-            get
-            {
-                if (_allowTakeScreenshot == null)
-                {
-                    _allowTakeScreenshot = 0;
-                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(AllowTakeScreenshot).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
-                    if (action != null)
-                    {
-                        int value;
-                        if (int.TryParse(action.activityMessage.Trim(), out value))
+                        bool value;
+                        if (bool.TryParse(action.activityMessage.Trim(), out value))
                         {
-                            _allowTakeScreenshot = value;
+                            _directionalLightSEE_IsActive = value;
                         }
                     }
-                    //Console.WriteLine($"----> AllowTakeScreenshot is {_allowTakeScreenshot}");
+                    //Console.WriteLine($"----> DirectionalLightSEE_IsActive is {_directionalLightSEE_IsActive}");
                 }
-                return _allowTakeScreenshot.Value;
+                return _directionalLightSEE_IsActive.Value;
+            }
+        }
+
+        [NonSerialized]
+        private float? _directionalLightSWW_Intensity;
+        public float DirectionalLightSWW_Intensity // Layer ActionLabel
+        {
+            get
+            {
+                if (_directionalLightSWW_Intensity == null)
+                {
+                    _directionalLightSWW_Intensity = 1;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(DirectionalLightSWW_Intensity).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        float value;
+                        if (float.TryParse(action.activityMessage.Trim(), out value))
+                        {
+                            _directionalLightSWW_Intensity = value;
+                        }
+                    }
+                    //Console.WriteLine($"----> DirectionalLightSWW_Intensity is {_directionalLightSWW_Intensity}");
+                }
+                return _directionalLightSWW_Intensity.Value;
+            }
+        }
+
+        [NonSerialized]
+        private bool? _directionalLightSWW_IsActive;
+        public bool DirectionalLightSWW_IsActive // Layer ActionLabel
+        {
+            get
+            {
+                if (_directionalLightSWW_IsActive == null)
+                {
+                    _directionalLightSWW_IsActive = true;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(DirectionalLightSWW_IsActive).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        bool value;
+                        if (bool.TryParse(action.activityMessage.Trim(), out value))
+                        {
+                            _directionalLightSWW_IsActive = value;
+                        }
+                    }
+                    //Console.WriteLine($"----> DirectionalLightSWW_IsActive is {_directionalLightSWW_IsActive}");
+                }
+                return _directionalLightSWW_IsActive.Value;
             }
         }
 
@@ -781,6 +884,115 @@ namespace com.arpoise.arpoiseapp
                     }
                 }
                 return _maximumActiveTriggerObjects.Value;
+            }
+        }
+
+        [NonSerialized]
+        private EnvironmentDepthMode? _occlusionEnvironmentDepthMode = null;
+        public EnvironmentDepthMode OcclusionEnvironmentDepthMode // Layer ActionLabel
+        {
+            get
+            {
+                if (_occlusionEnvironmentDepthMode == null)
+                {
+                    _occlusionEnvironmentDepthMode = EnvironmentDepthMode.Disabled;
+                    var value = _occlusionEnvironmentDepthMode.Value;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(OcclusionEnvironmentDepthMode).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null && Enum.TryParse(action.activityMessage, out value))
+                    {
+                        _occlusionEnvironmentDepthMode = value;
+                    }
+                    //Console.WriteLine($"----> OcclusionEnvironmentDepthMode is {_occlusionEnvironmentDepthMode}");
+
+                }
+                return _occlusionEnvironmentDepthMode.Value;
+            }
+        }
+
+        [NonSerialized]
+        private HumanSegmentationDepthMode? _occlusionHumanSegmentationDepthMode = null;
+        public HumanSegmentationDepthMode OcclusionHumanSegmentationDepthMode // Layer ActionLabel
+        {
+            get
+            {
+                if (_occlusionHumanSegmentationDepthMode == null)
+                {
+                    _occlusionHumanSegmentationDepthMode = HumanSegmentationDepthMode.Disabled;
+                    var value = _occlusionHumanSegmentationDepthMode.Value;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(OcclusionHumanSegmentationDepthMode).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null && Enum.TryParse(action.activityMessage, out value))
+                    {
+                        _occlusionHumanSegmentationDepthMode = value;
+                    }
+                    //Console.WriteLine($"----> OcclusionHumanSegmentationDepthMode is {_occlusionHumanSegmentationDepthMode}");
+                }
+                return _occlusionHumanSegmentationDepthMode.Value;
+            }
+        }
+
+        [NonSerialized]
+        private HumanSegmentationStencilMode? _occlusionHumanSegmentationStencilMode = null;
+        public HumanSegmentationStencilMode OcclusionHumanSegmentationStencilMode // Layer ActionLabel
+        {
+            get
+            {
+                if (_occlusionHumanSegmentationStencilMode == null)
+                {
+                    _occlusionHumanSegmentationStencilMode = HumanSegmentationStencilMode.Disabled;
+                    var value = _occlusionHumanSegmentationStencilMode.Value;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(OcclusionHumanSegmentationStencilMode).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null && Enum.TryParse(action.activityMessage, out value))
+                    {
+                        _occlusionHumanSegmentationStencilMode = value;
+                    }
+                    //Console.WriteLine($"----> OcclusionHumanSegmentationStencilMode is {_occlusionHumanSegmentationStencilMode}");
+                }
+                return _occlusionHumanSegmentationStencilMode.Value;
+            }
+        }
+
+        [NonSerialized]
+        private OcclusionPreferenceMode? _occlusionPreferenceMode = null;
+        public OcclusionPreferenceMode OcclusionPreferenceMode // Layer ActionLabel
+        {
+            get
+            {
+                if (_occlusionPreferenceMode == null)
+                {
+                    _occlusionPreferenceMode = OcclusionPreferenceMode.NoOcclusion;
+                    var value = _occlusionPreferenceMode.Value;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(OcclusionPreferenceMode).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null && Enum.TryParse(action.activityMessage, out value))
+                    {
+                        _occlusionPreferenceMode = value;
+                    }
+                    //Console.WriteLine($"----> OcclusionPreferenceMode is {_occlusionPreferenceMode}");
+                }
+                return _occlusionPreferenceMode.Value;
+            }
+        }
+
+        [NonSerialized]
+        private float? _positionUpdateInterval;
+        public float PositionUpdateInterval // Layer ActionLabel
+        {
+            get
+            {
+                if (_positionUpdateInterval == null)
+                {
+                    _positionUpdateInterval = 0;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(PositionUpdateInterval).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        float value;
+                        if (float.TryParse(action.activityMessage.Trim(), out value))
+                        {
+                            _positionUpdateInterval = value;
+                        }
+                    }
+                    //Console.WriteLine($"----> PositionUpdateInterval is {_positionUpdateInterval}");
+                }
+                return _positionUpdateInterval.Value;
             }
         }
 
@@ -825,89 +1037,29 @@ namespace com.arpoise.arpoiseapp
         }
 
         [NonSerialized]
-        private EnvironmentDepthMode? _occlusionEnvironmentDepthMode = null;
-        public EnvironmentDepthMode OcclusionEnvironmentDepthMode // Layer ActionLabel
+        private float? _timeSync;
+        public float TimeSync // Layer ActionLabel
         {
             get
             {
-                if (_occlusionEnvironmentDepthMode == null)
+                if (_timeSync == null)
                 {
-                    _occlusionEnvironmentDepthMode = EnvironmentDepthMode.Disabled;
-                    var value = _occlusionEnvironmentDepthMode.Value;
-                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(OcclusionEnvironmentDepthMode).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
-                    if (action != null && Enum.TryParse(action.activityMessage, out value))
+                    _timeSync = 0;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(TimeSync).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
                     {
-                        _occlusionEnvironmentDepthMode = value;
+                        float value;
+                        if (float.TryParse(action.activityMessage.Trim(), out value))
+                        {
+                            _timeSync = value;
+                        }
                     }
-                    //Console.WriteLine($"----> OcclusionEnvironmentDepthMode is {_occlusionEnvironmentDepthMode}");
-
+                    //Console.WriteLine($"----> TimeSync is {_timeSync}");
                 }
-                return _occlusionEnvironmentDepthMode.Value;
+                return _timeSync.Value;
             }
         }
 
-        [NonSerialized]
-        private OcclusionPreferenceMode? _occlusionPreferenceMode = null;
-        public OcclusionPreferenceMode OcclusionPreferenceMode // Layer ActionLabel
-        {
-            get
-            {
-                if (_occlusionPreferenceMode == null)
-                {
-                    _occlusionPreferenceMode = OcclusionPreferenceMode.NoOcclusion;
-                    var value = _occlusionPreferenceMode.Value;
-                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(OcclusionPreferenceMode).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
-                    if (action != null && Enum.TryParse(action.activityMessage, out value))
-                    {
-                        _occlusionPreferenceMode = value;
-                    }
-                    //Console.WriteLine($"----> OcclusionPreferenceMode is {_occlusionPreferenceMode}");
-                }
-                return _occlusionPreferenceMode.Value;
-            }
-        }
-
-        [NonSerialized]
-        private HumanSegmentationStencilMode? _occlusionHumanSegmentationStencilMode = null;
-        public HumanSegmentationStencilMode OcclusionHumanSegmentationStencilMode // Layer ActionLabel
-        {
-            get
-            {
-                if (_occlusionHumanSegmentationStencilMode == null)
-                {
-                    _occlusionHumanSegmentationStencilMode = HumanSegmentationStencilMode.Disabled;
-                    var value = _occlusionHumanSegmentationStencilMode.Value;
-                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(OcclusionHumanSegmentationStencilMode).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
-                    if (action != null && Enum.TryParse(action.activityMessage, out value))
-                    {
-                        _occlusionHumanSegmentationStencilMode = value;
-                    }
-                    //Console.WriteLine($"----> OcclusionHumanSegmentationStencilMode is {_occlusionHumanSegmentationStencilMode}");
-                }
-                return _occlusionHumanSegmentationStencilMode.Value;
-            }
-        }
-
-        [NonSerialized]
-        private HumanSegmentationDepthMode? _occlusionHumanSegmentationDepthMode = null;
-        public HumanSegmentationDepthMode OcclusionHumanSegmentationDepthMode // Layer ActionLabel
-        {
-            get
-            {
-                if (_occlusionHumanSegmentationDepthMode == null)
-                {
-                    _occlusionHumanSegmentationDepthMode = HumanSegmentationDepthMode.Disabled;
-                    var value = _occlusionHumanSegmentationDepthMode.Value;
-                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(OcclusionHumanSegmentationDepthMode).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
-                    if (action != null && Enum.TryParse(action.activityMessage, out value))
-                    {
-                        _occlusionHumanSegmentationDepthMode = value;
-                    }
-                    //Console.WriteLine($"----> OcclusionHumanSegmentationDepthMode is {_occlusionHumanSegmentationDepthMode}");
-                }
-                return _occlusionHumanSegmentationDepthMode.Value;
-            }
-        }
         #endregion
 
         [NonSerialized]

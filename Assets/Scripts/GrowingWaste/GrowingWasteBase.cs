@@ -540,7 +540,7 @@ namespace com.arpoise.arpoiseapp.GrowingWaste
             _angle = angle;
             _moduleString = moduleString;
             _callback = callback;
-            StartCoroutine("Build");
+            StartCoroutine("BuildObject");
         }
 
         private GameObject _trunkObject;
@@ -552,7 +552,7 @@ namespace com.arpoise.arpoiseapp.GrowingWaste
 
         // A Coroutine for running the genetic algorithm in the background
         //
-        public IEnumerator Build()
+        public IEnumerator BuildObject()
         {
             int n = 1;
             var bounds = new Bounds();

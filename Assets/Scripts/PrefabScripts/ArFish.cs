@@ -118,7 +118,14 @@ public class ArFish : MonoBehaviour
         {
             centerDirection = centerDirection / groupSize + (flock.GoalPosition - transform.position);
             _speed = groupSpeed / groupSize * _flock.SpeedFactor;
-
+            if (_speed < _flock.MinimumSpeed)
+            {
+                _speed = _flock.MinimumSpeed;
+            }
+            if (_speed > _flock.MaximumSpeed)
+            {
+                _speed = _flock.MaximumSpeed;
+            }
             var direction = (centerDirection + avoidDirection) - transform.position;
             if (direction != Vector3.zero)
             {

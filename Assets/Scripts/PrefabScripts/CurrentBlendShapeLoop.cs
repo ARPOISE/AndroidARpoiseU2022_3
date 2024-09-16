@@ -29,14 +29,17 @@ public class CurrentBlendShapeLoop : MonoBehaviour
         {
             SkinnedMeshRenderer = GetComponent<SkinnedMeshRenderer>();
         }
-        if (SkinnedMesh == null)
+        if (SkinnedMesh == null && SkinnedMeshRenderer != null)
         {
-            SkinnedMesh = GetComponent<SkinnedMeshRenderer>().sharedMesh;
+            SkinnedMesh = SkinnedMeshRenderer.sharedMesh;
         }
-        var count = SkinnedMesh?.blendShapeCount;
-        if (count.HasValue)
+        if (SkinnedMesh != null)
         {
-            _blendShapeCount = count.Value;
+            var count = SkinnedMesh?.blendShapeCount;
+            if (count.HasValue)
+            {
+                _blendShapeCount = count.Value;
+            }
         }
     }
 
@@ -53,19 +56,22 @@ public class CurrentBlendShapeLoop : MonoBehaviour
             _lastUpdateDate = DateTime.Now;
         }
 
-        if (_playIndex > 0)
+        if (SkinnedMeshRenderer != null)
         {
-            SkinnedMeshRenderer.SetBlendShapeWeight(_playIndex - 1, 0f);
-        }
-        if (_playIndex == 0)
-        {
-            SkinnedMeshRenderer.SetBlendShapeWeight(_blendShapeCount - 1, 0f);
-        }
-        SkinnedMeshRenderer.SetBlendShapeWeight(_playIndex, 100f);
-        _playIndex++;
-        if (_playIndex > _blendShapeCount - 1)
-        {
-            _playIndex = 0;
+            if (_playIndex > 0)
+            {
+                SkinnedMeshRenderer.SetBlendShapeWeight(_playIndex - 1, 0f);
+            }
+            if (_playIndex == 0)
+            {
+                SkinnedMeshRenderer.SetBlendShapeWeight(_blendShapeCount - 1, 0f);
+            }
+            SkinnedMeshRenderer.SetBlendShapeWeight(_playIndex, 100f);
+            _playIndex++;
+            if (_playIndex > _blendShapeCount - 1)
+            {
+                _playIndex = 0;
+            }
         }
     }
 }

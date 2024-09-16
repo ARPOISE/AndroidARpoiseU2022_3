@@ -357,7 +357,7 @@ namespace com.arpoise.arpoiseapp
                 parentTransform = billboardWrapper.transform;
                 arObjectState.AddBillboardAnimation(
                     new ArAnimation(
-                        arObjectId, billboardWrapper, objectToAdd, null, true, this,
+                        arObjectId, billboardWrapper, objectToAdd, null, ArEventType.Billboard, true, this,
                         poi?.ArLayer?.AudioRolloffMode,
                         poi?.ArLayer?.AudioSpatialBlend,
                         poi?.ArLayer?.AudioSpatialize,
@@ -396,7 +396,7 @@ namespace com.arpoise.arpoiseapp
                         }
                         arObjectState.AddOnCreateAnimation(
                             new ArAnimation(
-                                arObjectId, animationWrapper, objectToAdd, poiAnimation, true, this,
+                                arObjectId, animationWrapper, objectToAdd, poiAnimation, ArEventType.OnCreate, true, this,
                                 poi?.ArLayer?.AudioRolloffMode,
                                 poi?.ArLayer?.AudioSpatialBlend,
                                 poi?.ArLayer?.AudioSpatialize,
@@ -422,7 +422,7 @@ namespace com.arpoise.arpoiseapp
                         }
                         arObjectState.AddOnFocusAnimation(
                             new ArAnimation(
-                                arObjectId, animationWrapper, objectToAdd, poiAnimation, false, this,
+                                arObjectId, animationWrapper, objectToAdd, poiAnimation, ArEventType.OnFocus, false, this,
                                 poi?.ArLayer?.AudioRolloffMode,
                                 poi?.ArLayer?.AudioSpatialBlend,
                                 poi?.ArLayer?.AudioSpatialize,
@@ -448,7 +448,7 @@ namespace com.arpoise.arpoiseapp
                         }
                         arObjectState.AddInFocusAnimation(
                             new ArAnimation(
-                                arObjectId, animationWrapper, objectToAdd, poiAnimation, false, this,
+                                arObjectId, animationWrapper, objectToAdd, poiAnimation, ArEventType.InFocus, false, this,
                                 poi?.ArLayer?.AudioRolloffMode,
                                 poi?.ArLayer?.AudioSpatialBlend,
                                 poi?.ArLayer?.AudioSpatialize,
@@ -474,7 +474,7 @@ namespace com.arpoise.arpoiseapp
                         }
                         arObjectState.AddInMinutesAnimation(
                             new ArAnimation(
-                                arObjectId, animationWrapper, objectToAdd, poiAnimation, false, this,
+                                arObjectId, animationWrapper, objectToAdd, poiAnimation, ArEventType.InMinutes, false, this,
                                 poi?.ArLayer?.AudioRolloffMode,
                                 poi?.ArLayer?.AudioSpatialBlend,
                                 poi?.ArLayer?.AudioSpatialize,
@@ -483,6 +483,32 @@ namespace com.arpoise.arpoiseapp
                         if (animationWrapper.transform.parent == null)
                         {
                             animationWrapper.name = "InMinutesWrapper";
+                            animationWrapper.transform.parent = parentTransform;
+                            parentTransform = animationWrapper.transform;
+                        }
+                    }
+                }
+
+                if (poi.animations.whenActive != null)
+                {
+                    foreach (var poiAnimation in poi.animations.whenActive)
+                    {
+                        var animationWrapper = GetWrapper(wrappers, poiAnimation);
+                        if (animationWrapper == null)
+                        {
+                            return "Instantiate(WhenActiveWrapper) failed";
+                        }
+                        arObjectState.AddWhenActiveAnimation(
+                            new ArAnimation(
+                                arObjectId, animationWrapper, objectToAdd, poiAnimation, ArEventType.WhenActive, false, this,
+                                poi?.ArLayer?.AudioRolloffMode,
+                                poi?.ArLayer?.AudioSpatialBlend,
+                                poi?.ArLayer?.AudioSpatialize,
+                                poi?.ArLayer?.AudioVolume
+                            ));
+                        if (animationWrapper.transform.parent == null)
+                        {
+                            animationWrapper.name = "WhenActiveWrapper";
                             animationWrapper.transform.parent = parentTransform;
                             parentTransform = animationWrapper.transform;
                         }
@@ -500,7 +526,7 @@ namespace com.arpoise.arpoiseapp
                         }
                         arObjectState.AddOnClickAnimation(
                             new ArAnimation(
-                                arObjectId, animationWrapper, objectToAdd, poiAnimation, false, this,
+                                arObjectId, animationWrapper, objectToAdd, poiAnimation, ArEventType.OnClick, false, this,
                                 poi?.ArLayer?.AudioRolloffMode,
                                 poi?.ArLayer?.AudioSpatialBlend,
                                 poi?.ArLayer?.AudioSpatialize,
@@ -526,7 +552,7 @@ namespace com.arpoise.arpoiseapp
                         }
                         arObjectState.AddOnFollowAnimation(
                             new ArAnimation(
-                                arObjectId, animationWrapper, objectToAdd, poiAnimation, false, this,
+                                arObjectId, animationWrapper, objectToAdd, poiAnimation, ArEventType.OnFollow, false, this,
                                 poi?.ArLayer?.AudioRolloffMode,
                                 poi?.ArLayer?.AudioSpatialBlend,
                                 poi?.ArLayer?.AudioSpatialize,

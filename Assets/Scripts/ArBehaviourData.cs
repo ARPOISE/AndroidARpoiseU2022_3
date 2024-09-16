@@ -35,6 +35,7 @@ using System.Globalization;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 using UnityEngine.XR.ARSubsystems;
 
 namespace com.arpoise.arpoiseapp
@@ -104,11 +105,12 @@ namespace com.arpoise.arpoiseapp
         #region Constants
         public const string ArpoiseDirectoryLayer = "Arpoise-Directory";
         public const string ArvosDirectoryLayer = "AR-vos-Directory";
-        public const string ArpoiseDirectoryUrl = "www.arpoise.com/cgi-bin/ArpoiseDirectory.cgi";
+        public const string TT_ArpoiseDirectoryUrl = "www.tamikothiel.com/cs-bin/ArpoiseDirectory.cgi";
 
         #endregion
-        
+
         #region Globals
+        public string ArpoiseDirectoryUrl = "www.arpoise.com/cgi-bin/ArpoiseDirectory.cgi";
 
         #endregion
 
@@ -128,6 +130,9 @@ namespace com.arpoise.arpoiseapp
         {
             long count = 0;
             string layerName = ArpoiseDirectoryLayer;
+#if TT_AR_U2022_3
+            ArpoiseDirectoryUrl = TT_ArpoiseDirectoryUrl;
+#endif
             string uri = ArpoiseDirectoryUrl;
 
             bool setError = true;
@@ -179,6 +184,9 @@ namespace com.arpoise.arpoiseapp
                         + "&userId=" + SystemInfo.deviceUniqueIdentifier
                         + "&client=" + ApplicationName
                         + "&bundle=" + Bundle
+#if TT_AR_U2022_3
+                        + "&app=TT_AR"
+#endif
                         + "&os=" + OperatingSystem
                         + "&count=" + count
                     ;
@@ -268,7 +276,7 @@ namespace com.arpoise.arpoiseapp
                         break;
                     }
                 }
-#endregion
+                #endregion
 
                 #region Handle the showMenuButton of the layers
                 MenuButtonSetActive = new MenuButtonSetActiveActivity { ArBehaviour = this, Layers = layers.ToList() };
@@ -732,6 +740,74 @@ namespace com.arpoise.arpoiseapp
                 }
                 #endregion
 
+                #region Set the lights
+                var lightGameObject = SceneManager.GetActiveScene().GetRootGameObjects().FirstOrDefault(x => x.name == "Directional Light N");
+                var light = lightGameObject != null ? lightGameObject.GetComponent<Light>() : null;
+                if (light != null)
+                {
+                    light.intensity = 1;
+                    var layer = layers.FirstOrDefault(x => x.DirectionalLightN_Intensity >= 0);
+                    if (layer != null)
+                    {
+                        light.intensity = layer.DirectionalLightN_Intensity;
+                    }
+
+                    layer = layers.FirstOrDefault(x => x.DirectionalLightN_IsActive == false);
+                    if (layer != null)
+                    {
+                        lightGameObject.SetActive(false);
+                    }
+                    else
+                    {
+                        lightGameObject.SetActive(true);
+                    }
+                }
+
+                lightGameObject = SceneManager.GetActiveScene().GetRootGameObjects().FirstOrDefault(x => x.name == "Directional Light SEE");
+                light = lightGameObject != null ? lightGameObject.GetComponent<Light>() : null;
+                if (light != null)
+                {
+                    light.intensity = 1;
+                    var layer = layers.FirstOrDefault(x => x.DirectionalLightSEE_Intensity >= 0);
+                    if (layer != null)
+                    {
+                        light.intensity = layer.DirectionalLightSEE_Intensity;
+                    }
+
+                    layer = layers.FirstOrDefault(x => x.DirectionalLightSEE_IsActive == false);
+                    if (layer != null)
+                    {
+                        lightGameObject.SetActive(false);
+                    }
+                    else
+                    {
+                        lightGameObject.SetActive(true);
+                    }
+                }
+
+                lightGameObject = SceneManager.GetActiveScene().GetRootGameObjects().FirstOrDefault(x => x.name == "Directional Light SWW");
+                light = lightGameObject != null ? lightGameObject.GetComponent<Light>() : null;
+                if (light != null)
+                {
+                    light.intensity = 1;
+                    var layer = layers.FirstOrDefault(x => x.DirectionalLightSWW_Intensity >= 0);
+                    if (layer != null)
+                    {
+                        light.intensity = layer.DirectionalLightSWW_Intensity;
+                    }
+
+                    layer = layers.FirstOrDefault(x => x.DirectionalLightSWW_IsActive == false);
+                    if (layer != null)
+                    {
+                        lightGameObject.SetActive(false);
+                    }
+                    else
+                    {
+                        lightGameObject.SetActive(true);
+                    }
+                }
+                #endregion
+
                 #region Create or handle the object state
                 List<ArObject> existingArObjects = null;
                 var arObjectState = ArObjectState;
@@ -751,7 +827,7 @@ namespace com.arpoise.arpoiseapp
                     {
                         yield break;
                     }
-                    if (!arObjectState.ArObjects.Any() && !IsSlam &&!HasTriggerImages)
+                    if (!arObjectState.ArObjects.Any() && !IsSlam && !HasTriggerImages)
                     {
                         var message = layers.Select(x => x.noPoisMessage).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
                         if (string.IsNullOrWhiteSpace(message))

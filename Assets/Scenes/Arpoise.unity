@@ -424,7 +424,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
-  m_Intensity: 1
+  m_Intensity: 10
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.802082
@@ -1691,6 +1691,7 @@ MonoBehaviour:
   RecordingFrameRate: 0
   SceneAnchor: {fileID: 927562296}
   Wrapper: {fileID: 1570904393}
+  ArpoiseDirectoryUrl: www.arpoise.com/cgi-bin/ArpoiseDirectory.cgi
   InfoText: {fileID: 7609808323551235062}
   MenuButton: {fileID: 3491036700577019378}
   HeaderButton: {fileID: 7462290449588158478}

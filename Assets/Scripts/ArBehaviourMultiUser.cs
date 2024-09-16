@@ -50,7 +50,7 @@ namespace com.arpoise.arpoiseapp
 #else
         public const string OperatingSystem = "Android";
 #endif
-        public const string Bundle = "20240224";
+        public const string Bundle = "20240915";
         public const string ArvosApplicationName = "Arvos";
         public const string ArpoiseApplicationName = "Arpoise";
 #if AndroidArvosU2022_3 || iOsArvosU2022_3
@@ -281,15 +281,21 @@ namespace com.arpoise.arpoiseapp
             return Send(ref _tcpClient, ref _netStream, sb.ToString());
         }
 
+        private HashSet<string> _packedIdsOfAnimationRequests = new HashSet<string>();
+
         public bool SendAnimationToRemote(string name)
         {
-            return SendToRemote(AnimationTag, name);
+            var rc = SendToRemote(AnimationTag, name);
+            _packedIdsOfAnimationRequests.Add("" + (_packetId - 1));
+            return rc;
         }
 
         public void CallUpdate()
         {
             Update();
         }
+
+        private bool _animationTriggeredLocally = false;
 
         protected virtual void Update()
         {
@@ -392,7 +398,7 @@ namespace com.arpoise.arpoiseapp
                     _callbacks.ForEach(x => x.Set(string.Empty, string.Empty, ConnectionStart, DateTime.Now));
                     continue;
                 }
-                else if(_reconnected)
+                else if (_reconnected)
                 {
                     if (parts.Length >= 4 && "AN" == parts[0] && "0" == parts[1] && !string.IsNullOrWhiteSpace(parts[2]) && "HI" == parts[3])
                     {
@@ -416,6 +422,14 @@ namespace com.arpoise.arpoiseapp
                 }
                 if ("AN" == parts[0])
                 {
+                    if (parts.Length > 1)
+                    {
+                        var packetId = parts[1];
+                        if (_packedIdsOfAnimationRequests.Remove(packetId))
+                        {
+                            _animationTriggeredLocally = true;
+                        }
+                    }
                     continue;
                 }
                 if ("RQ" == parts[0])
@@ -463,13 +477,30 @@ namespace com.arpoise.arpoiseapp
                             }
                         }
 
+                        var animationTriggeredLocally = _animationTriggeredLocally;
+                        _animationTriggeredLocally = false;
+
+                        var animationActivated = false;
                         var arObjectState = ArObjectState;
                         if (arObjectState != null && !string.IsNullOrWhiteSpace(value))
                         {
-                            arObjectState.RemoteActivate(value, StartTicks, NowTicks);
+                            animationActivated = arObjectState.RemoteActivate(value, StartTicks, NowTicks);
                         }
                         if (!string.IsNullOrWhiteSpace(value))
                         {
+                            _callbacks.ForEach(x => x.Set(tag, value, ConnectionStart, DateTime.Now));
+                        }
+                        if (animationActivated)
+                        {
+                            if (animationTriggeredLocally)
+                            {
+                                value = value.Replace("Remoted", "TriggeredLocally");
+                            }
+                            else
+                            {
+                                value = value.Replace("Remoted", "TriggeredRemotely");
+                            }
+                            arObjectState.RemoteActivate(value, StartTicks, NowTicks);
                             _callbacks.ForEach(x => x.Set(tag, value, ConnectionStart, DateTime.Now));
                         }
                     }
@@ -638,7 +669,7 @@ namespace com.arpoise.arpoiseapp
                 _tcpClient = new TcpClient(hostName, port);
                 _netStream = _tcpClient.GetStream();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 if (_netStream != null)
                 {

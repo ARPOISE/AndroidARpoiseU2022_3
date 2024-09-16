@@ -81,6 +81,7 @@ public class ArpoiseObjectRain : MonoBehaviour
     public int MaxNofRainObjects = -1; // How many rain objects are to be created before we start deleting some
     public int MaxNofClickObjects = -1; // How many click objects are to be created before we start deleting some
     public int MaxNofTapSounds = -1; // How many tap sounds are to be created before we start deleting some
+    public bool HideRainObjectOnClick = false; // Hide the rain object after it is clicked once
     #endregion
 
     public void SetParameter(bool setValue, string label, string value)
@@ -125,6 +126,10 @@ public class ArpoiseObjectRain : MonoBehaviour
         {
             MaxNofTapSounds = SetParameter(setValue, value, MaxNofTapSounds).Value;
         }
+        else if (label.Equals(nameof(HideRainObjectOnClick)))
+        {
+            HideRainObjectOnClick = SetParameter(setValue, value, HideRainObjectOnClick).Value;
+        }
     }
     protected int? SetParameter(bool setValue, string value, int? defaultValue)
     {
@@ -146,6 +151,18 @@ public class ArpoiseObjectRain : MonoBehaviour
             if (float.TryParse(value, out floatValue))
             {
                 return floatValue;
+            }
+        }
+        return defaultValue;
+    }
+    protected bool? SetParameter(bool setValue, string value, bool? defaultValue)
+    {
+        if (setValue && !string.IsNullOrWhiteSpace(value))
+        {
+            bool boolValue;
+            if (bool.TryParse(value, out boolValue))
+            {
+                return boolValue;
             }
         }
         return defaultValue;
@@ -197,16 +214,22 @@ public class ArpoiseObjectRain : MonoBehaviour
             {
                 if (clickObject != null)
                 {
-                    GameObject newClickObject = Instantiate(clickObject, hit.transform.position, Quaternion.identity);
+                    // put the object below the Object Rain GO, so it gets deleted if the GO gets deleted
+                    GameObject newClickObject = Instantiate(clickObject, hit.transform.position, hit.transform.rotation, transform);
                     newClickObject.SetActive(true);
                     _instantiatedClickObjects.Add(newClickObject);
                 }
 
                 if (tapSound != null)
                 {
-                    GameObject newTapSound = Instantiate(tapSound, hit.transform.position, Quaternion.identity);
+                    GameObject newTapSound = Instantiate(tapSound, hit.transform.position, hit.transform.rotation, transform);
                     newTapSound.SetActive(true);
                     _instantiatedTapSounds.Add(newTapSound);
+                }
+
+                if (HideRainObjectOnClick)
+                {
+                    hit.transform.gameObject.SetActive(false);
                 }
             }
         }
@@ -259,7 +282,7 @@ public class ArpoiseObjectRain : MonoBehaviour
                 UnityEngine.Random.Range(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f + OffsetZ
                 );
 
-            GameObject rainObject = Instantiate(_rainObjects[_numberOfRainObjects++ % _rainObjects.Count], position, UnityEngine.Random.rotation);
+            GameObject rainObject = Instantiate(_rainObjects[_numberOfRainObjects++ % _rainObjects.Count], position, UnityEngine.Random.rotation, transform);
             rainObject.SetActive(true);
             _instantiatedRainObjects.Add(rainObject);
             //Console.WriteLine($"----> arpoiseObjectRain new rain object, total {_instantiatedRainObjects.Count}");

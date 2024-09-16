@@ -97,23 +97,23 @@ public class ArFlock : MonoBehaviour
         }
         else if (label.Equals(nameof(SpeedFactor)))
         {
-            _speedFactor = ParameterHelper.SetParameter(setValue, value, (float?)null).Value;
+            _speedFactor = ParameterHelper.SetParameter(setValue, value, (float?)null);
         }
         else if (label.Equals(nameof(RotationSpeed)))
         {
-            _rotationSpeed = ParameterHelper.SetParameter(setValue, value, (float?)null).Value;
+            _rotationSpeed = ParameterHelper.SetParameter(setValue, value, (float?)null);
         }
         else if (label.Equals(nameof(ApplyRulesPercentage)))
         {
-            _applyRulesPercentage = ParameterHelper.SetParameter(setValue, value, (float?)null).Value;
+            _applyRulesPercentage = ParameterHelper.SetParameter(setValue, value, (float?)null);
         }
         else if (label.Equals(nameof(MinimumSpeed)))
         {
-            _minimumSpeed = ParameterHelper.SetParameter(setValue, value, (float?)null).Value;
+            _minimumSpeed = ParameterHelper.SetParameter(setValue, value, (float?)null);
         }
         else if (label.Equals(nameof(MaximumSpeed)))
         {
-            _maximumSpeed = ParameterHelper.SetParameter(setValue, value, (float?)null).Value;
+            _maximumSpeed = ParameterHelper.SetParameter(setValue, value, (float?)null);
         }
     }
     #endregion

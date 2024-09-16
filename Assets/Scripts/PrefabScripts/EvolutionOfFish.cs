@@ -67,23 +67,22 @@ public class EvolutionOfFish : ArFlock
             switch (i % 5)
             {
                 case 1:
-                    fish = Instantiate(FishPrefab1, pos, Quaternion.identity);
+                    // put the fish below the EOF-GO, so it gets deleted if the GO gets deleted
+                    fish = Instantiate(FishPrefab1, pos, Quaternion.identity, transform);
                     break;
                 case 2:
-                    fish = Instantiate(FishPrefab2, pos, Quaternion.identity);
+                    fish = Instantiate(FishPrefab2, pos, Quaternion.identity, transform);
                     break;
                 case 3:
-                    fish = Instantiate(FishPrefab3, pos, Quaternion.identity);
+                    fish = Instantiate(FishPrefab3, pos, Quaternion.identity, transform);
                     break;
                 case 4:
-                    fish = Instantiate(FishPrefab4, pos, Quaternion.identity);
+                    fish = Instantiate(FishPrefab4, pos, Quaternion.identity, transform);
                     break;
                 default:
-                    fish = Instantiate(FishPrefab0, pos, Quaternion.identity);
+                    fish = Instantiate(FishPrefab0, pos, Quaternion.identity, transform);
                     break;
             }
-            // put the fish below the EOF-GO, so it gets deleted if the GO gets deleted
-            fish.transform.parent = transform;
             allFish[i] = fish;
             allFish[i].GetComponent<ArFish>().Flock = this;
         }
