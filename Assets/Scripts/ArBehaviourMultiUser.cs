@@ -50,7 +50,7 @@ namespace com.arpoise.arpoiseapp
 #else
         public const string OperatingSystem = "Android";
 #endif
-        public const string Bundle = "20240915";
+        public const string Bundle = "20241014";
         public const string ArvosApplicationName = "Arvos";
         public const string ArpoiseApplicationName = "Arpoise";
 #if AndroidArvosU2022_3 || iOsArvosU2022_3
@@ -297,9 +297,36 @@ namespace com.arpoise.arpoiseapp
 
         private bool _animationTriggeredLocally = false;
 
+        bool _isPaused = false;
+        void OnApplicationFocus(bool hasFocus)
+        {
+            var isPaused = !hasFocus;
+            if (isPaused != _isPaused)
+            {
+                if (isPaused)
+                {
+                    CloseConnection();
+                }
+                _isPaused = isPaused;
+            }
+        }
+
+        void OnApplicationPause(bool pauseStatus)
+        {
+            var isPaused = pauseStatus;
+            if (isPaused != _isPaused)
+            {
+                if (isPaused)
+                {
+                    CloseConnection();
+                }
+                _isPaused = isPaused;
+            }
+        }
+
         protected virtual void Update()
         {
-            if (string.IsNullOrWhiteSpace(_url))
+            if (string.IsNullOrWhiteSpace(_url) || _isPaused)
             {
                 return;
             }
@@ -552,35 +579,8 @@ namespace com.arpoise.arpoiseapp
             }
         }
 
-        public void SetRemoteServerUrl(string url, string sceneUrl, string sceneName, string scriptName)
+        public void CloseConnection()
         {
-            if (_url == url && _sceneUrl == sceneUrl && _sceneName == sceneName && _tcpClient != null && _netStream != null)
-            {
-                return;
-            }
-
-            if (_tcpClient != null && _netStream != null && _clientId != null && _connectionId != null)
-            {
-                var sb = new StringBuilder();
-                sb.Append("RQ");
-                sb.Append('\0');
-                sb.Append("" + _packetId++);
-                sb.Append('\0');
-                sb.Append(_connectionId);
-                sb.Append('\0');
-                sb.Append("BYE");
-                sb.Append('\0');
-                sb.Append("CLID");
-                sb.Append('\0');
-                sb.Append(_clientId);
-                sb.Append('\0');
-
-                Send(ref _tcpClient, ref _netStream, sb.ToString());
-            }
-
-            _sceneUrl = sceneUrl;
-            _sceneName = string.IsNullOrWhiteSpace(sceneName) ? sceneUrl : sceneName;
-
             if (_netStream != null)
             {
                 _netStream.Close();
@@ -597,6 +597,20 @@ namespace com.arpoise.arpoiseapp
             _connectionId = null;
             ConnectionStart = DateTime.MinValue;
             _lastSendTime = DateTime.MinValue;
+        }
+
+        public void SetRemoteServerUrl(string url, string sceneUrl, string sceneName, string scriptName)
+        {
+            if (_url == url && _sceneUrl == sceneUrl && _sceneName == sceneName && _tcpClient != null && _netStream != null)
+            {
+                return;
+            }
+
+            CloseConnection();
+
+            _sceneUrl = sceneUrl;
+            _sceneName = string.IsNullOrWhiteSpace(sceneName) ? sceneUrl : sceneName;
+
             _url = null;
             if (string.IsNullOrWhiteSpace(url))
             {
