@@ -53,7 +53,9 @@ namespace com.arpoise.arpoiseapp
         Duplicate = 4,
         Fade = 5,
         Grow = 6,
-        Volume = 7
+        Volume = 7,
+        Buzz = 8,
+        SpatialBlend = 9
     }
 
     public enum ArEventType
@@ -98,6 +100,8 @@ namespace com.arpoise.arpoiseapp
         private static readonly string _fade = nameof(ArAnimationType.Fade).ToLower();
         private static readonly string _grow = nameof(ArAnimationType.Grow).ToLower();
         private static readonly string _volume = nameof(ArAnimationType.Volume).ToLower();
+        private static readonly string _spatialBlend = nameof(ArAnimationType.SpatialBlend).ToLower();
+        private static readonly string _buzz = nameof(ArAnimationType.Buzz).ToLower();
         private static readonly string _cyclic = nameof(ArInterpolation.Cyclic).ToLower();
         private static readonly string _halfsine = nameof(ArInterpolation.Halfsine).ToLower();
         private static readonly string _sine = nameof(ArInterpolation.Sine).ToLower();
@@ -106,6 +110,7 @@ namespace com.arpoise.arpoiseapp
         private float? _durationStretchFactor;
         private float? _initialA = null;
         private float? _initialVolume = null;
+        private float? _initialSpatialBlend = null;
         private long _startTicks = 0;
         private List<Material> _materialsToFade = null;
         private AudioSource _audioSource = null;
@@ -165,6 +170,8 @@ namespace com.arpoise.arpoiseapp
                         : type.Contains(_fade) ? ArAnimationType.Fade
                         : type.Contains(_grow) ? ArAnimationType.Grow
                         : type.Contains(_volume) ? ArAnimationType.Volume
+                        : type.Contains(_spatialBlend) ? ArAnimationType.SpatialBlend
+                        : type.Contains(_buzz) ? ArAnimationType.Buzz
                         : ArAnimationType.Transform;
                 }
                 if (poiAnimation.interpolation != null)
@@ -320,6 +327,14 @@ namespace com.arpoise.arpoiseapp
                 case ArAnimationType.Volume:
                     SetVolume(animationFactor);
                     break;
+
+                case ArAnimationType.SpatialBlend:
+                    SetSpatialBlend(animationFactor);
+                    break;
+
+                case ArAnimationType.Buzz:
+                    Buzz(animationFactor);
+                    break;
             }
 
             if (JustActivated)
@@ -373,6 +388,13 @@ namespace com.arpoise.arpoiseapp
                         if (_initialVolume.HasValue)
                         {
                             SetVolume(_initialVolume.Value);
+                        }
+                        break;
+
+                    case ArAnimationType.SpatialBlend:
+                        if (_initialSpatialBlend.HasValue)
+                        {
+                            SetSpatialBlend(_initialSpatialBlend.Value);
                         }
                         break;
                 }
@@ -594,6 +616,11 @@ namespace com.arpoise.arpoiseapp
             }
         }
 
+        private void Buzz(float value)
+        {
+            _behaviour.DoBuzz = true;
+        }
+
         private void SetVolume(float value)
         {
             if (_audioSource == null && GameObject != null)
@@ -613,6 +640,29 @@ namespace com.arpoise.arpoiseapp
                 else
                 {
                     _audioSource.volume = value;
+                }
+            }
+        }
+
+        private void SetSpatialBlend(float value)
+        {
+            if (_audioSource == null && GameObject != null)
+            {
+                _audioSource = GameObject.GetComponent<AudioSource>();
+            }
+            if (_audioSource != null)
+            {
+                if (!_initialVolume.HasValue)
+                {
+                    _initialSpatialBlend = _audioSource.spatialBlend;
+                }
+                if (AudioSpatialBlend.HasValue && AudioSpatialBlend.Value >= 0)
+                {
+                    _audioSource.spatialBlend = AudioSpatialBlend.Value;
+                }
+                else
+                {
+                    _audioSource.spatialBlend = value;
                 }
             }
         }

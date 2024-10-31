@@ -47,6 +47,7 @@ namespace com.arpoise.arpoiseapp
         bool SendAnimationToRemote(string animationName);
         float? DurationStretchFactor { get; }
         void TimeSync();
+        bool DoBuzz { get; set; }
     }
 
     public class ArBehaviourPosition : ArBehaviourMultiUser, IArpoiseBehaviour
