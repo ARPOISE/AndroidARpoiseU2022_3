@@ -157,8 +157,8 @@ namespace com.arpoise.arpoiseapp
                 FollowedBy = !string.IsNullOrWhiteSpace(poiAnimation.followedBy)
                     ? poiAnimation.followedBy.Split(',').Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToArray()
                     : FollowedBy;
-                _lengthTicks = (long)(10000000.0 * poiAnimation.length);
-                _delayTicks = (long)(10000000.0 * poiAnimation.delay);
+                _lengthTicks = (long)(TimeSpan.TicksPerSecond * poiAnimation.length);
+                _delayTicks = (long)(TimeSpan.TicksPerSecond * poiAnimation.delay);
                 _behaviour = behaviour;
                 if (poiAnimation.type != null)
                 {

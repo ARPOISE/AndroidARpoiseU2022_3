@@ -62,7 +62,8 @@ namespace com.arpoise.arpoiseapp
         private long _lastSecond = -1;
         protected override void Update()
         {
-            var minute = DateTime.Now.Hour * 60 + DateTime.Now.Minute;
+            var now = DateTime.Now;
+            var minute = now.Hour * 60 + now.Minute;
 
             var shouldNotSleep = ApplicationSleepStartMinute < 0 || ApplicationSleepEndMinute < 0
                    || (ApplicationSleepStartMinute <= ApplicationSleepEndMinute && (minute < ApplicationSleepStartMinute || minute >= ApplicationSleepEndMinute))
@@ -86,7 +87,7 @@ namespace com.arpoise.arpoiseapp
 
             if (ApplicationIsSleeping)
             {
-                var second = DateTime.Now.Ticks / 10000000L;
+                var second = now.Ticks / TimeSpan.TicksPerSecond;
                 if (second == _lastSecond)
                 {
                     return;

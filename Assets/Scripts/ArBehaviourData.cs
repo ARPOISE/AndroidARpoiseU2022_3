@@ -862,7 +862,7 @@ namespace com.arpoise.arpoiseapp
                 var doNotRefresh = refreshInterval < 1;
 
                 long nowTicks = DateTime.Now.Ticks;
-                long waitUntil = nowTicks + (long)refreshInterval * 10000000L;
+                long waitUntil = nowTicks + (long)refreshInterval * TimeSpan.TicksPerSecond;
 
                 while (doNotRefresh || nowTicks < waitUntil)
                 {
