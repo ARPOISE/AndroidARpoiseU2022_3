@@ -55,14 +55,15 @@ namespace com.arpoise.arpoiseapp
             {
                 if (_allAnimations == null)
                 {
-                    _allAnimations = _onCreateAnimations
-                        .Concat(_onFollowAnimations)
-                        .Concat(_onFocusAnimations)
-                        .Concat(_inFocusAnimations)
-                        .Concat(_onClickAnimations)
-                        .Concat(_inMinutesAnimations)
-                        .Concat(_whenActiveAnimations)
-                        .ToArray();
+                    var allAnimations = new List<ArAnimation>();
+                    allAnimations.AddRange(_onCreateAnimations);
+                    allAnimations.AddRange(_onFollowAnimations);
+                    allAnimations.AddRange(_onFocusAnimations);
+                    allAnimations.AddRange(_inFocusAnimations);
+                    allAnimations.AddRange(_onClickAnimations);
+                    allAnimations.AddRange(_inMinutesAnimations);
+                    allAnimations.AddRange(_whenActiveAnimations);
+                    _allAnimations = allAnimations.ToArray();
                 }
                 return _allAnimations;
             }
@@ -89,15 +90,18 @@ namespace com.arpoise.arpoiseapp
         public void SetArObjectsToPlace()
         {
             var arObjectsToPlace = new HashSet<ArObject>(ArObjects.Where(x => !x.IsRelative));
-            for (; ; )
+            var queue = new Queue<ArObject>(arObjectsToPlace);
+
+            while (queue.Count > 0)
             {
-                var childrenToPlace = arObjectsToPlace.SelectMany(x => x.ArObjects).Where(x => !x.IsRelative && !arObjectsToPlace.Contains(x)).ToList();
-                if (!childrenToPlace.Any())
+                var current = queue.Dequeue();
+                foreach (var child in current.ArObjects.Where(x => !x.IsRelative && !arObjectsToPlace.Contains(x)))
                 {
-                    break;
+                    arObjectsToPlace.Add(child);
+                    queue.Enqueue(child);
                 }
-                childrenToPlace.ForEach(x => arObjectsToPlace.Add(x));
             }
+
             ArObjectsToPlace = arObjectsToPlace.ToList();
             ArObjectsRelative = ArObjects.Where(x => x.IsRelative).ToList();
         }

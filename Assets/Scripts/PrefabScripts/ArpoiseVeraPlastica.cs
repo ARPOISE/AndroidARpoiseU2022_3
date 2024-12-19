@@ -28,7 +28,6 @@ ARpoise, see www.ARpoise.com/
 
 */
 
-using com.arpoise.arpoiseapp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -440,75 +439,52 @@ public class ArpoiseVeraPlastica : MonoBehaviour
         switch (label)
         {
             case nameof(NumberOfNewPlasticsPerSecond):
-                NumberOfNewPlasticsPerSecond = SetParameter(setValue, value, NumberOfNewPlasticsPerSecond).Value;
+                NumberOfNewPlasticsPerSecond = ParameterHelper.SetParameter(setValue, value, NumberOfNewPlasticsPerSecond).Value;
                 break;
             case nameof(MaxNumberOfPlastics):
-                MaxNumberOfPlastics = SetParameter(setValue, value, MaxNumberOfPlastics).Value;
+                MaxNumberOfPlastics = ParameterHelper.SetParameter(setValue, value, MaxNumberOfPlastics).Value;
                 break;
             case nameof(MinNumberOfPlastics):
-                MinNumberOfPlastics = SetParameter(setValue, value, MinNumberOfPlastics).Value;
+                MinNumberOfPlastics = ParameterHelper.SetParameter(setValue, value, MinNumberOfPlastics).Value;
                 break;
             case nameof(RandomOffsetInX):
-                RandomOffsetInX = SetParameter(setValue, value, RandomOffsetInX).Value;
+                RandomOffsetInX = ParameterHelper.SetParameter(setValue, value, RandomOffsetInX).Value;
                 break;
             case nameof(PlasticOffsetInX):
-                PlasticOffsetInX = SetParameter(setValue, value, PlasticOffsetInX).Value;
+                PlasticOffsetInX = ParameterHelper.SetParameter(setValue, value, PlasticOffsetInX).Value;
                 break;
             case nameof(PlasticOffsetInY):
-                PlasticOffsetInY = SetParameter(setValue, value, PlasticOffsetInY).Value;
+                PlasticOffsetInY = ParameterHelper.SetParameter(setValue, value, PlasticOffsetInY).Value;
                 break;
             case nameof(PlasticOffsetInZ):
-                PlasticOffsetInZ = SetParameter(setValue, value, PlasticOffsetInZ).Value;
+                PlasticOffsetInZ = ParameterHelper.SetParameter(setValue, value, PlasticOffsetInZ).Value;
                 break;
             case nameof(ColumnWidth):
-                ColumnWidth = SetParameter(setValue, value, ColumnWidth).Value;
+                ColumnWidth = ParameterHelper.SetParameter(setValue, value, ColumnWidth).Value;
                 break;
             case nameof(RandomColumnIndex):
-                RandomColumnIndex = SetParameter(setValue, value, RandomColumnIndex).Value;
+                RandomColumnIndex = ParameterHelper.SetParameter(setValue, value, RandomColumnIndex).Value;
                 break;
             case nameof(RandomOffsetInZ):
-                RandomOffsetInZ = SetParameter(setValue, value, RandomOffsetInZ).Value;
+                RandomOffsetInZ = ParameterHelper.SetParameter(setValue, value, RandomOffsetInZ).Value;
                 break;
             case nameof(RowWidth):
-                RowWidth = SetParameter(setValue, value, RowWidth).Value;
+                RowWidth = ParameterHelper.SetParameter(setValue, value, RowWidth).Value;
                 break;
             case nameof(RandomRowIndex):
-                RandomRowIndex = SetParameter(setValue, value, RandomRowIndex).Value;
+                RandomRowIndex = ParameterHelper.SetParameter(setValue, value, RandomRowIndex).Value;
                 break;
             case nameof(RandomDegreesInX):
-                RandomDegreesInX = SetParameter(setValue, value, RandomDegreesInX).Value;
+                RandomDegreesInX = ParameterHelper.SetParameter(setValue, value, RandomDegreesInX).Value;
                 break;
             case nameof(RandomDegreesInY):
-                RandomDegreesInY = SetParameter(setValue, value, RandomDegreesInY).Value;
+                RandomDegreesInY = ParameterHelper.SetParameter(setValue, value, RandomDegreesInY).Value;
                 break;
             case nameof(RandomDegreesInZ):
-                RandomDegreesInZ = SetParameter(setValue, value, RandomDegreesInZ).Value;
+                RandomDegreesInZ = ParameterHelper.SetParameter(setValue, value, RandomDegreesInZ).Value;
                 break;
         }
     }
 
-    protected int? SetParameter(bool setValue, string value, int? defaultValue)
-    {
-        if (setValue && !string.IsNullOrWhiteSpace(value))
-        {
-            int intValue;
-            if (int.TryParse(value, out intValue))
-            {
-                return intValue;
-            }
-        }
-        return defaultValue;
-    }
-    protected float? SetParameter(bool setValue, string value, float? defaultValue)
-    {
-        if (setValue && !string.IsNullOrWhiteSpace(value))
-        {
-            float floatValue;
-            if (float.TryParse(value, out floatValue))
-            {
-                return floatValue;
-            }
-        }
-        return defaultValue;
-    }
+
 }

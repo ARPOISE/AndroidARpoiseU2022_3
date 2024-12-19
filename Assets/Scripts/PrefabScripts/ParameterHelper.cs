@@ -27,8 +27,8 @@ Peter Graf, see www.mission-base.com/peter/
 ARpoise, see www.ARpoise.com/
 
 */
-using System;
-using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using UnityEngine;
 
 public static class ParameterHelper
@@ -50,11 +50,50 @@ public static class ParameterHelper
         if (setValue && !string.IsNullOrWhiteSpace(value))
         {
             float floatValue;
-            if (float.TryParse(value, out floatValue))
+            if (float.TryParse(value.Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out floatValue))
             {
                 return floatValue;
             }
         }
         return defaultValue;
+    }
+    public static bool? SetParameter(bool setValue, string value, bool? defaultValue)
+    {
+        if (setValue && !string.IsNullOrWhiteSpace(value))
+        {
+            bool boolValue;
+            if (bool.TryParse(value, out boolValue))
+            {
+                return boolValue;
+            }
+        }
+        return defaultValue;
+    }
+    public static Vector3? SetParameter(bool setValue, string value, Vector3? defaultValue)
+    {
+        if (setValue && !string.IsNullOrWhiteSpace(value))
+        {
+            Vector3 vector3Value;
+            if (TryParse(value, out vector3Value))
+            {
+                return vector3Value;
+            }
+        }
+        return defaultValue;
+    }
+    public static bool TryParse(string input, out Vector3 value)
+    {
+        if (!string.IsNullOrWhiteSpace(input))
+        {
+            float floatValue;
+            var values = input.Split(',').Select(s => s.Trim()).ToArray();
+            var x = (float)(values.Length > 0 && float.TryParse(values[0].Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out floatValue) ? floatValue : 0);
+            var y = (float)(values.Length > 1 && float.TryParse(values[1].Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out floatValue) ? floatValue : 0);
+            var z = (float)(values.Length > 2 && float.TryParse(values[2].Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out floatValue) ? floatValue : 0);
+            value = new Vector3(x, y, z);
+            return true;
+        }
+        value = Vector3.zero;
+        return false;
     }
 }

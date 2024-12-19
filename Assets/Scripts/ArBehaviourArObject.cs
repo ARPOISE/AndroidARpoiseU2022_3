@@ -214,6 +214,17 @@ namespace com.arpoise.arpoiseapp
                     }
                 }
             }
+            if (objectName.Contains(nameof(ArpoiseObjectCrystal)))
+            {
+                var arpoiseObjectCrystal = objectToAdd.GetComponent<ArpoiseObjectCrystal>();
+                if (arpoiseObjectCrystal != null)
+                {
+                    foreach (var action in poi.actions)
+                    {
+                        arpoiseObjectCrystal.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                    }
+                }
+            }
             if (objectName.Contains(nameof(ArpoiseVeraPlastica)))
             {
                 var arpoiseVeraPlastica = objectToAdd.GetComponent<ArpoiseVeraPlastica>();
@@ -1059,18 +1070,15 @@ namespace com.arpoise.arpoiseapp
             var filteredLongitude = UsedLongitude;
 
             var absoluteArObjects = ArObjectState.ArObjectsToPlace;
-            if (absoluteArObjects != null)
+            if (absoluteArObjects != null && absoluteArObjects.Any(x => x.WrapperObject.activeSelf))
             {
-                if (absoluteArObjects.Where(x => x.WrapperObject.activeSelf).Any())
-                {
-                    return true;
-                }
+                return true;
             }
+
             var relativeArObjects = ArObjectState.ArObjectsRelative;
             if (relativeArObjects != null)
             {
-                var activeObjects = relativeArObjects.Where(x => x.WrapperObject.activeSelf).ToList();
-                foreach (var arObject in activeObjects)
+                foreach (var arObject in relativeArObjects.Where(x => x.WrapperObject.activeSelf))
                 {
                     if (arObject.Poi.visibilityRange > 0)
                     {
@@ -1081,33 +1089,8 @@ namespace com.arpoise.arpoiseapp
                         }
                     }
                 }
-                foreach (var arLayer in activeObjects.Select(x => x.Poi?.ArLayer).Distinct())
-                {
-                    if (arLayer != null && arLayer.visibilityRange > 0)
-                    {
-                        var distance = CalculateDistance(arLayer.Latitude, arLayer.Longitude, filteredLatitude, filteredLongitude);
-                        if (distance <= PositionTolerance * arLayer.visibilityRange)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            var arvosObjects = TriggerObjects.Values.Union(SlamObjects);
-            foreach (var poi in arvosObjects.Select(x => x.poi).Distinct())
-            {
-                if (poi != null && poi.visibilityRange > 0)
-                {
-                    var distance = CalculateDistance(poi.Latitude, poi.Longitude, filteredLatitude, filteredLongitude);
-                    if (distance <= PositionTolerance * poi.visibilityRange)
-                    {
-                        return true;
-                    }
-                }
-            }
-            foreach (var arLayer in arvosObjects.Select(x => x.poi?.ArLayer).Distinct())
-            {
-                if (arLayer != null && arLayer.visibilityRange > 0)
+
+                foreach (var arLayer in relativeArObjects.Select(x => x.Poi?.ArLayer).Distinct().Where(arLayer => arLayer != null && arLayer.visibilityRange > 0))
                 {
                     var distance = CalculateDistance(arLayer.Latitude, arLayer.Longitude, filteredLatitude, filteredLongitude);
                     if (distance <= PositionTolerance * arLayer.visibilityRange)
@@ -1116,6 +1099,26 @@ namespace com.arpoise.arpoiseapp
                     }
                 }
             }
+
+            var arvosObjects = TriggerObjects.Values.Union(SlamObjects);
+            foreach (var poi in arvosObjects.Select(x => x.poi).Distinct().Where(poi => poi != null && poi.visibilityRange > 0))
+            {
+                var distance = CalculateDistance(poi.Latitude, poi.Longitude, filteredLatitude, filteredLongitude);
+                if (distance <= PositionTolerance * poi.visibilityRange)
+                {
+                    return true;
+                }
+            }
+
+            foreach (var arLayer in arvosObjects.Select(x => x.poi?.ArLayer).Distinct().Where(arLayer => arLayer != null && arLayer.visibilityRange > 0))
+            {
+                var distance = CalculateDistance(arLayer.Latitude, arLayer.Longitude, filteredLatitude, filteredLongitude);
+                if (distance <= PositionTolerance * arLayer.visibilityRange)
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
 
@@ -1228,12 +1231,9 @@ namespace com.arpoise.arpoiseapp
                 }
             }
         }
-        #endregion
-
-        #region Misc
         protected bool IsSlamUrl(string url)
         {
-            return !string.IsNullOrWhiteSpace(url) && "SLAM".Equals(url.ToUpper().Trim());
+            return string.Equals(url?.Trim(), "SLAM", StringComparison.OrdinalIgnoreCase);
         }
         #endregion
     }

@@ -61,14 +61,27 @@ public class AbEvolutionOfFish : ArFlock
         }
     }
 
-    private float? _goalPositionX;
-    public float GoalPositionX
+    private int? _fishIndex;
+    public int FishIndex
     {
         get
         {
-            if (_goalPositionX.HasValue)
+            if (_fishIndex.HasValue)
             {
-                return _goalPositionX.Value;
+                return _fishIndex.Value;
+            }
+            return -1;
+        }
+    }
+
+    private float? _goalPositionY;
+    public float GoalPositionY
+    {
+        get
+        {
+            if (_goalPositionY.HasValue)
+            {
+                return _goalPositionY.Value;
             }
             return 2.0f;
         }
@@ -231,6 +244,10 @@ public class AbEvolutionOfFish : ArFlock
         {
             _numberOfFish = ParameterHelper.SetParameter(setValue, value, (int?)null);
         }
+        else if (label.Equals(nameof(FishIndex)))
+        {
+            _fishIndex = ParameterHelper.SetParameter(setValue, value, -1);
+        }
         else if (label.Equals(nameof(ToForward)))
         {
             _toForward = ParameterHelper.SetParameter(setValue, value, (float?)null);
@@ -251,9 +268,9 @@ public class AbEvolutionOfFish : ArFlock
         {
             _cycleDurationRight = ParameterHelper.SetParameter(setValue, value, (float?)null);
         }
-        else if (label.Equals(nameof(GoalPositionX)))
+        else if (label == nameof(GoalPositionY) || label == "GoalPositionX")
         {
-            _goalPositionX = ParameterHelper.SetParameter(setValue, value, (float?)null);
+            _goalPositionY = ParameterHelper.SetParameter(setValue, value, (float?)null);
         }
         else if (label.Equals(nameof(MovementThreshold)))
         {
@@ -295,11 +312,11 @@ public class AbEvolutionOfFish : ArFlock
     private void First()
     {
         _first = false;
-        if (Index == 0)
-        {
-            NeighbourDistance = 6f;
-            MinNeighbourDistance = 3f;
-        }
+        //if (Index == 0)
+        //{
+        //    NeighbourDistance = 6f;
+        //    MinNeighbourDistance = 3f;
+        //}
 
         _lengthTicksForward = (long)(10000000.0 * CycleDurationForward);
         _lengthTicksRight = (long)(10000000.0 * CycleDurationRight);
@@ -312,7 +329,34 @@ public class AbEvolutionOfFish : ArFlock
                                                        UnityEngine.Random.Range(-SwimLimits.y, SwimLimits.y),
                                                        UnityEngine.Random.Range(-SwimLimits.z, SwimLimits.z));
             GameObject fish;
-            if (Index == 0)
+            if (FishIndex >= 0)
+            {
+                switch (FishIndex)
+                {
+                    case 1:
+                        fish = Instantiate(FishPrefab1, pos, Quaternion.identity, transform);
+                        break;
+                    case 2:
+                        fish = Instantiate(FishPrefab2, pos, Quaternion.identity, transform);
+                        break;
+                    case 3:
+                        fish = Instantiate(FishPrefab3, pos, Quaternion.identity, transform);
+                        break;
+                    case 4:
+                        fish = Instantiate(FishPrefab4, pos, Quaternion.identity, transform);
+                        break;
+                    case 5:
+                        fish = Instantiate(FishPrefab5, pos, Quaternion.identity, transform);
+                        break;
+                    case 6:
+                        fish = Instantiate(FishPrefab6, pos, Quaternion.identity, transform);
+                        break;
+                    default:
+                        fish = Instantiate(FishPrefab0, pos, Quaternion.identity, transform);
+                        break;
+                }
+            }
+            else if (Index == 0)
             {
                 // put the fish below the EOF-GO, so it gets deleted if the GO gets deleted
                 fish = Instantiate(FishPrefab6, pos, Quaternion.identity, transform);
@@ -531,7 +575,7 @@ public class AbEvolutionOfFish : ArFlock
         var animationFactorRight = FromRight + (ToRight - FromRight) * animationValueRight;
 
         GoalPosition = animationFactorForward * ArCamera.transform.forward + animationFactorRight * ArCamera.transform.right;
-        GoalPosition += new Vector3(0, GoalPositionX, 0);
+        GoalPosition += new Vector3(0, GoalPositionY, 0);
 
         if (Index == 0)
         {

@@ -88,84 +88,48 @@ public class ArpoiseObjectRain : MonoBehaviour
     {
         if (label.Equals(nameof(OffsetX)))
         {
-            OffsetX = SetParameter(setValue, value, OffsetX).Value;
+            OffsetX = ParameterHelper.SetParameter(setValue, value, OffsetX).Value;
         }
         else if (label.Equals(nameof(OffsetZ)))
         {
-            OffsetZ = SetParameter(setValue, value, OffsetZ).Value;
+            OffsetZ = ParameterHelper.SetParameter(setValue, value, OffsetZ).Value;
         }
         else if (label.Equals(nameof(DropHeight)))
         {
-            DropHeight = SetParameter(setValue, value, DropHeight).Value;
+            DropHeight = ParameterHelper.SetParameter(setValue, value, DropHeight).Value;
         }
         else if (label.Equals(nameof(AreaSize)))
         {
-            AreaSize = SetParameter(setValue, value, AreaSize).Value;
+            AreaSize = ParameterHelper.SetParameter(setValue, value, AreaSize).Value;
         }
         else if (label.Equals(nameof(StartSecond)))
         {
-            StartSecond = SetParameter(setValue, value, StartSecond).Value;
+            StartSecond = ParameterHelper.SetParameter(setValue, value, StartSecond).Value;
         }
         else if (label.Equals(nameof(EndSecond)))
         {
-            EndSecond = SetParameter(setValue, value, EndSecond).Value;
+            EndSecond = ParameterHelper.SetParameter(setValue, value, EndSecond).Value;
         }
         else if (label.Equals(nameof(NumberOfNewRainObjectsPerSecond)))
         {
-            NumberOfNewRainObjectsPerSecond = SetParameter(setValue, value, NumberOfNewRainObjectsPerSecond).Value;
+            NumberOfNewRainObjectsPerSecond = ParameterHelper.SetParameter(setValue, value, NumberOfNewRainObjectsPerSecond).Value;
         }
         else if (label.Equals(nameof(MaxNofRainObjects)))
         {
-            MaxNofRainObjects = SetParameter(setValue, value, MaxNofRainObjects).Value;
+            MaxNofRainObjects = ParameterHelper.SetParameter(setValue, value, MaxNofRainObjects).Value;
         }
         else if (label.Equals(nameof(MaxNofClickObjects)))
         {
-            MaxNofClickObjects = SetParameter(setValue, value, MaxNofClickObjects).Value;
+            MaxNofClickObjects = ParameterHelper.SetParameter(setValue, value, MaxNofClickObjects).Value;
         }
         else if (label.Equals(nameof(MaxNofTapSounds)))
         {
-            MaxNofTapSounds = SetParameter(setValue, value, MaxNofTapSounds).Value;
+            MaxNofTapSounds = ParameterHelper.SetParameter(setValue, value, MaxNofTapSounds).Value;
         }
         else if (label.Equals(nameof(HideRainObjectOnClick)))
         {
-            HideRainObjectOnClick = SetParameter(setValue, value, HideRainObjectOnClick).Value;
+            HideRainObjectOnClick = ParameterHelper.SetParameter(setValue, value, HideRainObjectOnClick).Value;
         }
-    }
-    protected int? SetParameter(bool setValue, string value, int? defaultValue)
-    {
-        if (setValue && !string.IsNullOrWhiteSpace(value))
-        {
-            int intValue;
-            if (int.TryParse(value, out intValue))
-            {
-                return intValue;
-            }
-        }
-        return defaultValue;
-    }
-    protected float? SetParameter(bool setValue, string value, float? defaultValue)
-    {
-        if (setValue && !string.IsNullOrWhiteSpace(value))
-        {
-            float floatValue;
-            if (float.TryParse(value, out floatValue))
-            {
-                return floatValue;
-            }
-        }
-        return defaultValue;
-    }
-    protected bool? SetParameter(bool setValue, string value, bool? defaultValue)
-    {
-        if (setValue && !string.IsNullOrWhiteSpace(value))
-        {
-            bool boolValue;
-            if (bool.TryParse(value, out boolValue))
-            {
-                return boolValue;
-            }
-        }
-        return defaultValue;
     }
 
     private readonly List<GameObject> _rainObjects = new List<GameObject>();

@@ -601,6 +601,7 @@ namespace com.arpoise.arpoiseapp
                         //message = message.Replace("{DGPX}", DisplayGoalPosition.x.ToString("F1", CultureInfo.InvariantCulture));
                         //message = message.Replace("{DGPY}", DisplayGoalPosition.y.ToString("F1", CultureInfo.InvariantCulture));
                         //message = message.Replace("{DGPZ}", DisplayGoalPosition.z.ToString("F1", CultureInfo.InvariantCulture));
+                        //message = message.Replace("{DPCT}", DisplayPercentage.ToString("F1", CultureInfo.InvariantCulture));
 
                         message = message.Replace("{DSF}", DurationStretchFactor?.ToString("F2", CultureInfo.InvariantCulture));
 

@@ -90,14 +90,13 @@ public class ArFish : MonoBehaviour
         var centerDirection = Vector3.zero;
         var avoidDirection = Vector3.zero;
         float groupSpeed = 0.01f;
-        float distance;
 
         int groupSize = 0;
         foreach (var fish in allFish)
         {
             if (fish != gameObject)
             {
-                distance = Vector3.Distance(fish.transform.position, transform.position);
+                var distance = Vector3.Distance(fish.transform.position, transform.position);
                 if (distance <= _flock.NeighbourDistance)
                 {
                     centerDirection += fish.transform.position;

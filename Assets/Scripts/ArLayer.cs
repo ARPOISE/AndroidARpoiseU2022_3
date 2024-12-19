@@ -121,10 +121,10 @@ namespace com.arpoise.arpoiseapp
                 }
                 var parts = relativeLocation.Split(',');
 
-                double value;
-                var xOffset = (float)(parts.Length > 0 && double.TryParse(parts[0].Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value) ? value : 0);
-                var yOffset = (float)(parts.Length > 1 && double.TryParse(parts[1].Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value) ? value : 0);
-                var zOffset = (float)(parts.Length > 2 && double.TryParse(parts[2].Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value) ? value : 0);
+                float value;
+                var xOffset = (float)(parts.Length > 0 && float.TryParse(parts[0].Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value) ? value : 0);
+                var yOffset = (float)(parts.Length > 1 && float.TryParse(parts[1].Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value) ? value : 0);
+                var zOffset = (float)(parts.Length > 2 && float.TryParse(parts[2].Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value) ? value : 0);
                 return new float[] { xOffset, yOffset, zOffset };
             }
             set
@@ -307,7 +307,7 @@ namespace com.arpoise.arpoiseapp
                     if (action != null)
                     {
                         double value = 0;
-                        if (double.TryParse(action.activityMessage, out value))
+                        if (double.TryParse(action.activityMessage.Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value))
                         {
                             _trackingTimeout = value;
                         }
@@ -376,7 +376,7 @@ namespace com.arpoise.arpoiseapp
                     if (action != null)
                     {
                         float value = 0;
-                        if (float.TryParse(action.activityMessage, out value))
+                        if (float.TryParse(action.activityMessage.Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value))
                         {
                             _lindenmayerAngle = value;
                         }
@@ -399,7 +399,7 @@ namespace com.arpoise.arpoiseapp
                     if (action != null)
                     {
                         float value = 0;
-                        if (float.TryParse(action.activityMessage, out value))
+                        if (float.TryParse(action.activityMessage.Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value))
                         {
                             _lindenmayerFactor = value;
                         }
@@ -661,7 +661,7 @@ namespace com.arpoise.arpoiseapp
                     if (action != null)
                     {
                         float value;
-                        if (float.TryParse(action.activityMessage.Trim(), out value))
+                        if (float.TryParse(action.activityMessage.Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value))
                         {
                             _audioSpatialBlend = value;
                         }
@@ -709,7 +709,7 @@ namespace com.arpoise.arpoiseapp
                     if (action != null)
                     {
                         float value;
-                        if (float.TryParse(action.activityMessage.Trim(), out value))
+                        if (float.TryParse(action.activityMessage.Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value))
                         {
                             _audioVolume = value;
                         }
@@ -733,7 +733,7 @@ namespace com.arpoise.arpoiseapp
                     if (action != null)
                     {
                         float value;
-                        if (float.TryParse(action.activityMessage.Trim(), out value))
+                        if (float.TryParse(action.activityMessage.Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value))
                         {
                             _directionalLightN_Intensity = value;
                         }
@@ -781,7 +781,7 @@ namespace com.arpoise.arpoiseapp
                     if (action != null)
                     {
                         float value;
-                        if (float.TryParse(action.activityMessage.Trim(), out value))
+                        if (float.TryParse(action.activityMessage.Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value))
                         {
                             _directionalLightSEE_Intensity = value;
                         }
@@ -829,7 +829,7 @@ namespace com.arpoise.arpoiseapp
                     if (action != null)
                     {
                         float value;
-                        if (float.TryParse(action.activityMessage.Trim(), out value))
+                        if (float.TryParse(action.activityMessage.Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value))
                         {
                             _directionalLightSWW_Intensity = value;
                         }
@@ -985,7 +985,7 @@ namespace com.arpoise.arpoiseapp
                     if (action != null)
                     {
                         float value;
-                        if (float.TryParse(action.activityMessage.Trim(), out value))
+                        if (float.TryParse(action.activityMessage.Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value))
                         {
                             _positionUpdateInterval = value;
                         }
@@ -1049,7 +1049,7 @@ namespace com.arpoise.arpoiseapp
                     if (action != null)
                     {
                         float value;
-                        if (float.TryParse(action.activityMessage.Trim(), out value))
+                        if (float.TryParse(action.activityMessage.Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value))
                         {
                             _timeSync = value;
                         }

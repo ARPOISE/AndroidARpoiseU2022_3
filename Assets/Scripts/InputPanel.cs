@@ -28,6 +28,7 @@ ARpoise, see www.ARpoise.com/
 
 */
 
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -68,7 +69,7 @@ namespace com.arpoise.arpoiseapp
             if (ActivationToggle.isOn)
             {
                 float value;
-                if (float.TryParse(LonInputField.text, out value))
+                if (float.TryParse(LonInputField.text.Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value))
                 {
                     return value;
                 }
@@ -81,7 +82,7 @@ namespace com.arpoise.arpoiseapp
             if (ActivationToggle.isOn)
             {
                 float value;
-                if (float.TryParse(LatInputField.text, out value))
+                if (float.TryParse(LatInputField.text.Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out value))
                 {
                     return value;
                 }
