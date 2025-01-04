@@ -81,6 +81,8 @@ public class ArFoundationArvosController : ArBehaviourSlam
     private int _slamHitCount = 0;
     private string _layerWebUrl = null;
 
+    //private long _lastSecond = DateTime.Now.Second;
+
     #region Update
     protected override void Update()
     {
@@ -102,10 +104,7 @@ public class ArFoundationArvosController : ArBehaviourSlam
             {
                 foreach (var visualizer in _imageVisualizers.Values)
                 {
-                    if (visualizer.gameObject.activeSelf)
-                    {
-                        visualizer.gameObject.SetActive(false);
-                    }
+                    visualizer.SetInActive();
                 }
             }
         }
@@ -142,7 +141,7 @@ public class ArFoundationArvosController : ArBehaviourSlam
             {
                 foreach (var visualizer in _imageVisualizers.Values)
                 {
-                    visualizer.gameObject.SetActive(false);
+                    visualizer.SetInActive();
                 }
             }
             if (!IsSlam)
@@ -250,10 +249,13 @@ public class ArFoundationArvosController : ArBehaviourSlam
                 {
                     if (visualizer.TriggerObject.LastUpdateTime.AddMilliseconds(trackingTimeout) < DateTime.Now)
                     {
-                        if (visualizer.gameObject.activeSelf)
+                        visualizer.TriggerObject.LastUpdateTime = DateTime.Now;
+                        if (visualizer.IsActive)
                         {
-                            visualizer.gameObject.SetActive(false);
+                            visualizer.SetInActive();
+                            //Debug.Log($"Image '{visualizer.Image.name}' tracking timeout, game object de-activated");
                         }
+                        visualizer.HasTimedOut = true;
                     }
                 }
             }
@@ -263,8 +265,16 @@ public class ArFoundationArvosController : ArBehaviourSlam
         {
             // Show the fit-to-scan overlay if there are no images that are Tracking and visible.
             var hasTriggerImages = ArTrackedImageManager.enabled && ArMutableLibrary.count > 0;
-            var hasActiveObjects = _imageVisualizers.Values.Any(x => x.gameObject.activeSelf);
+            var activeObject = _imageVisualizers.Values.FirstOrDefault(x => x.IsActive);
+            var hasActiveObjects = activeObject != null;
             var setActive = hasTriggerImages && !hasActiveObjects && !LayerPanelIsActive;
+
+            //if (_lastSecond != DateTime.Now.Second)
+            //{
+            //    _lastSecond = DateTime.Now.Second;
+            //    Debug.Log($"FitToScanOverlay hasTriggerImages {hasTriggerImages}, hasActiveObjects {hasActiveObjects}, setActive {setActive}");
+            //}
+
             if (FitToScanOverlay.activeSelf != setActive)
             {
                 FitToScanOverlay.SetActive(setActive);
@@ -341,6 +351,8 @@ public class ArFoundationArvosController : ArBehaviourSlam
             _imageVisualizers.TryGetValue(name, out var visualizer);
             if (image.trackingState == TrackingState.Tracking && visualizer is null)
             {
+                //Debug.Log($"Image '{name}' tracked, visualizer is null");
+
                 TriggerObject triggerObject = TriggerObjects.Values.FirstOrDefault(x => x.triggerImageURL == name);
                 if (triggerObject == null)
                 {
@@ -371,7 +383,8 @@ public class ArFoundationArvosController : ArBehaviourSlam
                 visualizer.TriggerObject.ActivationTime = DateTime.Now;
 
                 _imageVisualizers.Add(name, visualizer);
-                visualizer.gameObject.SetActive(true);
+                visualizer.SetActive();
+                //Debug.Log($"Image '{name}' tracked, game object activated");
             }
             else if (image.trackingState == TrackingState.Tracking && visualizer is not null)
             {
@@ -382,7 +395,7 @@ public class ArFoundationArvosController : ArBehaviourSlam
                     continue;
                 }
                 visualizer.TriggerObject.LastUpdateTime = DateTime.Now;
-                if (!visualizer.gameObject.activeSelf)
+                if (!visualizer.IsActive)
                 {
                     var maximumActiveTriggerObjects = visualizer?.TriggerObject?.poi?.ArLayer?.MaximumActiveTriggerObjects;
                     if (maximumActiveTriggerObjects.HasValue && maximumActiveTriggerObjects.Value >= 0)
@@ -393,7 +406,8 @@ public class ArFoundationArvosController : ArBehaviourSlam
                             continue;
                         }
                     }
-                    visualizer.gameObject.SetActive(true);
+                    visualizer.SetActive();
+                    //Debug.Log($"Image '{name}' tracked, game object activated");
                 }
             }
         }
@@ -410,12 +424,11 @@ public class ArFoundationArvosController : ArBehaviourSlam
                     continue;
                 }
                 var trackingTimeout = visualizer.TriggerObject.poi.TrackingTimeout;
-                if (trackingTimeout <= 0)
+                if (trackingTimeout <= 0 && visualizer.IsActive)
                 {
-                    if (visualizer.gameObject.activeSelf)
-                    {
-                        visualizer.gameObject.SetActive(false);
-                    }
+                    visualizer.SetInActive();
+                    //Debug.Log($"Image '{name}' removed, game object de-activated");
+                    visualizer.HasTimedOut = true;
                 }
             }
         }

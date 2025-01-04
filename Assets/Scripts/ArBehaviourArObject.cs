@@ -526,6 +526,58 @@ namespace com.arpoise.arpoiseapp
                     }
                 }
 
+                if (poi.animations.whenActivated != null)
+                {
+                    foreach (var poiAnimation in poi.animations.whenActivated)
+                    {
+                        var animationWrapper = GetWrapper(wrappers, poiAnimation);
+                        if (animationWrapper == null)
+                        {
+                            return "Instantiate(WhenActivatedWrapper) failed";
+                        }
+                        arObjectState.AddWhenActivatedAnimation(
+                            new ArAnimation(
+                                arObjectId, animationWrapper, objectToAdd, poiAnimation, ArEventType.WhenActivated, false, this,
+                                poi?.ArLayer?.AudioRolloffMode,
+                                poi?.ArLayer?.AudioSpatialBlend,
+                                poi?.ArLayer?.AudioSpatialize,
+                                poi?.ArLayer?.AudioVolume
+                            ));
+                        if (animationWrapper.transform.parent == null)
+                        {
+                            animationWrapper.name = "WhenActivatedWrapper";
+                            animationWrapper.transform.parent = parentTransform;
+                            parentTransform = animationWrapper.transform;
+                        }
+                    }
+                }
+
+                if (poi.animations.whenDeactivated != null)
+                {
+                    foreach (var poiAnimation in poi.animations.whenDeactivated)
+                    {
+                        var animationWrapper = GetWrapper(wrappers, poiAnimation);
+                        if (animationWrapper == null)
+                        {
+                            return "Instantiate(WhenDeactivatedWrapper) failed";
+                        }
+                        arObjectState.AddWhenDeactivatedAnimation(
+                            new ArAnimation(
+                                arObjectId, animationWrapper, objectToAdd, poiAnimation, ArEventType.WhenDeactivated, false, this,
+                                poi?.ArLayer?.AudioRolloffMode,
+                                poi?.ArLayer?.AudioSpatialBlend,
+                                poi?.ArLayer?.AudioSpatialize,
+                                poi?.ArLayer?.AudioVolume
+                            ));
+                        if (animationWrapper.transform.parent == null)
+                        {
+                            animationWrapper.name = "WhenDeactivatedWrapper";
+                            animationWrapper.transform.parent = parentTransform;
+                            parentTransform = animationWrapper.transform;
+                        }
+                    }
+                }
+
                 if (poi.animations.onClick != null)
                 {
                     foreach (var poiAnimation in poi.animations.onClick)

@@ -50,7 +50,7 @@ namespace com.arpoise.arpoiseapp
 #else
         public const string OperatingSystem = "Android";
 #endif
-        public const string Bundle = "20241210";
+        public const string Bundle = "20250105";
         public const string ArvosApplicationName = "Arvos";
         public const string ArpoiseApplicationName = "Arpoise";
 #if AndroidArvosU2022_3 || iOsArvosU2022_3
@@ -324,7 +324,7 @@ namespace com.arpoise.arpoiseapp
             }
         }
 
-        public bool DoBuzz{ get; set; }
+        public bool DoBuzz { get; set; }
         void OnGUI()
         {
             if (DoBuzz)

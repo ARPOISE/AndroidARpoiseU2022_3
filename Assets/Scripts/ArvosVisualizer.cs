@@ -64,9 +64,75 @@ namespace com.arpoise.arpoiseapp
         /// </summary>
         public ArBehaviourImage ArBehaviour { get; set; }
 
+        public bool HasTimedOut { get; set; }
+
         private GameObject _gameObject = null;
         private bool _gameObjectCreated = false;
         private bool _first = true;
+
+        public void SetActive()
+        {
+            if (_gameObject != null && !IsActive)
+            {
+                _gameObject.SetActive(true);
+
+                var poi = TriggerObject?.poi;
+                if (poi != null && poi?.animations?.whenActivated != null && poi.animations.whenActivated.Length > 0)
+                {
+                    ArObjectState.PoisToActivate.Add(TriggerObject.poi.id);
+                    //Debug.Log($"Poi {TriggerObject.poi.id} is to be activated");
+                }
+            }
+        }
+        public void SetInActive()
+        {
+            if (_gameObject != null && IsActive)
+            {
+                var poi = TriggerObject?.poi;
+                if (poi != null && poi?.animations?.whenDeactivated != null && poi.animations.whenDeactivated.Length > 0)
+                {
+                    ArObjectState.PoisToDeactivate.Add(poi.id);
+                    //Debug.Log($"Animation '{poi.animations.whenDeactivated[0].name}', PoiId {poi.id}, is to be deactivated");
+                }
+                else
+                {
+                    _gameObject.SetActive(false);
+                }
+            }
+        }
+
+        //private long _lastSecond = DateTime.Now.Second;
+
+        public bool IsActive
+        {
+            get
+            {
+                var arGameObject = _gameObject;
+                while (arGameObject != null)
+                {
+                    if (!arGameObject.activeSelf)
+                    {
+                        //if (_lastSecond != DateTime.Now.Second)
+                        //{
+                        //    _lastSecond = DateTime.Now.Second;
+                        //    Debug.Log($"Inactive '{arGameObject.name}'");
+                        //}
+                        return false;
+                    }
+                    if (arGameObject.transform.childCount == 0)
+                    {
+                        //if (_lastSecond != DateTime.Now.Second)
+                        //{
+                        //    _lastSecond = DateTime.Now.Second;
+                        //    Debug.Log($"Active '{arGameObject.name}'");
+                        //}
+                        return true;
+                    }
+                    arGameObject = arGameObject.transform.GetChild(0).gameObject;
+                }
+                return true;
+            }
+        }
 
         public void Update()
         {
@@ -74,17 +140,7 @@ namespace com.arpoise.arpoiseapp
             if (arObjectState != null && TriggerObject != null && !_gameObjectCreated)
             {
                 _gameObjectCreated = true;
-
-                if (Pose != null)
-                {
-                    transform.position = Pose.Value.position;
-                    transform.rotation = Pose.Value.rotation;
-                }
-                else
-                {
-                    transform.position = Image.transform.position;
-                    transform.rotation = Image.transform.rotation;
-                }
+                SetTransform();
 
                 var result = ArBehaviour.CreateArObject(
                     arObjectState,
@@ -100,12 +156,13 @@ namespace com.arpoise.arpoiseapp
                     ArBehaviour.ErrorMessage = result;
                     return;
                 }
+                if (_gameObject != null && !_gameObject.activeSelf)
+                {
+                    _gameObject.SetActive(true);
+                }
             }
-
             if (_gameObject != null)
             {
-                _gameObject.SetActive(true);
-
                 if (Pose != null)
                 {
                     if (_first)
@@ -117,10 +174,71 @@ namespace com.arpoise.arpoiseapp
                 }
                 else
                 {
-                    _first = false;
-                    _gameObject.transform.position = Image.transform.position;
-                    _gameObject.transform.rotation = Image.transform.rotation;
+                    Vector3 targetPosition = Image.transform.position;
+                    Quaternion targetRotation = Image.transform.rotation;
+
+                    var positionLerpFactor = TriggerObject?.poi?.PositionLerpFactor;
+                    var rotationLerpFactor = TriggerObject?.poi?.RotationLerpFactor;
+                    if (positionLerpFactor.HasValue && positionLerpFactor > 0
+                        || rotationLerpFactor.HasValue && rotationLerpFactor > 0)
+                    {
+                        if (_first || HasTimedOut)
+                        {
+                            SetInitialTransform(targetPosition, targetRotation);
+                        }
+                        else
+                        {
+                            LerpTransform(targetPosition, targetRotation, positionLerpFactor, rotationLerpFactor);
+                        }
+                    }
+                    else
+                    {
+                        _gameObject.transform.position = targetPosition;
+                        _gameObject.transform.rotation = targetRotation;
+                    }
+                    HasTimedOut = _first = false;
                 }
+            }
+        }
+
+        private void SetTransform()
+        {
+            if (Pose != null)
+            {
+                transform.position = Pose.Value.position;
+                transform.rotation = Pose.Value.rotation;
+            }
+            else
+            {
+                transform.position = Image.transform.position;
+                transform.rotation = Image.transform.rotation;
+            }
+        }
+
+        private void SetInitialTransform(Vector3 targetPosition, Quaternion targetRotation)
+        {
+            var targetPositionFactor = TriggerObject?.poi?.TargetPositionFactor;
+            if (targetPositionFactor.HasValue && targetPositionFactor.Value > 0)
+            {
+                _gameObject.transform.position = targetPositionFactor.Value * (targetPosition - Camera.main.transform.position);
+            }
+            else
+            {
+                _gameObject.transform.position = targetPosition;
+            }
+            //Debug.Log($"Position is {ParameterHelper.ToString(_gameObject.transform.position)}");
+            _gameObject.transform.rotation = targetRotation;
+        }
+
+        private void LerpTransform(Vector3 targetPosition, Quaternion targetRotation, float? positionLerpFactor, float? rotationLerpFactor)
+        {
+            if (positionLerpFactor.HasValue && positionLerpFactor > 0)
+            {
+                _gameObject.transform.position = Vector3.Lerp(_gameObject.transform.position, targetPosition, positionLerpFactor.Value / ArBehaviourArObject.FramesPerSecond);
+            }
+            if (rotationLerpFactor.HasValue && rotationLerpFactor > 0)
+            {
+                _gameObject.transform.rotation = Quaternion.Lerp(_gameObject.transform.rotation, targetRotation, rotationLerpFactor.Value / ArBehaviourArObject.FramesPerSecond);
             }
         }
     }

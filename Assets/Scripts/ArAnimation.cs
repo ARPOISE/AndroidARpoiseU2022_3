@@ -67,7 +67,9 @@ namespace com.arpoise.arpoiseapp
         InMinutes = 4,
         WhenActive = 5,
         OnClick = 6,
-        OnFollow = 7
+        OnFollow = 7,
+        WhenActivated = 8,
+        WhenDeactivated = 9
     }
 
     public class ArAnimation
@@ -427,11 +429,13 @@ namespace com.arpoise.arpoiseapp
                     if (name.EndsWith(nameof(gameObject.SetActive), StringComparison.InvariantCultureIgnoreCase))
                     {
                         SetActive(gameObject, true);
+                        //Debug.Log($"GO '{gameObject.name}', animation {name}, is active {gameObject.activeSelf}");
                         return true;
                     }
                     if (name.EndsWith(nameof(SetInactive), StringComparison.InvariantCultureIgnoreCase))
                     {
                         SetActive(gameObject, false);
+                        //Debug.Log($"GO '{gameObject.name}', animation {name}, is active {gameObject.activeSelf}");
                         return true;
                     }
                 }
@@ -451,6 +455,7 @@ namespace com.arpoise.arpoiseapp
             if (gameObject.activeSelf != active)
             {
                 gameObject.SetActive(active);
+                //Debug.Log($"GO '{gameObject.name}', is active {gameObject.activeSelf}");
             }
         }
 

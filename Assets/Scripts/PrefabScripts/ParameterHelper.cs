@@ -96,4 +96,9 @@ public static class ParameterHelper
         value = Vector3.zero;
         return false;
     }
+
+    public static string ToString(Vector3 value)
+    {
+        return $"{value.x.ToString("F1", CultureInfo.InvariantCulture)}, {value.y.ToString("F1", CultureInfo.InvariantCulture)}, {value.z.ToString("F1", CultureInfo.InvariantCulture)}";
+    }
 }
