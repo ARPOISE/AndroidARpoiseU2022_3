@@ -562,71 +562,83 @@ namespace com.arpoise.arpoiseapp
                     }
                 }
 
-                var webRequests = new List<Tuple<string, string, UnityWebRequest>>();
-
-                foreach (var url in assetBundleUrls)
+                for (int i = 0; i < 3; i++)
                 {
-                    if (AssetBundles.ContainsKey(url))
+                    var bundleWebRequests = new List<Tuple<string, string, UnityWebRequest>>();
+                    if (i > 0)
                     {
-                        continue;
+                        yield return new WaitForSeconds(3);
                     }
-                    var assetBundleUri = FixUrl(GetAssetBundleUrl(url));
-                    var request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleUri, 0);
-                    request.certificateHandler = new ArpoiseCertificateHandler();
-                    request.timeout = 60;
-                    webRequests.Add(new Tuple<string, string, UnityWebRequest>(url, assetBundleUri, request));
-                    yield return request.SendWebRequest();
-                }
-
-                foreach (var tuple in webRequests)
-                {
-                    var url = tuple.Item1;
-                    var assetBundleUri = tuple.Item2;
-                    var request = tuple.Item3;
-
-                    var maxWait = request.timeout * 100;
-                    while (request.result != UnityWebRequest.Result.Success
-                        && request.result != UnityWebRequest.Result.ConnectionError
-                        && request.result != UnityWebRequest.Result.ProtocolError
-                        && request.result != UnityWebRequest.Result.DataProcessingError
-                        && !request.isDone && maxWait > 0)
+                    foreach (var url in assetBundleUrls)
                     {
-                        yield return new WaitForSeconds(.01f);
-                        maxWait--;
-                    }
-
-                    if (maxWait < 1)
-                    {
-                        if (setError)
+                        if (AssetBundles.ContainsKey(url))
                         {
-                            ErrorMessage = $"Bundle '{assetBundleUri}' download timeout.";
-                            yield break;
+                            continue;
                         }
-                        continue;
+                        var assetBundleUri = FixUrl(GetAssetBundleUrl(url));
+                        var request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleUri, 0);
+                        request.certificateHandler = new ArpoiseCertificateHandler();
+                        request.timeout = 60;
+                        bundleWebRequests.Add(new Tuple<string, string, UnityWebRequest>(url, assetBundleUri, request));
+                        yield return request.SendWebRequest();
                     }
-                    if (request.result == UnityWebRequest.Result.ConnectionError
-                        || request.result == UnityWebRequest.Result.ProtocolError
-                        || request.result == UnityWebRequest.Result.DataProcessingError)
+
+                    foreach (var tuple in bundleWebRequests)
                     {
-                        if (setError)
+                        var url = tuple.Item1;
+                        var assetBundleUri = tuple.Item2;
+                        var request = tuple.Item3;
+
+                        var maxWait = request.timeout * 100;
+                        while (request.result != UnityWebRequest.Result.Success
+                            && request.result != UnityWebRequest.Result.ConnectionError
+                            && request.result != UnityWebRequest.Result.ProtocolError
+                            && request.result != UnityWebRequest.Result.DataProcessingError
+                            && !request.isDone && maxWait > 0)
                         {
-                            ErrorMessage = $"Bundle '{assetBundleUri}' {request.result}, {request.error}";
-                            yield break;
+                            yield return new WaitForSeconds(.01f);
+                            maxWait--;
                         }
+
+                        if (maxWait < 1)
+                        {
+                            if (setError)
+                            {
+                                ErrorMessage = $"Bundle '{assetBundleUri}' download timeout.";
+                            }
+                            break;
+                        }
+                        if (request.result == UnityWebRequest.Result.ConnectionError
+                            || request.result == UnityWebRequest.Result.ProtocolError
+                            || request.result == UnityWebRequest.Result.DataProcessingError)
+                        {
+                            if (setError)
+                            {
+                                ErrorMessage = $"Bundle '{assetBundleUri}' {request.result}, {request.error}";
+                            }
+                            break;
+                        }
+
+                        var assetBundle = DownloadHandlerAssetBundle.GetContent(request);
+                        if (assetBundle == null)
+                        {
+                            if (setError)
+                            {
+                                ErrorMessage = $"Bundle '{assetBundleUri}' is null.";
+                            }
+                            break;
+                        }
+                        AssetBundles[url] = assetBundle;
+                    }
+                    if (string.IsNullOrWhiteSpace(ErrorMessage))
+                    {
                         break;
                     }
-
-                    var assetBundle = DownloadHandlerAssetBundle.GetContent(request);
-                    if (assetBundle == null)
+                    if (i == 2)
                     {
-                        if (setError)
-                        {
-                            ErrorMessage = $"Bundle '{assetBundleUri}' is null.";
-                            yield break;
-                        }
-                        continue;
+                        yield break;
                     }
-                    AssetBundles[url] = assetBundle;
+                    ErrorMessage = string.Empty;
                 }
                 #endregion
 
@@ -646,7 +658,7 @@ namespace com.arpoise.arpoiseapp
                     }
                 }
 
-                webRequests = new List<Tuple<string, string, UnityWebRequest>>();
+                var webRequests = new List<Tuple<string, string, UnityWebRequest>>();
 
                 if (triggerImageUrls.Any(x => IsSlamUrl(x)))
                 {
