@@ -28,6 +28,7 @@ ARpoise, see www.ARpoise.com/
 
 */
 
+using System;
 using UnityEngine;
 
 namespace com.arpoise.arpoiseapp
@@ -67,8 +68,43 @@ namespace com.arpoise.arpoiseapp
         #endregion
 
         #region Update
+        private long _lastSecond = -1;
         protected override void Update()
         {
+            var now = DateTime.Now;
+            var minute = now.Hour * 60 + now.Minute;
+
+            var shouldNotSleep = ApplicationSleepStartMinute < 0 || ApplicationSleepEndMinute < 0
+                   || (ApplicationSleepStartMinute <= ApplicationSleepEndMinute && (minute < ApplicationSleepStartMinute || minute >= ApplicationSleepEndMinute))
+                   || (ApplicationSleepStartMinute > ApplicationSleepEndMinute && (minute < ApplicationSleepStartMinute && minute >= ApplicationSleepEndMinute));
+            if (shouldNotSleep)
+            {
+                if (ApplicationIsSleeping)
+                {
+                    ApplicationIsSleeping = false;
+                    ArObjectState?.HandleApplicationSleep(false);
+                }
+            }
+            else
+            {
+                if (!ApplicationIsSleeping)
+                {
+                    ApplicationIsSleeping = true;
+                    ArObjectState?.HandleApplicationSleep(true);
+                }
+            }
+
+            if (ApplicationIsSleeping)
+            {
+                var second = now.Ticks / TimeSpan.TicksPerSecond;
+                if (second == _lastSecond)
+                {
+                    return;
+                }
+                _lastSecond = second;
+                ArObjectState?.HandleApplicationSleep(true);
+            }
+
             base.Update();
 
             if (IsSlam && FitToScanOverlay != null && FitToScanOverlay.activeSelf)
