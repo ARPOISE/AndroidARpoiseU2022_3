@@ -33,7 +33,7 @@ using UnityEngine;
 
 namespace com.arpoise.arpoiseapp
 {
-    public class ArBehaviourImage : ArBehaviourUserInterface
+    public class ArBehaviourImage : ArBehaviour
     {
         #region Globals
 
@@ -61,50 +61,12 @@ namespace com.arpoise.arpoiseapp
                 }
             }
 #endif
-            StartCoroutine(nameof(GetPosition));
-            StartCoroutine(nameof(GetData));
-            StartCoroutine(nameof(TakeScreenshotRoutine));
         }
         #endregion
 
         #region Update
-        private long _lastSecond = -1;
         protected override void Update()
         {
-            var now = DateTime.Now;
-            var minute = now.Hour * 60 + now.Minute;
-
-            var shouldNotSleep = ApplicationSleepStartMinute < 0 || ApplicationSleepEndMinute < 0
-                   || (ApplicationSleepStartMinute <= ApplicationSleepEndMinute && (minute < ApplicationSleepStartMinute || minute >= ApplicationSleepEndMinute))
-                   || (ApplicationSleepStartMinute > ApplicationSleepEndMinute && (minute < ApplicationSleepStartMinute && minute >= ApplicationSleepEndMinute));
-            if (shouldNotSleep)
-            {
-                if (ApplicationIsSleeping)
-                {
-                    ApplicationIsSleeping = false;
-                    ArObjectState?.HandleApplicationSleep(false);
-                }
-            }
-            else
-            {
-                if (!ApplicationIsSleeping)
-                {
-                    ApplicationIsSleeping = true;
-                    ArObjectState?.HandleApplicationSleep(true);
-                }
-            }
-
-            if (ApplicationIsSleeping)
-            {
-                var second = now.Ticks / TimeSpan.TicksPerSecond;
-                if (second == _lastSecond)
-                {
-                    return;
-                }
-                _lastSecond = second;
-                ArObjectState?.HandleApplicationSleep(true);
-            }
-
             base.Update();
 
             if (IsSlam && FitToScanOverlay != null && FitToScanOverlay.activeSelf)

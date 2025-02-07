@@ -335,7 +335,12 @@ namespace com.arpoise.arpoiseapp
                     break;
 
                 case ArAnimationType.Buzz:
-                    Buzz(animationFactor);
+                    var buzzStartTicks = _startTicks + (long)(_from * TimeSpan.TicksPerSecond);
+                    var buzzEndTicks = _startTicks + (long)(_to * TimeSpan.TicksPerSecond);
+                    if (buzzStartTicks <= nowTicks && nowTicks <= buzzEndTicks)
+                    {
+                        Buzz(animationFactor);
+                    }
                     break;
             }
 
