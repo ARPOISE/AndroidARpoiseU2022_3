@@ -190,6 +190,37 @@ namespace com.arpoise.arpoiseapp
         }
 
         [NonSerialized]
+        private int? _assetBundleCacheVersion = null;
+        public int AssetBundleCacheVersion
+        {
+            get
+            {
+                if (!_assetBundleCacheVersion.HasValue)
+                {
+                    _assetBundleCacheVersion = -1;
+                    var layerAssetBundleCacheVersion = ArLayer?.AssetBundleCacheVersion;
+                    if (layerAssetBundleCacheVersion.HasValue && layerAssetBundleCacheVersion > _assetBundleCacheVersion)
+                    {
+                        _assetBundleCacheVersion = layerAssetBundleCacheVersion;
+                    }
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(AssetBundleCacheVersion).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        int value;
+                        if (int.TryParse(action.activityMessage, out value))
+                        {
+                            if (value > _assetBundleCacheVersion)
+                            {
+                                _assetBundleCacheVersion = value;
+                            }
+                        }
+                    }
+                }
+                return _assetBundleCacheVersion.Value;
+            }
+        }
+
+        [NonSerialized]
         private int? _maximumCount = null;
         public int MaximumCount
         {
@@ -546,6 +577,7 @@ namespace com.arpoise.arpoiseapp
         {
             nameof(AllowTakeScreenshot),
             nameof(ApplicationSleepInterval),
+            nameof(AssetBundleCacheVersion),
             nameof(AudioRolloffMode),
             nameof(AudioSpatialBlend),
             nameof(AudioSpatialize),
@@ -909,6 +941,29 @@ namespace com.arpoise.arpoiseapp
                     }
                 }
                 return _maximumActiveTriggerObjects.Value;
+            }
+        }
+
+        [NonSerialized]
+        private int? _assetBundleCacheVersion;
+        public int AssetBundleCacheVersion // Layer ActionLabel
+        {
+            get
+            {
+                if (_assetBundleCacheVersion == null)
+                {
+                    _assetBundleCacheVersion = -1;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(AssetBundleCacheVersion).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        int value;
+                        if (int.TryParse(action.activityMessage.Trim(), out value))
+                        {
+                            _assetBundleCacheVersion = value;
+                        }
+                    }
+                }
+                return _assetBundleCacheVersion.Value;
             }
         }
 

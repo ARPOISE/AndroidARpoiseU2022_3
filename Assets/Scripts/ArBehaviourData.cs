@@ -283,16 +283,16 @@ namespace com.arpoise.arpoiseapp
                 #endregion
 
                 #region Download the asset bundle for icons
-                var assetBundleUrls = new HashSet<string>();
+                var assetBundleUrls = new Dictionary<string, int>();
                 var iconAssetBundleUrl = "www.arpoise.com/AB/U2022arpoiseicons.ace";
-                assetBundleUrls.Add(iconAssetBundleUrl);
+                assetBundleUrls[iconAssetBundleUrl] = -1;
                 foreach (var url in assetBundleUrls)
                 {
-                    if (AssetBundles.ContainsKey(url))
+                    if (AssetBundles.ContainsKey(url.Key))
                     {
                         continue;
                     }
-                    var assetBundleUri = FixUrl(GetAssetBundleUrl(url));
+                    var assetBundleUri = FixUrl(GetAssetBundleUrl(url.Key));
                     var request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleUri, 0);
                     request.certificateHandler = new ArpoiseCertificateHandler();
                     request.timeout = 60;
@@ -340,7 +340,7 @@ namespace com.arpoise.arpoiseapp
                         }
                         continue;
                     }
-                    AssetBundles[url] = assetBundle;
+                    AssetBundles[url.Key] = assetBundle;
                 }
                 #endregion
 
@@ -551,14 +551,42 @@ namespace com.arpoise.arpoiseapp
                 #region Download all asset bundles
                 foreach (var layer in layers.Where(x => x.hotspots != null))
                 {
-                    assetBundleUrls.UnionWith(layer.hotspots.Where(x => !string.IsNullOrWhiteSpace(x.BaseUrl)).Select(x => x.BaseUrl));
+                    foreach (var hotspot in layer.hotspots.Where(x => !string.IsNullOrWhiteSpace(x.BaseUrl)))
+                    {
+                        hotspot.ArLayer ??= layer;
+                        if (assetBundleUrls.TryGetValue(hotspot.BaseUrl, out var version))
+                        {
+                            if (version < hotspot.AssetBundleCacheVersion)
+                            {
+                                assetBundleUrls[hotspot.BaseUrl] = hotspot.AssetBundleCacheVersion;
+                            }
+                        }
+                        else
+                        {
+                            assetBundleUrls[hotspot.BaseUrl] = hotspot.AssetBundleCacheVersion;
+                        }
+                    }
                 }
 
                 foreach (var layerList in InnerLayers.Values)
                 {
                     foreach (var layer in layerList.Where(x => x.hotspots != null))
                     {
-                        assetBundleUrls.UnionWith(layer.hotspots.Where(x => !string.IsNullOrWhiteSpace(x.BaseUrl)).Select(x => x.BaseUrl));
+                        foreach (var hotspot in layer.hotspots.Where(x => !string.IsNullOrWhiteSpace(x.BaseUrl)))
+                        {
+                            hotspot.ArLayer ??= layer;
+                            if (assetBundleUrls.TryGetValue(hotspot.BaseUrl, out var version))
+                            {
+                                if (version < hotspot.AssetBundleCacheVersion)
+                                {
+                                    assetBundleUrls[hotspot.BaseUrl] = hotspot.AssetBundleCacheVersion;
+                                }
+                            }
+                            else
+                            {
+                                assetBundleUrls[hotspot.BaseUrl] = hotspot.AssetBundleCacheVersion;
+                            }
+                        }
                     }
                 }
 
@@ -571,15 +599,23 @@ namespace com.arpoise.arpoiseapp
                     }
                     foreach (var url in assetBundleUrls)
                     {
-                        if (AssetBundles.ContainsKey(url))
+                        if (AssetBundles.ContainsKey(url.Key))
                         {
                             continue;
                         }
-                        var assetBundleUri = FixUrl(GetAssetBundleUrl(url));
-                        var request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleUri, 0);
+                        var assetBundleUri = FixUrl(GetAssetBundleUrl(url.Key));
+                        UnityWebRequest request;
+                        if (url.Value <= 0)
+                        {
+                            request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleUri, 0);
+                        }
+                        else
+                        {
+                            request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleUri, (uint)url.Value, 0);
+                        }
                         request.certificateHandler = new ArpoiseCertificateHandler();
                         request.timeout = 60;
-                        bundleWebRequests.Add(new Tuple<string, string, UnityWebRequest>(url, assetBundleUri, request));
+                        bundleWebRequests.Add(new Tuple<string, string, UnityWebRequest>(url.Key, assetBundleUri, request));
                         yield return request.SendWebRequest();
                     }
 
