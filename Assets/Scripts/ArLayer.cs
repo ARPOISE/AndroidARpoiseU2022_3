@@ -197,21 +197,35 @@ namespace com.arpoise.arpoiseapp
             {
                 if (!_assetBundleCacheVersion.HasValue)
                 {
-                    _assetBundleCacheVersion = -1;
+                    _assetBundleCacheVersion = ArBehaviourMultiUser.Bundle;
                     var layerAssetBundleCacheVersion = ArLayer?.AssetBundleCacheVersion;
-                    if (layerAssetBundleCacheVersion.HasValue && layerAssetBundleCacheVersion > _assetBundleCacheVersion)
+                    if (layerAssetBundleCacheVersion.HasValue)
                     {
-                        _assetBundleCacheVersion = layerAssetBundleCacheVersion;
-                    }
-                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(AssetBundleCacheVersion).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
-                    if (action != null)
-                    {
-                        int value;
-                        if (int.TryParse(action.activityMessage, out value))
+                        if (layerAssetBundleCacheVersion == 0)
                         {
-                            if (value > _assetBundleCacheVersion)
+                            _assetBundleCacheVersion = 0;
+                        }
+                        else if (layerAssetBundleCacheVersion > _assetBundleCacheVersion)
+                        {
+                            _assetBundleCacheVersion = layerAssetBundleCacheVersion;
+                        }
+                    }
+                    if (_assetBundleCacheVersion != 0)
+                    {
+                        var action = actions?.FirstOrDefault(x => x.showActivity && nameof(AssetBundleCacheVersion).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                        if (action != null)
+                        {
+                            int value;
+                            if (int.TryParse(action.activityMessage.Trim(), out value))
                             {
-                                _assetBundleCacheVersion = value;
+                                if (value == 0)
+                                {
+                                    _assetBundleCacheVersion = 0;
+                                }
+                                else if (value > _assetBundleCacheVersion)
+                                {
+                                    _assetBundleCacheVersion = value;
+                                }
                             }
                         }
                     }
@@ -950,16 +964,23 @@ namespace com.arpoise.arpoiseapp
         {
             get
             {
-                if (_assetBundleCacheVersion == null)
+                if (!_assetBundleCacheVersion.HasValue)
                 {
-                    _assetBundleCacheVersion = -1;
+                    _assetBundleCacheVersion = ArBehaviourMultiUser.Bundle;
                     var action = actions?.FirstOrDefault(x => x.showActivity && nameof(AssetBundleCacheVersion).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
                     if (action != null)
                     {
                         int value;
                         if (int.TryParse(action.activityMessage.Trim(), out value))
                         {
-                            _assetBundleCacheVersion = value;
+                            if (value == 0)
+                            {
+                                _assetBundleCacheVersion = 0;
+                            }
+                            else if (value > _assetBundleCacheVersion)
+                            {
+                                _assetBundleCacheVersion = value;
+                            }
                         }
                     }
                 }

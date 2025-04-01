@@ -556,9 +556,16 @@ namespace com.arpoise.arpoiseapp
                         hotspot.ArLayer ??= layer;
                         if (assetBundleUrls.TryGetValue(hotspot.BaseUrl, out var version))
                         {
-                            if (version < hotspot.AssetBundleCacheVersion)
+                            if (version > 0)
                             {
-                                assetBundleUrls[hotspot.BaseUrl] = hotspot.AssetBundleCacheVersion;
+                                if (hotspot.AssetBundleCacheVersion == 0)
+                                {
+                                    assetBundleUrls[hotspot.BaseUrl] = 0;
+                                }
+                                else if (hotspot.AssetBundleCacheVersion > version)
+                                {
+                                    assetBundleUrls[hotspot.BaseUrl] = hotspot.AssetBundleCacheVersion;
+                                }
                             }
                         }
                         else
@@ -577,9 +584,16 @@ namespace com.arpoise.arpoiseapp
                             hotspot.ArLayer ??= layer;
                             if (assetBundleUrls.TryGetValue(hotspot.BaseUrl, out var version))
                             {
-                                if (version < hotspot.AssetBundleCacheVersion)
+                                if (version > 0)
                                 {
-                                    assetBundleUrls[hotspot.BaseUrl] = hotspot.AssetBundleCacheVersion;
+                                    if (hotspot.AssetBundleCacheVersion == 0)
+                                    {
+                                        assetBundleUrls[hotspot.BaseUrl] = 0;
+                                    }
+                                    else if (hotspot.AssetBundleCacheVersion > version)
+                                    {
+                                        assetBundleUrls[hotspot.BaseUrl] = hotspot.AssetBundleCacheVersion;
+                                    }
                                 }
                             }
                             else
