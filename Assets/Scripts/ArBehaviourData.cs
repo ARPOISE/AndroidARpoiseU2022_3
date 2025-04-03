@@ -286,6 +286,11 @@ namespace com.arpoise.arpoiseapp
                 var assetBundleUrls = new Dictionary<string, int>();
                 var iconAssetBundleUrl = "www.arpoise.com/AB/U2022arpoiseicons.ace";
                 assetBundleUrls[iconAssetBundleUrl] = -1;
+                uint versionOfTheDay = 0;
+                if (int.TryParse(DateTime.Today.ToString("yyMMdd"), out var value))
+                {
+                    versionOfTheDay = (uint)value * 100;
+                }
                 foreach (var url in assetBundleUrls)
                 {
                     if (AssetBundles.ContainsKey(url.Key))
@@ -293,7 +298,7 @@ namespace com.arpoise.arpoiseapp
                         continue;
                     }
                     var assetBundleUri = FixUrl(GetAssetBundleUrl(url.Key));
-                    var request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleUri, 0);
+                    var request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleUri, versionOfTheDay, 0);
                     request.certificateHandler = new ArpoiseCertificateHandler();
                     request.timeout = 60;
                     yield return request.SendWebRequest();
