@@ -50,7 +50,7 @@ namespace com.arpoise.arpoiseapp
 #else
         public const string OperatingSystem = "Android";
 #endif
-        public const int Bundle = 25040300;
+        public const int Bundle = 25040900;
         public const string ArvosApplicationName = "Arvos";
         public const string ArpoiseApplicationName = "Arpoise";
 #if AndroidArvosU2022_3 || iOsArvosU2022_3
@@ -650,6 +650,7 @@ namespace com.arpoise.arpoiseapp
                 return;
             }
             _name += $"/{(string.IsNullOrWhiteSpace(scriptName) ? ApplicationName : scriptName)}/{OperatingSystem}/{Bundle}";
+            _name += $"/{SystemInfo.deviceUniqueIdentifier}";
             _name += $"/{UsedLatitude.ToString("F6", CultureInfo.InvariantCulture)}";
             _name += $"/{UsedLongitude.ToString("F6", CultureInfo.InvariantCulture)}";
             _name += DateTime.Now.ToString("/HH:mm:ss.fff");
