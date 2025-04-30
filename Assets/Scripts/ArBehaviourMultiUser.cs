@@ -50,7 +50,7 @@ namespace com.arpoise.arpoiseapp
 #else
         public const string OperatingSystem = "Android";
 #endif
-        public const int Bundle = 25042500;
+        public const int Bundle = 25042701;
         public const string ArvosApplicationName = "Arvos";
         public const string ArpoiseApplicationName = "Arpoise";
 #if AndroidArvosU2022_3 || iOsArvosU2022_3
@@ -114,8 +114,10 @@ namespace com.arpoise.arpoiseapp
                     length = _readBuffer[0] * 0x100 + _readBuffer[1];
                     if (length < 8)
                     {
+                        //UnityEngine.Debug.Log($"_netStream.Close");
                         netStream?.Close();
                         netStream = null;
+                        //UnityEngine.Debug.Log($"tcpClient.Close");
                         tcpClient?.Close();
                         tcpClient = null;
                         return;
@@ -150,20 +152,28 @@ namespace com.arpoise.arpoiseapp
 
                 try
                 {
+                    ////UnityEngine.Debug.Log($"> Socket.Select: readList {readList.Count}, errorList {errorList.Count}");
                     Socket.Select(readList, null, errorList, 1);
+                    ////UnityEngine.Debug.Log($"< Socket.Select: readList {readList.Count}, errorList {errorList.Count}");
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    UnityEngine.Debug.Log($"Socket.Select: exception {e}");
+
+                    //UnityEngine.Debug.Log($"netStream.Close");
                     netStream?.Close();
                     netStream = null;
+                    //UnityEngine.Debug.Log($"tcpClient.Close");
                     tcpClient?.Close();
                     tcpClient = null;
                     return;
                 }
                 if (errorList.Count > 0)
                 {
+                    //UnityEngine.Debug.Log($"netStream.Close");
                     netStream?.Close();
                     netStream = null;
+                    //UnityEngine.Debug.Log($"tcpClient.Close");
                     tcpClient?.Close();
                     tcpClient = null;
                     return;
@@ -172,15 +182,29 @@ namespace com.arpoise.arpoiseapp
                 {
                     try
                     {
+                        //UnityEngine.Debug.Log($"> netStream.Read: offset {_nRead}, size {_readBuffer.Length - _nRead}");
                         var rc = netStream.Read(_readBuffer, _nRead, _readBuffer.Length - _nRead);
-                        if (rc > 0)
+                        //UnityEngine.Debug.Log($"< netStream.Read: rc {rc}");
+                        if (rc <= 0)
                         {
-                            _nRead += rc;
+                            UnityEngine.Debug.Log($"netStream.Read: rc {rc} - connection closed");
+                            //UnityEngine.Debug.Log($"netStream.Close");
+                            netStream?.Close();
+                            netStream = null;
+                            //UnityEngine.Debug.Log($"tcpClient.Close");
+                            tcpClient?.Close();
+                            tcpClient = null;
+                            return;
                         }
+                        _nRead += rc;
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
+                        UnityEngine.Debug.Log($"netStream.Read: exception {e}");
+
+                        //UnityEngine.Debug.Log($"netStream.Close");
                         netStream?.Close();
+                        //UnityEngine.Debug.Log($"tcpClient.Close");
                         netStream = null;
                         tcpClient?.Close();
                         tcpClient = null;
@@ -227,12 +251,18 @@ namespace com.arpoise.arpoiseapp
 
             try
             {
+                //UnityEngine.Debug.Log($"> netStream.Write: size {bytes.Length}");
                 netStream.Write(bytes, 0, bytes.Length);
+                //UnityEngine.Debug.Log($"< netStream.Write: offset {0}, size {bytes.Length}");
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                UnityEngine.Debug.Log($"netStream.Write: exception {e}");
+
+                //UnityEngine.Debug.Log($"netStream.Close");
                 netStream?.Close();
                 netStream = null;
+                //UnityEngine.Debug.Log($"tcpClient.Close");
                 tcpClient?.Close();
                 tcpClient = null;
             }
@@ -340,21 +370,16 @@ namespace com.arpoise.arpoiseapp
             {
                 return;
             }
-            if (_clientId == null || _sceneId == null || _connectionId == null)
-            {
-                if ((DateTime.Now - _lastSendTime).TotalSeconds > 15)
-                {
-                    var url = _url;
-                    _url = null;
-                    SetRemoteServerUrl(url, _sceneUrl, _sceneName, null);
-                    return;
-                }
-            }
 
             if (_tcpClient == null && _netStream == null && !string.IsNullOrWhiteSpace(_hostName) && _port > 0)
             {
-                if (!CreateTcpClient(_hostName, _port))
+                if ((DateTime.Now - _lastConnectTime).TotalMilliseconds > 11111)
                 {
+                    _lastConnectTime = DateTime.Now;
+                    if (!CreateTcpClient(_hostName, _port))
+                    {
+                        return;
+                    }
                     return;
                 }
                 _reconnected = true;
@@ -560,6 +585,7 @@ namespace com.arpoise.arpoiseapp
             }
         }
 
+        private DateTime _lastConnectTime = DateTime.MinValue;
         private DateTime _lastSendTime = DateTime.MinValue;
         private string _name;
         private string _hostName;
@@ -593,11 +619,13 @@ namespace com.arpoise.arpoiseapp
         {
             if (_netStream != null)
             {
+                //UnityEngine.Debug.Log($"_netStream.Close");
                 _netStream.Close();
                 _netStream = null;
             }
             if (_tcpClient != null)
             {
+                //UnityEngine.Debug.Log($"_tcpClient.Close");
                 _tcpClient.Close();
                 _tcpClient = null;
             }
@@ -620,8 +648,7 @@ namespace com.arpoise.arpoiseapp
 
             _sceneUrl = sceneUrl;
             _sceneName = string.IsNullOrWhiteSpace(sceneName) ? sceneUrl : sceneName;
-
-            _url = null;
+            _url = url;
             if (string.IsNullOrWhiteSpace(url))
             {
                 return;
@@ -681,28 +708,32 @@ namespace com.arpoise.arpoiseapp
                 return;
             }
 
-            if (CreateTcpClient(_hostName, _port))
-            {
-                _url = url;
-            }
+            CreateTcpClient(_hostName, _port);
         }
 
         private bool CreateTcpClient(string hostName, int port)
         {
             try
             {
-                _tcpClient = new TcpClient(hostName, port);
+                //UnityEngine.Debug.Log($"TcpClient(.GetStream): hostName {hostName}, port {port}");
+                _tcpClient = new TcpClient();
+                _tcpClient.NoDelay = true;
+                _tcpClient.Connect(hostName, port);
                 _netStream = _tcpClient.GetStream();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                UnityEngine.Debug.Log($"_tcpClient.GetStream: exception {e}");
+
                 if (_netStream != null)
                 {
+                    //UnityEngine.Debug.Log($"_netStream.Close");
                     _netStream.Close();
                     _netStream = null;
                 }
                 if (_tcpClient != null)
                 {
+                    //UnityEngine.Debug.Log($"_tcpClient.Close");
                     _tcpClient.Close();
                     _tcpClient = null;
                 }
