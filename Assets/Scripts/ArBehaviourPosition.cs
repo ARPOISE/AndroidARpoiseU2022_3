@@ -258,6 +258,14 @@ namespace com.arpoise.arpoiseapp
                 FilteredLatitude = OriginalLatitude = 48.158526f;
                 FilteredLongitude = OriginalLongitude = 11.578670f;
 
+                // New York
+                //FilteredLatitude = OriginalLatitude = 40.5f;
+                //FilteredLongitude = OriginalLongitude = -74.0f;
+
+                // Stuttgart
+                //FilteredLatitude = OriginalLatitude = 48.77892f;
+                //FilteredLongitude = OriginalLongitude = 9.17927f;
+
                 //FilteredLatitude = OriginalLatitude = 1;
                 //FilteredLongitude = OriginalLongitude = 1;
 

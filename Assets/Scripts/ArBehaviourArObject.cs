@@ -82,6 +82,7 @@ namespace com.arpoise.arpoiseapp
         protected readonly Dictionary<string, Texture2D> TriggerImages = new Dictionary<string, Texture2D>();
         protected readonly List<TriggerObject> SlamObjects = new List<TriggerObject>();
         protected volatile RefreshRequest RefreshRequest = null;
+        protected float? LightRange = null;
         #endregion
 
         [NonSerialized]
@@ -764,7 +765,13 @@ namespace com.arpoise.arpoiseapp
             {
                 return $"Poi with id {poi.id}, unknown game object: '{objectName}'";
             }
-
+            if (LightRange.HasValue)
+            {
+                foreach (var light in objectToAdd.GetComponentsInChildren<Light>())
+                {
+                    light.range *= LightRange.Value;
+                }
+            }
             var triggerImageURL = poi.TriggerImageURL;
             if (!string.IsNullOrWhiteSpace(triggerImageURL))
             {

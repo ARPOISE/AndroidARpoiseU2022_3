@@ -602,6 +602,7 @@ namespace com.arpoise.arpoiseapp
             nameof(DirectionalLightSEE_IsActive),
             nameof(DirectionalLightSWW_Intensity),
             nameof(DirectionalLightSWW_IsActive),
+            nameof(LightRange),
             nameof(MaximumActiveTriggerObjects),
             nameof(OcclusionEnvironmentDepthMode),
             nameof(OcclusionHumanSegmentationDepthMode),
@@ -610,7 +611,7 @@ namespace com.arpoise.arpoiseapp
             nameof(PositionUpdateInterval),
             nameof(RemoteServerUrl),
             nameof(SceneUrl),
-            nameof(TimeSync),
+            nameof(TimeSync)
         });
 
         [NonSerialized]
@@ -1134,6 +1135,27 @@ namespace com.arpoise.arpoiseapp
                     //Console.WriteLine($"----> SceneUrl is {_sceneUrl}");
                 }
                 return _sceneUrl;
+            }
+        }
+
+        [NonSerialized]
+        private float? _lightRange = null;
+        public float? LightRange // Layer ActionLabel
+        {
+            get
+            {
+                if (_lightRange == null)
+                {
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(LightRange).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        if (float.TryParse(action.activityMessage.Trim().Replace("+", string.Empty), NumberStyles.Float, CultureInfo.InvariantCulture, out float value))
+                        {
+                            _lightRange = value;
+                        }
+                    }
+                }
+                return _lightRange;
             }
         }
 

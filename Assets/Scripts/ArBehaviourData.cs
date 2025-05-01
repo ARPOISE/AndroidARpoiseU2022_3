@@ -807,6 +807,16 @@ namespace com.arpoise.arpoiseapp
                 }
                 #endregion
 
+                var layerWithLightRange = layers.FirstOrDefault(x => x.LightRange.HasValue);
+                if (layerWithLightRange != null)
+                {
+                    LightRange = layerWithLightRange.LightRange.Value;
+                }
+                else
+                {
+                    LightRange = null;
+                }
+
                 #region Set the lights
                 var lightGameObject = SceneManager.GetActiveScene().GetRootGameObjects().FirstOrDefault(x => x.name == "Directional Light N");
                 var light = lightGameObject != null ? lightGameObject.GetComponent<Light>() : null;
