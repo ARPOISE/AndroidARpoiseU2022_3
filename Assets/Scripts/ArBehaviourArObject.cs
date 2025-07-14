@@ -69,6 +69,7 @@ namespace com.arpoise.arpoiseapp
         #endregion
 
         #region Protecteds
+        protected ARHumanBodyManager ArHumanBodyManager;
         protected ARTrackedImageManager ArTrackedImageManager;
         protected MutableRuntimeReferenceImageLibrary ArMutableLibrary;
         protected XROrigin XrOriginScript;
@@ -81,9 +82,48 @@ namespace com.arpoise.arpoiseapp
         protected readonly Dictionary<string, AssetBundle> AssetBundles = new Dictionary<string, AssetBundle>();
         protected readonly Dictionary<string, Texture2D> TriggerImages = new Dictionary<string, Texture2D>();
         protected readonly List<TriggerObject> SlamObjects = new List<TriggerObject>();
+        protected readonly List<TriggerObject> HumanBodyObjects = new List<TriggerObject>();
+        protected readonly List<TriggerObject> CrystalObjects = new List<TriggerObject>();
         protected volatile RefreshRequest RefreshRequest = null;
         protected float? LightRange = null;
         #endregion
+
+        public readonly List<TriggerObject> VisualizedHumanBodyObjects = new List<TriggerObject>();
+        public List<TriggerObject> AvailableHumanBodyObjects
+        {
+            get
+            {
+                var result = new List<TriggerObject>();
+
+                foreach (var humanBodyObject in HumanBodyObjects.Where(x => x.poi != null && x.layerWebUrl == LayerWebUrl))
+                {
+                    var maximumCount = humanBodyObject.poi.MaximumCount;
+                    if (maximumCount > 0)
+                    {
+                        var count = VisualizedHumanBodyObjects.Where(x => x.poi != null && x.poi.id == humanBodyObject.poi.id).Count();
+                        if (count >= maximumCount)
+                        {
+                            continue;
+                        }
+                    }
+                    result.Add(humanBodyObject);
+                }
+                return result;
+            }
+        }
+
+        public List<TriggerObject> AvailableCrystalObjects
+        {
+            get
+            {
+                var result = new List<TriggerObject>();
+                foreach (var crystalObject in CrystalObjects.Where(x => x.poi != null && x.layerWebUrl == LayerWebUrl))
+                {
+                    result.Add(crystalObject);
+                }
+                return result;
+            }
+        }
 
         [NonSerialized]
         public volatile bool TakeScreenshot = false;
@@ -223,6 +263,20 @@ namespace com.arpoise.arpoiseapp
                     foreach (var action in poi.actions)
                     {
                         arpoiseObjectCrystal.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                    }
+                }
+            }
+            var title = poi?.title ?? string.Empty;
+            if (title.Contains(nameof(ArpoisePoiCrystal)))
+            {
+                objectToAdd.AddComponent<ArpoisePoiCrystal>();
+                var arpoisePoiCrystal = objectToAdd.GetComponent<ArpoisePoiCrystal>();
+                if (arpoisePoiCrystal != null)
+                {
+                    arpoisePoiCrystal.ArBehaviour = this;
+                    foreach (var action in poi.actions)
+                    {
+                        arpoisePoiCrystal.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
                     }
                 }
             }
@@ -443,6 +497,32 @@ namespace com.arpoise.arpoiseapp
                         if (animationWrapper.transform.parent == null)
                         {
                             animationWrapper.name = "OnFocusWrapper";
+                            animationWrapper.transform.parent = parentTransform;
+                            parentTransform = animationWrapper.transform;
+                        }
+                    }
+                }
+
+                if (poi.animations.onRandom != null)
+                {
+                    foreach (var poiAnimation in poi.animations.onRandom)
+                    {
+                        var animationWrapper = GetWrapper(wrappers, poiAnimation);
+                        if (animationWrapper == null)
+                        {
+                            return "Instantiate(OnRandomWrapper) failed";
+                        }
+                        arObjectState.AddOnRandomAnimation(
+                            new ArAnimation(
+                                arObjectId, animationWrapper, objectToAdd, poiAnimation, ArEventType.OnFocus, false, this,
+                                poi?.ArLayer?.AudioRolloffMode,
+                                poi?.ArLayer?.AudioSpatialBlend,
+                                poi?.ArLayer?.AudioSpatialize,
+                                poi?.ArLayer?.AudioVolume
+                            ));
+                        if (animationWrapper.transform.parent == null)
+                        {
+                            animationWrapper.name = "OnRandomWrapper";
                             animationWrapper.transform.parent = parentTransform;
                             parentTransform = animationWrapper.transform;
                         }
@@ -778,20 +858,22 @@ namespace com.arpoise.arpoiseapp
                 try
                 {
                     var isSlamUrl = IsSlamUrl(triggerImageURL);
+                    var isHumanBodyUrl = IsHumanBodyUrl(triggerImageURL);
+                    var isCrystalUrl = IsCrystalUrl(triggerImageURL);
                     Texture2D texture = null;
                     if (!TriggerImages.TryGetValue(triggerImageURL, out texture) || texture == null)
                     {
-                        if (!isSlamUrl)
+                        if (!isSlamUrl && !isHumanBodyUrl && !isCrystalUrl)
                         {
                             return $"Missing trigger image '{triggerImageURL}'.";
                         }
                     }
 
-                    var t = isSlamUrl ? null
+                    var t = isCrystalUrl || isHumanBodyUrl || isSlamUrl ? null
                         : TriggerObjects.Values.FirstOrDefault(x => x.triggerImageURL == triggerImageURL);
                     if (t == null)
                     {
-                        int newIndex = isSlamUrl ? SlamObjects.Count : TriggerObjects.Count;
+                        int newIndex = isCrystalUrl ? CrystalObjects.Count : isHumanBodyUrl ? HumanBodyObjects.Count : isSlamUrl ? SlamObjects.Count : TriggerObjects.Count;
                         var width = poi.poiObject.triggerImageWidth;
                         t = new TriggerObject
                         {
@@ -804,7 +886,33 @@ namespace com.arpoise.arpoiseapp
                             poi = poi,
                             layerWebUrl = LayerWebUrl
                         };
-                        if (isSlamUrl)
+                        if (isHumanBodyUrl)
+                        {
+                            HumanBodyObjects.Add(t);
+                        }
+                        else if (isCrystalUrl)
+                        {
+                            if (poi.title is not null && poi.title.Contains(nameof(ArpoisePoiCrystal)))
+                            {
+                                GameObject newObject;
+                                var result = CreateArObject(
+                                    arObjectState,
+                                    objectToAdd,
+                                    parentObject,
+                                    parentObjectTransform,
+                                    poi,
+                                    arObjectId,
+                                    out newObject
+                                    );
+                                if (!string.IsNullOrWhiteSpace(result))
+                                {
+                                    return result;
+                                }
+                                t.gameObject = newObject;
+                            }
+                            CrystalObjects.Add(t);
+                        }
+                        else if(isSlamUrl)
                         {
                             SlamObjects.Add(t);
                         }
@@ -813,7 +921,7 @@ namespace com.arpoise.arpoiseapp
                             TriggerObjects[t.index] = t;
                         }
 
-                        if (!isSlamUrl)
+                        if (!isSlamUrl && !isHumanBodyUrl && !isCrystalUrl)
                         {
                             ArMutableLibrary?.ScheduleAddImageWithValidationJob(texture, triggerImageURL, width);
                         }
@@ -1087,9 +1195,17 @@ namespace com.arpoise.arpoiseapp
 
         #region Update
         private static long _arObjectId = -1000000000;
-        private static readonly System.Random _random = new System.Random();
+        private static readonly System.Random _random = new System.Random((int)DateTime.Now.Ticks);
         protected override void Update()
         {
+            foreach (var triggerObject in CrystalObjects)
+            {
+                var arpoisePoiCrystal = triggerObject.gameObject.GetComponentInChildren<ArpoisePoiCrystal>();
+                if (arpoisePoiCrystal != null)
+                {
+                    arpoisePoiCrystal.CallUpdate();
+                }
+            }
             base.Update();
         }
 
@@ -1159,8 +1275,8 @@ namespace com.arpoise.arpoiseapp
                 }
             }
 
-            var arvosObjects = TriggerObjects.Values.Union(SlamObjects);
-            foreach (var poi in arvosObjects.Select(x => x.poi).Distinct().Where(poi => poi != null && poi.visibilityRange > 0))
+            var arpoiseObjects = TriggerObjects.Values.Union(SlamObjects).Union(HumanBodyObjects).Union(CrystalObjects);
+            foreach (var poi in arpoiseObjects.Select(x => x.poi).Distinct().Where(poi => poi != null && poi.visibilityRange > 0))
             {
                 var distance = CalculateDistance(poi.Latitude, poi.Longitude, filteredLatitude, filteredLongitude);
                 if (distance <= PositionTolerance * poi.visibilityRange)
@@ -1169,7 +1285,7 @@ namespace com.arpoise.arpoiseapp
                 }
             }
 
-            foreach (var arLayer in arvosObjects.Select(x => x.poi?.ArLayer).Distinct().Where(arLayer => arLayer != null && arLayer.visibilityRange > 0))
+            foreach (var arLayer in arpoiseObjects.Select(x => x.poi?.ArLayer).Distinct().Where(arLayer => arLayer != null && arLayer.visibilityRange > 0))
             {
                 var distance = CalculateDistance(arLayer.Latitude, arLayer.Longitude, filteredLatitude, filteredLongitude);
                 if (distance <= PositionTolerance * arLayer.visibilityRange)
@@ -1189,7 +1305,17 @@ namespace com.arpoise.arpoiseapp
                 foreach (var arObject in toBeDuplicated)
                 {
                     var poi = arObject.Poi.Clone();
-                    if (IsSlamUrl(poi.TriggerImageURL))
+                    if (IsHumanBodyUrl(poi.TriggerImageURL))
+                    {
+                        poi.poiObject.triggerImageURL = string.Empty;
+
+                        var relativeLocation = poi.poiObject.RelativeLocation;
+                        relativeLocation[0] += 0.001f * ((_random.Next(2001) - 1000) / 100f);
+                        relativeLocation[2] += 0.001f * ((_random.Next(2001) - 1000) / 100f);
+                        poi.poiObject.RelativeLocation = relativeLocation;
+                        CreateArObject(arObjectState, arObject, arObject.GameObjects.First().transform, poi, _arObjectId--);
+                    }
+                    else if (IsSlamUrl(poi.TriggerImageURL))
                     {
                         poi.poiObject.triggerImageURL = string.Empty;
 
@@ -1293,6 +1419,14 @@ namespace com.arpoise.arpoiseapp
         protected bool IsSlamUrl(string url)
         {
             return string.Equals(url?.Trim(), "SLAM", StringComparison.OrdinalIgnoreCase);
+        }
+        protected bool IsHumanBodyUrl(string url)
+        {
+            return string.Equals(url?.Trim(), "BODY", StringComparison.OrdinalIgnoreCase);
+        }
+        protected bool IsCrystalUrl(string url)
+        {
+            return string.Equals(url?.Trim(), "CRYSTAL", StringComparison.OrdinalIgnoreCase);
         }
         #endregion
     }

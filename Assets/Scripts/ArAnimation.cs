@@ -109,6 +109,7 @@ namespace com.arpoise.arpoiseapp
         private static readonly string _sine = nameof(ArInterpolation.Sine).ToLower();
         private static readonly string _smooth = nameof(ArInterpolation.Smooth).ToLower();
 
+
         private float? _durationStretchFactor;
         private float? _initialA = null;
         private float? _initialVolume = null;
@@ -116,6 +117,38 @@ namespace com.arpoise.arpoiseapp
         private long _startTicks = 0;
         private List<Material> _materialsToFade = null;
         private AudioSource _audioSource = null;
+
+        private static readonly System.Random _random = new System.Random((int)DateTime.Now.Ticks);
+        private int? _randomDelay = null; // Used for random delay in milliseconds, if not null
+        public int? RandomDelay
+        {
+            get
+            {
+                if (_randomDelay == null)
+                {
+                    _randomDelay = 120000;
+                    int index = Name?.IndexOf("_") ?? -1;
+                    var delay = Name?.Substring(index + 1).Trim() ?? string.Empty;
+                    if (!string.IsNullOrWhiteSpace(delay) && int.TryParse(delay, out var value) && value > 0)
+                    {
+                        _randomDelay = value;
+                    }
+                }
+                return _randomDelay;
+            }
+        }
+        private DateTime? _nextActivation = null;
+        public DateTime NextActivation
+        {
+            get
+            {
+                if (_nextActivation == null)
+                {
+                    _nextActivation = DateTime.Now.AddMilliseconds(_random.Next(RandomDelay.Value));
+                }
+                return _nextActivation.Value;
+            }
+        }
 
         public bool IsToBeDestroyed { get; private set; }
         public bool IsToBeDuplicated { get; set; }
@@ -358,6 +391,8 @@ namespace com.arpoise.arpoiseapp
 
             JustStopped = true;
             IsActive = false;
+            _nextActivation = null;
+
             if (!_persisting)
             {
                 HandleSetActive(Name, false);

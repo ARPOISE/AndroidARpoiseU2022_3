@@ -99,6 +99,7 @@ namespace com.arpoise.arpoiseapp
         public PoiAnimation[] whenActive = null;
         public PoiAnimation[] whenActivated = null;
         public PoiAnimation[] whenDeactivated = null;
+        public PoiAnimation[] onRandom = null;
     }
 
     [Serializable]

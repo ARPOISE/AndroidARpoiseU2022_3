@@ -49,6 +49,7 @@ namespace com.arpoise.arpoiseapp
         private readonly List<ArAnimation> _whenActiveAnimations = new List<ArAnimation>();
         private readonly List<ArAnimation> _whenActivatedAnimations = new List<ArAnimation>();
         private readonly List<ArAnimation> _whenDeactivatedAnimations = new List<ArAnimation>();
+        private readonly List<ArAnimation> _onRandomAnimations = new List<ArAnimation>();
 
         private ArAnimation[] _allAnimations = null;
         private ArAnimation[] AllAnimations
@@ -67,6 +68,7 @@ namespace com.arpoise.arpoiseapp
                     allAnimations.AddRange(_whenActiveAnimations);
                     allAnimations.AddRange(_whenActivatedAnimations);
                     allAnimations.AddRange(_whenDeactivatedAnimations);
+                    allAnimations.AddRange(_onRandomAnimations);
                     _allAnimations = allAnimations.ToArray();
                 }
                 return _allAnimations;
@@ -132,6 +134,12 @@ namespace com.arpoise.arpoiseapp
             AllAnimations = null;
         }
 
+        public void AddOnRandomAnimation(ArAnimation animation)
+        {
+            _onRandomAnimations.Add(animation);
+            AllAnimations = null;
+        }
+
         public void AddInFocusAnimation(ArAnimation animation)
         {
             _inFocusAnimations.Add(animation);
@@ -188,6 +196,7 @@ namespace com.arpoise.arpoiseapp
             _whenActiveAnimations.RemoveAll(x => arObject.Id == x.PoiId);
             _whenActivatedAnimations.RemoveAll(x => arObject.Id == x.PoiId);
             _whenDeactivatedAnimations.RemoveAll(x => arObject.Id == x.PoiId);
+            _onRandomAnimations.RemoveAll(x => arObject.Id == x.PoiId);
             AllAnimations = null;
         }
 
@@ -387,6 +396,17 @@ namespace com.arpoise.arpoiseapp
                             //Debug.Log($"Animation {arAnimation.Name}, PoiId {arAnimation.PoiId} is being activated");
                             arAnimation.Activate(startTicks, nowTicks);
                         }
+                    }
+                }
+            }
+
+            if (_onRandomAnimations.Count > 0)
+            {
+                foreach (var arAnimation in _onRandomAnimations)
+                {
+                    if (!arAnimation.IsActive && nowTicks > arAnimation.NextActivation.Ticks)
+                    {
+                        arAnimation.Activate(startTicks, nowTicks);
                     }
                 }
             }

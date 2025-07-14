@@ -34,10 +34,8 @@ using UnityEngine;
 
 namespace com.arpoise.arpoiseapp
 {
-    public class ArBehaviourSlam : ArBehaviourImage
+    public class ArBehaviourSlam : ArBehaviourHumanBody
     {
-        private readonly List<GameObject> _imageSceneObjects = new List<GameObject>();
-        private readonly List<GameObject> _slamSceneObjects = new List<GameObject>();
         public readonly List<TriggerObject> VisualizedSlamObjects = new List<TriggerObject>();
 
         #region Start
@@ -106,23 +104,6 @@ namespace com.arpoise.arpoiseapp
         protected override void Update()
         {
             base.Update();
-            var slamObjectsAvailable = AvailableSlamObjects.Any();
-            foreach (var sceneObject in _imageSceneObjects)
-            {
-                var active = !IsSlam && HasTriggerImages;
-                if (sceneObject != null && sceneObject.activeSelf != active)
-                {
-                    sceneObject.SetActive(active);
-                    //Debug.Log($"{sceneObject.name} {active}");
-                }
-            }
-            foreach (var sceneObject in _slamSceneObjects)
-            {
-                if (sceneObject != null && sceneObject.activeSelf != slamObjectsAvailable)
-                {
-                    sceneObject.SetActive(slamObjectsAvailable);
-                }
-            }
         }
         #endregion
     }

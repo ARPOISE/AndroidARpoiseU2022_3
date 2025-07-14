@@ -45,6 +45,7 @@ public class ArFoundationArvosController : ArBehaviourSlam
     private ARPlaneManager _arPlaneManager;
     private ARRaycastManager _arRaycastManager;
 
+    private readonly Dictionary<string, ArvosVisualizer> _humanBodyVisualizers = new Dictionary<string, ArvosVisualizer>();
     private readonly Dictionary<string, ArvosVisualizer> _imageVisualizers = new Dictionary<string, ArvosVisualizer>();
     private readonly Dictionary<int, ArvosVisualizer> _slamVisualizers = new Dictionary<int, ArvosVisualizer>();
 
@@ -61,6 +62,7 @@ public class ArFoundationArvosController : ArBehaviourSlam
         _arRaycastManager = XrOrigin.GetComponent<ARRaycastManager>();
 
         XrOriginScript = XrOrigin.GetComponent<XROrigin>();
+        ArHumanBodyManager = XrOrigin.GetComponent<ARHumanBodyManager>();
         ArTrackedImageManager = XrOrigin.GetComponent<ARTrackedImageManager>();
     }
 
@@ -71,6 +73,7 @@ public class ArFoundationArvosController : ArBehaviourSlam
         _arRaycastManager = XrOrigin.GetComponent<ARRaycastManager>();
 
         XrOriginScript = XrOrigin.GetComponent<XROrigin>();
+        ArHumanBodyManager = XrOrigin.GetComponent<ARHumanBodyManager>();
         ArTrackedImageManager = XrOrigin.GetComponent<ARTrackedImageManager>();
         ArTrackedImageManager.referenceLibrary = ArMutableLibrary = ArTrackedImageManager.CreateRuntimeLibrary() as MutableRuntimeReferenceImageLibrary;
 
@@ -78,6 +81,7 @@ public class ArFoundationArvosController : ArBehaviourSlam
     }
     #endregion
 
+    private int _humanBodyDetectionCount = 0;
     private int _slamHitCount = 0;
     private string _layerWebUrl = null;
 
@@ -99,6 +103,15 @@ public class ArFoundationArvosController : ArBehaviourSlam
                 }
                 _slamVisualizers.Clear();
                 VisualizedSlamObjects.Clear();
+            }
+            if (_humanBodyVisualizers.Any())
+            {
+                foreach (var visualizer in _humanBodyVisualizers.Values)
+                {
+                    GameObject.Destroy(visualizer.gameObject);
+                }
+                _humanBodyVisualizers.Clear();
+                VisualizedHumanBodyObjects.Clear();
             }
             if (_imageVisualizers.Any())
             {
@@ -134,6 +147,26 @@ public class ArFoundationArvosController : ArBehaviourSlam
             }
         }
 
+        if (!IsHumanBody)
+        {
+            if (ArHumanBodyManager.enabled != IsHumanBody)
+            {
+                SetAllHumanBodiesActive(IsHumanBody);
+                EnableHumanBodyManager(IsHumanBody);
+            }
+
+            _humanBodyDetectionCount = 0;
+            if (_humanBodyVisualizers.Any())
+            {
+                foreach (var visualizer in _humanBodyVisualizers.Values)
+                {
+                    GameObject.Destroy(visualizer.gameObject);
+                }
+                _humanBodyVisualizers.Clear();
+                VisualizedHumanBodyObjects.Clear();
+            }
+        }
+
         EnableImageManager(ArMutableLibrary is not null && ArMutableLibrary.count > 0);
         if (!HasTriggerImages)
         {
@@ -144,7 +177,7 @@ public class ArFoundationArvosController : ArBehaviourSlam
                     visualizer.SetInActive();
                 }
             }
-            if (!IsSlam)
+            if (!IsSlam && !IsHumanBody)
             {
                 return;
             }
@@ -239,6 +272,26 @@ public class ArFoundationArvosController : ArBehaviourSlam
             }
         }
 
+        if (IsHumanBody)
+        {
+            var humanBodyObjectsAvailable = AvailableHumanBodyObjects.Any();
+            if (!humanBodyObjectsAvailable)
+            {
+                if (ArHumanBodyManager.enabled != humanBodyObjectsAvailable)
+                {
+                    ArHumanBodyManager.enabled = humanBodyObjectsAvailable;
+                    SetAllHumanBodiesActive(humanBodyObjectsAvailable);
+                }
+                SetInfoText(AllHumanBodiesVisualized);
+                return;
+            }
+            else
+            {
+                EnableHumanBodyManager(IsHumanBody);
+            }
+            return;
+        }
+
         // Deactivate non active image visualizers
         foreach (var visualizer in _imageVisualizers.Values)
         {
@@ -322,6 +375,111 @@ public class ArFoundationArvosController : ArBehaviourSlam
     }
 
     private long? _fitToScanOverlayActivationSecond = null;
+
+    private void EnableHumanBodyManager(bool enable)
+    {
+        if (ArHumanBodyManager.enabled)
+        {
+            if (!enable)
+            {
+                ArHumanBodyManager.humanBodiesChanged -= OnHumanBodiesChanged;
+                ArHumanBodyManager.enabled = enable;
+            }
+        }
+        else
+        {
+            if (enable)
+            {
+                ArHumanBodyManager.humanBodiesChanged += OnHumanBodiesChanged;
+                ArHumanBodyManager.enabled = enable;
+            }
+        }
+    }
+
+    public void OnHumanBodiesChanged(ARHumanBodiesChangedEventArgs eventArgs)
+    {
+        foreach (var body in eventArgs.added.Union(eventArgs.updated))
+        {
+            var trackableId = body.trackableId.ToString();
+            _humanBodyVisualizers.TryGetValue(trackableId, out var visualizer);
+            if (body.trackingState == TrackingState.Tracking && visualizer is null)
+            {
+                var pos = body.transform.position;
+                //Debug.Log($"HumanBody '{trackableId}' added tracked, visualizer is null {pos.x.ToString("F1")}, {pos.y.ToString("F1")}, {pos.z.ToString("F1")}");
+
+                int index = _humanBodyDetectionCount++ % AvailableHumanBodyObjects.Count;
+                var triggerObject = AvailableHumanBodyObjects[index];
+                var maximumActiveTriggerObjects = triggerObject?.poi?.ArLayer?.MaximumActiveTriggerObjects;
+                if (maximumActiveTriggerObjects.HasValue && maximumActiveTriggerObjects.Value >= 0)
+                {
+                    var activeTriggerObjectCount = _humanBodyVisualizers.Values.Count(x => x.gameObject != null && x.gameObject.activeSelf);
+                    if (activeTriggerObjectCount >= maximumActiveTriggerObjects.Value)
+                    {
+                        continue;
+                    }
+                }
+
+                visualizer = Instantiate(ArvosVisualizer, body.transform.position, body.transform.rotation);
+                visualizer.Image = body;
+                visualizer.TriggerObject = triggerObject;
+                visualizer.ArBehaviour = this;
+                visualizer.TriggerObject.LastUpdateTime = DateTime.Now;
+                visualizer.TriggerObject.ActivationTime = DateTime.Now;
+
+                _humanBodyVisualizers.Add(trackableId, visualizer);
+                visualizer.SetActive();
+                //Debug.Log($"HumanBody '{trackableId}' added tracked, game object activated");
+            }
+            else if (body.trackingState == TrackingState.Tracking && visualizer is not null)
+            {
+                if (!visualizer.TriggerObject.isActive || visualizer.TriggerObject.layerWebUrl != _layerWebUrl)
+                {
+                    // This image was loaded for a different layer
+                    visualizer.TriggerObject.gameObject.SetActive(false);
+                    continue;
+                }
+                visualizer.TriggerObject.LastUpdateTime = DateTime.Now;
+                if (!visualizer.IsActive)
+                {
+                    var maximumActiveTriggerObjects = visualizer?.TriggerObject?.poi?.ArLayer?.MaximumActiveTriggerObjects;
+                    if (maximumActiveTriggerObjects.HasValue && maximumActiveTriggerObjects.Value >= 0)
+                    {
+                        var activeTriggerObjectCount = _imageVisualizers.Values.Count(x => x.gameObject != null && x.gameObject.activeSelf);
+                        if (activeTriggerObjectCount >= maximumActiveTriggerObjects.Value)
+                        {
+                            continue;
+                        }
+                    }
+                    visualizer.SetActive();
+                    //Debug.Log($"HumanBody '{trackableId}' added tracked, game object activated");
+                }
+            }
+        }
+        foreach (var body in eventArgs.removed)
+        {
+            var trackableId = body.trackableId.ToString();
+            Debug.Log($"HumanBody '{trackableId}' removed");
+            _humanBodyVisualizers.TryGetValue(name, out var visualizer);
+            if (visualizer is not null)
+            {
+                if (!visualizer.TriggerObject.isActive || visualizer.TriggerObject.layerWebUrl != _layerWebUrl)
+                {
+                    // This image was loaded for a different layer
+                    visualizer.TriggerObject.gameObject.SetActive(false);
+                    continue;
+                }
+                visualizer.SetInActive();
+                //var trackingTimeout = visualizer.TriggerObject.poi.TrackingTimeout;
+                //if (trackingTimeout <= 0 && visualizer.IsActive)
+                //{
+                //    visualizer.SetInActive();
+                //    //Debug.Log($"Image '{name}' removed, game object de-activated");
+                //    visualizer.HasTimedOut = true;
+                //}
+            }
+        }
+    }
+
 
     private void EnableImageManager(bool enable)
     {
@@ -439,6 +597,14 @@ public class ArFoundationArvosController : ArBehaviourSlam
         foreach (var plane in _arPlaneManager.trackables)
         {
             plane.gameObject.SetActive(value);
+        }
+    }
+
+    private void SetAllHumanBodiesActive(bool value)
+    {
+        foreach (var body in ArHumanBodyManager.trackables)
+        {
+            body.gameObject.SetActive(value);
         }
     }
     #endregion

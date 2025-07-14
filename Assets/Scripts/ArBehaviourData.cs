@@ -116,6 +116,8 @@ namespace com.arpoise.arpoiseapp
 
         #region Protecteds
         public bool IsSlam { get; private set; }
+        public bool IsHumanBody { get; private set; }
+        public bool IsCrystal { get; private set; }
         protected readonly List<ArItem> LayerItemList = new List<ArItem>();
         protected bool IsNewLayer = false;
         protected bool? MenuEnabled = null;
@@ -163,7 +165,7 @@ namespace com.arpoise.arpoiseapp
                 var layers = new List<ArLayer>();
                 var nextPageKey = string.Empty;
 
-                IsSlam = false;
+                IsCrystal = IsHumanBody = IsSlam = false;
                 ApplicationSleepStartMinute = -1;
                 ApplicationSleepEndMinute = -1;
                 AllowTakeScreenshot = -1;
@@ -718,11 +720,35 @@ namespace com.arpoise.arpoiseapp
                 if (triggerImageUrls.Any(x => IsSlamUrl(x)))
                 {
                     IsSlam = true;
+                    IsCrystal = false;
+                    IsHumanBody = false;
+                    triggerImageUrls.Clear();
+                }
+                else if (triggerImageUrls.Any(x => IsHumanBodyUrl(x)))
+                {
+                    IsHumanBody = true;
+                    IsCrystal = false;
+                    IsSlam = false;
+                    triggerImageUrls.Clear();
+                }
+                else if (triggerImageUrls.Any(x => IsCrystalUrl(x)))
+                {
+                    IsCrystal = true;
+                    IsHumanBody = false;
+                    IsSlam = false;
                     triggerImageUrls.Clear();
                 }
                 if (!IsSlam || LayerWebUrl != layerWebUrl)
                 {
                     SlamObjects.Clear();
+                }
+                if (!IsHumanBody || LayerWebUrl != layerWebUrl)
+                {
+                    HumanBodyObjects.Clear();
+                }
+                if (!IsCrystal || LayerWebUrl != layerWebUrl)
+                {
+                    CrystalObjects.Clear();
                 }
                 foreach (var url in triggerImageUrls)
                 {
@@ -904,7 +930,7 @@ namespace com.arpoise.arpoiseapp
                     {
                         yield break;
                     }
-                    if (!arObjectState.ArObjects.Any() && !IsSlam && !HasTriggerImages)
+                    if (!arObjectState.ArObjects.Any() && !IsCrystal && !IsHumanBody && !IsSlam && !HasTriggerImages)
                     {
                         var message = layers.Select(x => x.noPoisMessage).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
                         if (string.IsNullOrWhiteSpace(message))
@@ -1004,7 +1030,7 @@ namespace com.arpoise.arpoiseapp
                             triggerObject.isActive = false;
                         }
                         HasTriggerImages = false;
-                        IsSlam = false;
+                        IsCrystal = IsHumanBody = IsSlam = false;
                         break;
                     }
                     yield return new WaitForSeconds(.1f);

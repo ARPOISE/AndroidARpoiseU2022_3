@@ -565,7 +565,10 @@ namespace com.arpoise.arpoiseapp
                         message = message.Replace("{AA}", string.Empty + arObjectState.NumberOfActiveAnimations);
                         message = message.Replace("{T}", string.Empty + TriggerObjects.Values.Count(x => x.isActive));
                         message = message.Replace("{I}", string.Empty + TriggerImages.Count);
-                        message = message.Replace("{S}", string.Empty + SlamObjects.Count(x => x.isActive));
+                        message = message.Replace("{SO}", string.Empty + SlamObjects.Count(x => x.isActive));
+                        message = message.Replace("{HBO}", string.Empty + HumanBodyObjects.Count(x => x.isActive));
+                        message = message.Replace("{AHBO}", string.Empty + AvailableHumanBodyObjects.Count(x => x.isActive));
+                        message = message.Replace("{CO}", string.Empty + CrystalObjects.Count(x => x.isActive));
 
                         message = message.Replace("{IC}", string.Empty + (int)_initialCameraAngle);
                         message = message.Replace("{IH}", string.Empty + (int)_initialHeading);
@@ -611,7 +614,11 @@ namespace com.arpoise.arpoiseapp
                         }
                         if (ArTrackedImageManager != null)
                         {
-                            message = message.Replace("{M}", $"{(ArTrackedImageManager.enabled ? "T" : "F")} {ArTrackedImageManager.trackables.count}");
+                            message = message.Replace("{IM}", $"{(ArTrackedImageManager.enabled ? "T," : "F,")} {ArTrackedImageManager.trackables.count}");
+                        }
+                        if (ArHumanBodyManager != null)
+                        {
+                            message = message.Replace("{HBM}", $"{(ArHumanBodyManager.enabled ? "T," : "F,")} {ArHumanBodyManager.trackables.count}");
                         }
                     }
                     SetInfoText(message);

@@ -1,7 +1,7 @@
 ﻿/*
-ArBehaviourImage.cs - MonoBehaviour for ARpoise image handling.
+ArBehaviourHumanBody.cs - MonoBehaviour for ARpoise - HumanBody tracking handling.
 
-Copyright (C) 2019, Tamiko Thiel and Peter Graf - All Rights Reserved
+Copyright (C) 2025, Tamiko Thiel and Peter Graf - All Rights Reserved
 
 ARpoise - Augmented Reality point of interest service environment 
 
@@ -28,52 +28,35 @@ ARpoise, see www.ARpoise.com/
 
 */
 
-using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace com.arpoise.arpoiseapp
 {
-    public class ArBehaviourImage : ArBehaviour
+    public class ArBehaviourHumanBody : ArBehaviourImage
     {
-        #region Globals
-
-        public GameObject FitToScanOverlay;
-
-        #endregion
-
         #region Start
         protected override void Start()
         {
             base.Start();
+        }
+        #endregion
 
-#if iOsArvosU2022_3
-            if (InfoPanel != null)
+        public string AllHumanBodiesVisualized
+        {
+            get
             {
-                var showInfoPanel = PlayerPrefs.GetString(nameof(InfoPanelIsActive));
-                if (!false.ToString().Equals(showInfoPanel))
+                foreach (var bodyObject in HumanBodyObjects.Where(x => x.poi != null && x.layerWebUrl == LayerWebUrl))
                 {
-                    var infoPanel = InfoPanel.GetComponent<InfoPanel>();
-                    if (infoPanel != null)
+                    var allAugmentsPlaced = bodyObject.poi.AllAugmentsPlaced;
+                    if (!string.IsNullOrEmpty(allAugmentsPlaced))
                     {
-                        infoPanel.Setup(this);
-                        InfoPanel.SetActive(true);
+                        return allAugmentsPlaced;
                     }
                 }
-            }
-#endif
-        }
-        #endregion
-
-        #region Update
-        protected override void Update()
-        {
-            base.Update();
-
-            if ((IsHumanBody || IsSlam) && FitToScanOverlay != null && FitToScanOverlay.activeSelf)
-            {
-                FitToScanOverlay.SetActive(false);
+                return "All human bodies visualized.";
             }
         }
-        #endregion
     }
 }

@@ -41,13 +41,14 @@ namespace com.arpoise.arpoiseapp
 {
     using UnityEngine;
     using UnityEngine.XR.ARFoundation;
+    using UnityEngine.XR.ARSubsystems;
 
     public class ArvosVisualizer : MonoBehaviour
     {
         /// <summary>
         /// The AugmentedImage to visualize.
         /// </summary>
-        public ARTrackedImage Image;
+        public ARTrackable Image;
 
         /// <summary>
         /// The hit pose use to place the TriggerObject.
@@ -179,6 +180,9 @@ namespace com.arpoise.arpoiseapp
 
                     var positionLerpFactor = TriggerObject?.poi?.PositionLerpFactor;
                     var rotationLerpFactor = TriggerObject?.poi?.RotationLerpFactor;
+
+                    //Debug.Log($"Lerp factor {positionLerpFactor} {rotationLerpFactor} to position {ParameterHelper.ToString(targetPosition)}");
+
                     if (positionLerpFactor.HasValue && positionLerpFactor > 0
                         || rotationLerpFactor.HasValue && rotationLerpFactor > 0)
                     {
@@ -210,7 +214,10 @@ namespace com.arpoise.arpoiseapp
             }
             else
             {
-                transform.position = Image.transform.position;
+                var pos = Image.transform.position;
+                //Debug.Log($"Position update {pos.x.ToString("F1")}, {pos.y.ToString("F1")}, {pos.z.ToString("F1")}");
+
+                transform.position = pos;
                 transform.rotation = Image.transform.rotation;
             }
         }
@@ -232,6 +239,8 @@ namespace com.arpoise.arpoiseapp
 
         private void LerpTransform(Vector3 targetPosition, Quaternion targetRotation, float? positionLerpFactor, float? rotationLerpFactor)
         {
+            //Debug.Log($"Lerp factor {positionLerpFactor} to position {ParameterHelper.ToString(targetPosition)}");
+
             if (positionLerpFactor.HasValue && positionLerpFactor > 0)
             {
                 _gameObject.transform.position = Vector3.Lerp(_gameObject.transform.position, targetPosition, positionLerpFactor.Value / ArBehaviourArObject.FramesPerSecond);
