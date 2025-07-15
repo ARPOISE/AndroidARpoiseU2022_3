@@ -736,7 +736,6 @@ namespace com.arpoise.arpoiseapp
                     IsCrystal = true;
                     IsHumanBody = false;
                     IsSlam = false;
-                    triggerImageUrls.Clear();
                 }
                 if (!IsSlam || LayerWebUrl != layerWebUrl)
                 {
@@ -750,7 +749,7 @@ namespace com.arpoise.arpoiseapp
                 {
                     CrystalObjects.Clear();
                 }
-                foreach (var url in triggerImageUrls)
+                foreach (var url in triggerImageUrls.Where(x => !IsCrystalUrl(x)))
                 {
                     if (TriggerImages.ContainsKey(url))
                     {
