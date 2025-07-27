@@ -266,8 +266,8 @@ namespace com.arpoise.arpoiseapp
                 //FilteredLatitude = OriginalLatitude = 48.77892f;
                 //FilteredLongitude = OriginalLongitude = 9.17927f;
 
-                //FilteredLatitude = OriginalLatitude = 1;
-                //FilteredLongitude = OriginalLongitude = 1;
+                FilteredLatitude = OriginalLatitude = -6.1f;
+                FilteredLongitude = OriginalLongitude = -6.1f;
 
                 Debug.Log("UNITY_EDITOR fixed location, lat " + OriginalLatitude + ", lon " + OriginalLongitude);
 

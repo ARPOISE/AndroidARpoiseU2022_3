@@ -176,13 +176,21 @@ namespace com.arpoise.arpoiseapp
         [NonSerialized]
         public ArLayer ArLayer;
 
-        public string BaseUrl => poiObject?.baseURL?.Trim();
+        [NonSerialized]
+        private string _baseUrl = null;
+        public string BaseUrl => _baseUrl ??= poiObject?.baseURL?.Trim() ?? string.Empty;
 
-        public string TriggerImageURL => poiObject?.triggerImageURL?.Trim();
+        [NonSerialized]
+        private string _triggerImageURL = null;
+        public string TriggerImageURL => _triggerImageURL ??= poiObject?.triggerImageURL?.Trim() ?? string.Empty;
 
-        public string GameObjectName => poiObject?.full?.Trim();
+        [NonSerialized]
+        private string _gameObjectName = null;
+        public string GameObjectName => _gameObjectName ??= poiObject?.full?.Trim() ?? string.Empty;
 
-        public string InnerLayerName => poiObject?.poiLayerName?.Trim();
+        [NonSerialized]
+        private string _innerLayerName = null;
+        public string InnerLayerName => _innerLayerName ??= poiObject?.poiLayerName?.Trim() ?? string.Empty;
 
         public Poi Clone()
         {

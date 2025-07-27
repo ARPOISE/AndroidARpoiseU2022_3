@@ -63,6 +63,8 @@ namespace com.arpoise.arpoiseapp
 
         public bool HasHitOnObject { get; private set; }
 
+        public Vector3 VisualizerPosition = new Vector3(0, 0, 0);
+
         #region Globals
         public GameObject InfoText = null;
         public GameObject MenuButton = null;
@@ -605,6 +607,10 @@ namespace com.arpoise.arpoiseapp
                         //message = message.Replace("{DGPY}", DisplayGoalPosition.y.ToString("F1", CultureInfo.InvariantCulture));
                         //message = message.Replace("{DGPZ}", DisplayGoalPosition.z.ToString("F1", CultureInfo.InvariantCulture));
                         //message = message.Replace("{DPCT}", DisplayPercentage.ToString("F1", CultureInfo.InvariantCulture));
+
+                        message = message.Replace("{VPX}", VisualizerPosition.x.ToString("F1", CultureInfo.InvariantCulture));
+                        message = message.Replace("{VPY}", VisualizerPosition.y.ToString("F1", CultureInfo.InvariantCulture));
+                        message = message.Replace("{VPZ}", VisualizerPosition.z.ToString("F1", CultureInfo.InvariantCulture));
 
                         message = message.Replace("{DSF}", DurationStretchFactor?.ToString("F2", CultureInfo.InvariantCulture));
 

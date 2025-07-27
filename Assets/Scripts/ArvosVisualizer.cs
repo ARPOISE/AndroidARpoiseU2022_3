@@ -169,7 +169,7 @@ namespace com.arpoise.arpoiseapp
                     if (_first)
                     {
                         _first = false;
-                        _gameObject.transform.position = Pose.Value.position;
+                        _gameObject.transform.position = SetPosition(Pose.Value.position);
                         _gameObject.transform.rotation = Pose.Value.rotation;
                     }
                 }
@@ -197,7 +197,7 @@ namespace com.arpoise.arpoiseapp
                     }
                     else
                     {
-                        _gameObject.transform.position = targetPosition;
+                        _gameObject.transform.position = SetPosition(targetPosition);
                         _gameObject.transform.rotation = targetRotation;
                     }
                     HasTimedOut = _first = false;
@@ -205,11 +205,16 @@ namespace com.arpoise.arpoiseapp
             }
         }
 
+        private Vector3 SetPosition(Vector3 position)
+        {
+            return ArBehaviour.VisualizerPosition = position;
+        }
+
         private void SetTransform()
         {
             if (Pose != null)
             {
-                transform.position = Pose.Value.position;
+                transform.position = SetPosition(Pose.Value.position);
                 transform.rotation = Pose.Value.rotation;
             }
             else
@@ -217,7 +222,7 @@ namespace com.arpoise.arpoiseapp
                 var pos = Image.transform.position;
                 //Debug.Log($"Position update {pos.x.ToString("F1")}, {pos.y.ToString("F1")}, {pos.z.ToString("F1")}");
 
-                transform.position = pos;
+                transform.position = SetPosition(pos);
                 transform.rotation = Image.transform.rotation;
             }
         }
@@ -227,11 +232,11 @@ namespace com.arpoise.arpoiseapp
             var targetPositionFactor = TriggerObject?.poi?.TargetPositionFactor;
             if (targetPositionFactor.HasValue && targetPositionFactor.Value > 0)
             {
-                _gameObject.transform.position = targetPositionFactor.Value * (targetPosition - Camera.main.transform.position);
+                _gameObject.transform.position = SetPosition(targetPositionFactor.Value * (targetPosition - Camera.main.transform.position));
             }
             else
             {
-                _gameObject.transform.position = targetPosition;
+                _gameObject.transform.position = SetPosition(targetPosition);
             }
             //Debug.Log($"Position is {ParameterHelper.ToString(_gameObject.transform.position)}");
             _gameObject.transform.rotation = targetRotation;
@@ -243,7 +248,7 @@ namespace com.arpoise.arpoiseapp
 
             if (positionLerpFactor.HasValue && positionLerpFactor > 0)
             {
-                _gameObject.transform.position = Vector3.Lerp(_gameObject.transform.position, targetPosition, positionLerpFactor.Value / ArBehaviourArObject.FramesPerSecond);
+                _gameObject.transform.position = SetPosition(Vector3.Lerp(_gameObject.transform.position, targetPosition, positionLerpFactor.Value / ArBehaviourArObject.FramesPerSecond));
             }
             if (rotationLerpFactor.HasValue && rotationLerpFactor > 0)
             {
