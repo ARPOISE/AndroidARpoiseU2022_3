@@ -244,6 +244,35 @@ namespace com.arpoise.arpoiseapp
         }
 
         [NonSerialized]
+        private bool? _allowDeferredLoad = false;
+        public bool AllowDeferredLoad
+        {
+            get
+            {
+                if (!_allowDeferredLoad.HasValue)
+                {
+                    _allowDeferredLoad = false;
+                    var layerAllowDeferredLoad = ArLayer?.AllowDeferredLoad;
+                    if (layerAllowDeferredLoad.HasValue)
+                    {
+                        _allowDeferredLoad = layerAllowDeferredLoad.Value;
+                    }
+
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(AllowDeferredLoad).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        bool value;
+                        if (bool.TryParse(action.activityMessage.Trim(), out value))
+                        {
+                            _allowDeferredLoad = value;
+                        }
+                    }
+                }
+                return _allowDeferredLoad.Value;
+            }
+        }
+
+        [NonSerialized]
         private int? _maximumCount = null;
         public int MaximumCount
         {
@@ -598,6 +627,7 @@ namespace com.arpoise.arpoiseapp
         [NonSerialized]
         private static readonly HashSet<string> _actionLabels = new HashSet<string>(new string[] // Layer ActionLabel
         {
+            nameof(AllowDeferredLoad),
             nameof(AllowTakeScreenshot),
             nameof(ApplicationSleepInterval),
             nameof(AssetBundleCacheVersion),
@@ -995,6 +1025,29 @@ namespace com.arpoise.arpoiseapp
                     }
                 }
                 return _assetBundleCacheVersion.Value;
+            }
+        }
+
+        [NonSerialized]
+        private bool? _allowDeferredLoad = false;
+        public bool AllowDeferredLoad // Layer ActionLabel
+        {
+            get
+            {
+                if (!_allowDeferredLoad.HasValue)
+                {
+                    _allowDeferredLoad = false;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(AllowDeferredLoad).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        bool value;
+                        if (bool.TryParse(action.activityMessage.Trim(), out value))
+                        {
+                            _allowDeferredLoad = value;
+                        }
+                    }
+                }
+                return _allowDeferredLoad.Value;
             }
         }
 

@@ -76,7 +76,6 @@ namespace com.arpoise.arpoiseapp
     {
         public readonly long PoiId;
         public readonly GameObject Wrapper;
-        public readonly GameObject GameObject;
         public readonly string Name = string.Empty;
         public readonly string[] FollowedBy = Array.Empty<string>();
         public readonly ArEventType ArEventType;
@@ -109,12 +108,17 @@ namespace com.arpoise.arpoiseapp
         private static readonly string _sine = nameof(ArInterpolation.Sine).ToLower();
         private static readonly string _smooth = nameof(ArInterpolation.Smooth).ToLower();
 
+        public GameObject AnimatedObject;
 
+        private long _startTicks = 0;
+        private Vector3 _localEulerAngles;
         private float? _durationStretchFactor;
         private float? _initialA = null;
+        private float? _lastA = null;
         private float? _initialVolume = null;
+        private float? _lastVolume = null;
         private float? _initialSpatialBlend = null;
-        private long _startTicks = 0;
+        private float? _lastSpatialBlend = null;
         private List<Material> _materialsToFade = null;
         private AudioSource _audioSource = null;
 
@@ -179,7 +183,7 @@ namespace com.arpoise.arpoiseapp
 
             PoiId = poiId;
             ArEventType = arEventType;
-            GameObject = gameObject;
+            AnimatedObject = gameObject;
             IsActive = isActive;
             if ((Wrapper = wrapper) != null)
             {
@@ -224,9 +228,9 @@ namespace com.arpoise.arpoiseapp
                 _to = poiAnimation.to;
                 _axis = poiAnimation.axis == null ? Vector3.zero
                     : new Vector3(poiAnimation.axis.x, poiAnimation.axis.y, poiAnimation.axis.z);
-                if (_animationType == ArAnimationType.Grow && GameObject != null)
+                if (_animationType == ArAnimationType.Grow && AnimatedObject != null)
                 {
-                    _creature = GameObject.GetComponent(typeof(ArCreature)) as ArCreature;
+                    _creature = AnimatedObject.GetComponent(typeof(ArCreature)) as ArCreature;
                 }
             }
         }
@@ -245,7 +249,7 @@ namespace com.arpoise.arpoiseapp
                 }
             }
 
-            if (ArEventType == ArEventType.WhenActive && !GameObject.activeSelf)
+            if (ArEventType == ArEventType.WhenActive && !AnimatedObject.activeSelf)
             {
                 return;
             }
@@ -283,7 +287,7 @@ namespace com.arpoise.arpoiseapp
                 var endTicks = _startTicks + lengthTicks;
                 if (endTicks < nowTicks)
                 {
-                    if (!_repeating || (ArEventType == ArEventType.WhenActive && !GameObject.activeSelf))
+                    if (!_repeating || (ArEventType == ArEventType.WhenActive && !AnimatedObject.activeSelf))
                     {
                         Stop(startTicks, endTicks);
                         return;
@@ -461,7 +465,7 @@ namespace com.arpoise.arpoiseapp
         protected static readonly string SetInactive;
         public bool HandleSetActive(string name, bool onFollow)
         {
-            var gameObject = GameObject;
+            var gameObject = AnimatedObject;
             if (gameObject != null && !string.IsNullOrWhiteSpace(name))
             {
                 if (!onFollow || Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
@@ -495,14 +499,28 @@ namespace com.arpoise.arpoiseapp
             if (gameObject.activeSelf != active)
             {
                 gameObject.SetActive(active);
-                //Debug.Log($"GO '{gameObject.name}', is active {gameObject.activeSelf}");
+                var arpoisePoiCrystal = gameObject.GetComponent<ArpoisePoiCrystal>();
+                if (arpoisePoiCrystal != null)
+                {
+                    arpoisePoiCrystal.CallUpdate();
+                }
+                var arpoisePoiRain = gameObject.GetComponent<ArpoisePoiRain>();
+                if (arpoisePoiRain != null)
+                {
+                    arpoisePoiRain.CallUpdate();
+                }
+                var arpoisePoiSpiral = gameObject.GetComponent<ArpoisePoiSpiral>();
+                if (arpoisePoiSpiral != null)
+                {
+                    arpoisePoiSpiral.CallUpdate();
+                }
             }
         }
 
         public void HandleApplicationSleep(bool shouldSleep)
         {
             ApplicationIsSleeping = shouldSleep;
-            var gameObject = GameObject;
+            var gameObject = AnimatedObject;
             if (gameObject != null)
             {
                 SetActive(gameObject, !shouldSleep);
@@ -581,7 +599,7 @@ namespace com.arpoise.arpoiseapp
 
         private void HandleAudioSource()
         {
-            var gameObject = GameObject;
+            var gameObject = AnimatedObject;
             if (gameObject != null)
             {
                 if (_audioSource == null)
@@ -611,11 +629,43 @@ namespace com.arpoise.arpoiseapp
                 }
             }
         }
+
+        private int Normalize(int i)
+        {
+            if (i > 360)
+            {
+                i = i % 360;
+            }
+            else if (i < -360)
+            {
+                i = -((-i) % 360);
+            }
+            return i;
+        }
+
         private void Rotate(float value)
         {
+            if (JustActivated)
+            {
+                if (_persisting && _transform != null)
+                {
+                    int x = Normalize((int)_transform.localEulerAngles.x);
+                    int y = Normalize((int)_transform.localEulerAngles.y);
+                    int z = Normalize((int)_transform.localEulerAngles.z);
+                    _localEulerAngles = new Vector3(x, y, z);
+                }
+                else
+                {
+                    _localEulerAngles = Vector3.zero;
+                }
+            }
             if (_transform != null)
             {
-                _transform.localEulerAngles = new Vector3(_axis.x * value, _axis.y * value, _axis.z * value);
+                _transform.localEulerAngles = new Vector3(
+                    _localEulerAngles.x + _axis.x * value,
+                    _localEulerAngles.y + _axis.y * value,
+                    _localEulerAngles.z + _axis.z * value
+                    );
             }
         }
 
@@ -646,9 +696,10 @@ namespace com.arpoise.arpoiseapp
 
         private void Fade(float value)
         {
+            _lastA = value;
             if (_materialsToFade == null)
             {
-                GetMaterialsToFade(GameObject, _materialsToFade = new List<Material>());
+                GetMaterialsToFade(AnimatedObject, _materialsToFade = new List<Material>());
             }
             foreach (var material in _materialsToFade)
             {
@@ -659,6 +710,21 @@ namespace com.arpoise.arpoiseapp
                 }
                 material.color = new Color(color.r, color.g, color.b, value);
             }
+            var arpoisePoiCrystal = AnimatedObject.GetComponent<ArpoisePoiCrystal>();
+            if (arpoisePoiCrystal != null)
+            {
+                arpoisePoiCrystal.Fade(value);
+            }
+            var arpoisePoiRain = AnimatedObject.GetComponent<ArpoisePoiRain>();
+            if (arpoisePoiRain != null)
+            {
+                arpoisePoiRain.Fade(value);
+            }
+            var arpoisePoiSpiral = AnimatedObject.GetComponent<ArpoisePoiSpiral>();
+            if (arpoisePoiSpiral != null)
+            {
+                arpoisePoiSpiral.Fade(value);
+            }
         }
 
         private void Buzz(float value)
@@ -668,9 +734,10 @@ namespace com.arpoise.arpoiseapp
 
         private void SetVolume(float value)
         {
-            if (_audioSource == null && GameObject != null)
+            _lastVolume = value;
+            if (_audioSource == null && AnimatedObject != null)
             {
-                _audioSource = GameObject.GetComponent<AudioSource>();
+                _audioSource = AnimatedObject.GetComponent<AudioSource>();
             }
             if (_audioSource != null)
             {
@@ -691,13 +758,14 @@ namespace com.arpoise.arpoiseapp
 
         private void SetSpatialBlend(float value)
         {
-            if (_audioSource == null && GameObject != null)
+            _lastSpatialBlend = value;
+            if (_audioSource == null && AnimatedObject != null)
             {
-                _audioSource = GameObject.GetComponent<AudioSource>();
+                _audioSource = AnimatedObject.GetComponent<AudioSource>();
             }
             if (_audioSource != null)
             {
-                if (!_initialVolume.HasValue)
+                if (!_initialSpatialBlend.HasValue)
                 {
                     _initialSpatialBlend = _audioSource.spatialBlend;
                 }
@@ -712,33 +780,16 @@ namespace com.arpoise.arpoiseapp
             }
         }
 
-        private void GetMaterialsToFade(GameObject gameObject, List<Material> materials)
+        private void GetMaterialsToFade(GameObject objectToFade, List<Material> materials)
         {
-            if (gameObject != null)
+            if (objectToFade != null)
             {
-                //particle system also have renderers that could be accessed
-                //var ps = gameObject.GetComponent<ParticleSystem>();
-                //var x = ps.shape.meshRenderer.material.color;
-                //var y = ps.shape.spriteRenderer.material.color;
-                //var z = ps.shape.skinnedMeshRenderer.material.color;
-
-                var renderer = gameObject.GetComponent<MeshRenderer>();
-                if (renderer != null && renderer.material != null)
+                foreach (var renderer in objectToFade.GetComponentsInChildren<MeshRenderer>())
                 {
-                    materials.Add(renderer.material);
-                }
-                foreach (var child in gameObject.GetComponentsInChildren<Transform>().Select(x => x.gameObject))
-                {
-                    if (child != null)
+                    if (renderer != null && renderer.material != null)
                     {
-                        renderer = child.GetComponent<MeshRenderer>();
-                        if (renderer != null && renderer.material != null)
-                        {
-                            materials.Add(renderer.material);
-                        }
+                        materials.Add(renderer.material);
                     }
-                    // Making this fully recursive is too slow for example in AyCorona
-                    // GetMaterialsToFade(transform.gameObject, materials);
                 }
             }
         }
@@ -784,62 +835,39 @@ namespace com.arpoise.arpoiseapp
             return false;
         }
 
-        // This does not really work, it was work in progress from October 2020, a version of Nothing of Him
-        //
-        //private void SetBleachingValue(float value)
-        //{
-        //    var gameObject = GameObject;
-        //    if (gameObject == null)
-        //    {
-        //        return;
-        //    }
+        public void Replace(GameObject oldObject, GameObject newObject)
+        {
+            if (AnimatedObject == oldObject)
+            {
+                AnimatedObject = newObject;
+                _materialsToFade = null;
+                _audioSource = null;
 
-        //    Renderer objectRenderer;
-        //    var rendererColorPairs = new List<KeyValuePair<Renderer, Color>>();
-        //    objectRenderer = gameObject.GetComponent<MeshRenderer>();
-        //    if (objectRenderer != null && objectRenderer.material != null)
-        //    {
-        //        rendererColorPairs.Add(new KeyValuePair<Renderer, Color>(objectRenderer, objectRenderer.material.color));
-        //    }
-        //    else
-        //    {
-        //        foreach (var child in gameObject.GetComponentsInChildren<Transform>().Select(x => x.gameObject))
-        //        {
-        //            if (child != null)
-        //            {
-        //                objectRenderer = child.GetComponent<MeshRenderer>();
-        //                if (objectRenderer != null && objectRenderer.material != null)
-        //                {
-        //                    rendererColorPairs.Add(new KeyValuePair<Renderer, Color>(objectRenderer, objectRenderer.material.color));
-        //                }
-        //            }
-        //        }
-        //    }
-        //    if (rendererColorPairs.Any())
-        //    {
-        //        foreach (var pair in rendererColorPairs)
-        //        {
-        //            var color = pair.Value;
-        //            if (_initialR == null)
-        //            {
-        //                _initialR = color.r;
-        //            }
-        //            if (_initialG == null)
-        //            {
-        //                _initialG = color.g;
-        //            }
-        //            if (_initialB == null)
-        //            {
-        //                _initialB = color.b;
-        //            }
-        //            pair.Key.material.color = new Color(
-        //                _initialR.Value + value * ((1f - _initialR.Value) / 100f),
-        //                _initialG.Value + value * ((1f - _initialG.Value) / 100f),
-        //                _initialB.Value + value * ((1f - _initialB.Value) / 100f),
-        //                color.a
-        //                );
-        //        }
-        //    }
-        //}
+                switch (_animationType)
+                {
+                    case ArAnimationType.Fade:
+                        if (_lastA.HasValue)
+                        {
+                            Fade(_lastA.Value);
+                        }
+                        break;
+
+                    case ArAnimationType.Volume:
+                        if (_lastVolume.HasValue)
+                        {
+                            SetVolume(_lastVolume.Value);
+                        }
+                        break;
+
+                    case ArAnimationType.SpatialBlend:
+                        if (_lastSpatialBlend.HasValue)
+                        {
+                            SetSpatialBlend(_lastSpatialBlend.Value);
+                        }
+                        break;
+                }
+
+            }
+        }
     }
 }

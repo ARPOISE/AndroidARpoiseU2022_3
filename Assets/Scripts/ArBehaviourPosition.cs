@@ -59,7 +59,7 @@ namespace com.arpoise.arpoiseapp
         #endregion
 
         #region Protecteds
-
+        protected readonly ArAssetBundleManager ArAssetBundleManager = new ArAssetBundleManager();
         protected static readonly long InitialSecond = DateTime.Now.Ticks / 10000000L;
 
 #if AndroidArvosU2022_3 || iOsArvosU2022_3
@@ -258,16 +258,13 @@ namespace com.arpoise.arpoiseapp
                 FilteredLatitude = OriginalLatitude = 48.158526f;
                 FilteredLongitude = OriginalLongitude = 11.578670f;
 
-                // New York
-                //FilteredLatitude = OriginalLatitude = 40.5f;
-                //FilteredLongitude = OriginalLongitude = -74.0f;
+                // DC
+                //FilteredLatitude = OriginalLatitude = 38.897801f;
+                //FilteredLongitude = OriginalLongitude = -77.022982f;
 
-                // Stuttgart
-                //FilteredLatitude = OriginalLatitude = 48.77892f;
-                //FilteredLongitude = OriginalLongitude = 9.17927f;
-
-                FilteredLatitude = OriginalLatitude = -6.1f;
-                FilteredLongitude = OriginalLongitude = -6.1f;
+                // Luminescence master
+                //FilteredLatitude = OriginalLatitude = -6.1f;
+                //FilteredLongitude = OriginalLongitude = -6.1f;
 
                 Debug.Log("UNITY_EDITOR fixed location, lat " + OriginalLatitude + ", lon " + OriginalLongitude);
 

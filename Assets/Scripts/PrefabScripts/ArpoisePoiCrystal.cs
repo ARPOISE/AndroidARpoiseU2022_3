@@ -28,21 +28,19 @@ ARpoise, see www.ARpoise.com/
 
 */
 using com.arpoise.arpoiseapp;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ArpoisePoiCrystal : MonoBehaviour
+public class ArpoisePoiCrystal : ArpoisePoiStructure
 {
-    public ArBehaviourArObject ArBehaviour { get; set; }
-
     #region Crystal parameters
     public Vector3 LowerLeft = new Vector3(-45, -45, -45);
     public Vector3 UpperRight = new Vector3(45, 45, 45);
     public Vector3 Step = new Vector3(15, 15, 15);
-    public string Poi = string.Empty;
     #endregion
 
-    public void SetParameter(bool setValue, string label, string value)
+    public override void SetParameter(bool setValue, string label, string value)
     {
         if (label.Equals(nameof(LowerLeft)))
         {
@@ -56,67 +54,77 @@ public class ArpoisePoiCrystal : MonoBehaviour
         {
             Step = ParameterHelper.SetParameter(setValue, value, Step).Value;
         }
-        else if (label.Equals(nameof(Poi)))
+        else
         {
-            if (setValue)
-            {
-                Poi = value;
-            }
+            base.SetParameter(setValue, label, value);
         }
     }
 
-    private bool _firstUpdate = true;
-
-    protected void Start()
+    protected override void Update()
     {
-    }
-
-    public void CallUpdate()
-    {
-        Update();
-    }
-    protected void Update()
-    {
-        if (_firstUpdate)
+        if (gameObject.activeSelf)
         {
-            _firstUpdate = false;
-
-            var triggerObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == Poi);
-            var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
-            if (arObjectState is null || triggerObject is null || Step.x <= 0 || Step.y <= 0 || Step.z <= 0)
+            if (ArObjects is null)
             {
-                return;
-            }
+                ArObjects = new List<ArObject>();
 
-            for (float x = LowerLeft.x; x <= UpperRight.x; x += Step.x)
-            {
-                for (float y = LowerLeft.y; y <= UpperRight.y; y += Step.y)
+                if (Pois.Count > 0)
                 {
-                    for (float z = LowerLeft.z; z <= UpperRight.z; z += Step.z)
+                    var rnd = new System.Random((int)DateTime.Now.Ticks);
+                    var poi = Pois[rnd.Next(Pois.Count)];
+                    var poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
+                    var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
+                    if (arObjectState is null || poiObject is null || Step.x <= 0 || Step.y <= 0 || Step.z <= 0)
                     {
-                        var position = new Vector3(x, y, z);
+                        return;
+                    }
 
-                        var result = ArBehaviour.CreateArObject(
-                            arObjectState,
-                            triggerObject.gameObject,
-                            null,
-                            transform,
-                            triggerObject.poi,
-                            triggerObject.poi.id,
-                            out var gameObject
-                            );
-
-                        if (gameObject != null)
+                    for (float x = LowerLeft.x; x <= UpperRight.x; x += Step.x)
+                    {
+                        for (float y = LowerLeft.y; y <= UpperRight.y; y += Step.y)
                         {
-                            if (!gameObject.activeSelf)
+                            for (float z = LowerLeft.z; z <= UpperRight.z; z += Step.z)
                             {
-                                gameObject.SetActive(true);
+                                poi = Pois[rnd.Next(Pois.Count)];
+                                poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
+                                if (poiObject is not null)
+                                {
+                                    var position = new Vector3(x, y, z);
+
+                                    var result = ArBehaviour.CreateArObject(
+                                        arObjectState,
+                                        poiObject.gameObject,
+                                        null,
+                                        transform,
+                                        poiObject.poi,
+                                        poiObject.poi.id,
+                                        out var crystalObject,
+                                        out var arObject
+                                        );
+
+                                    if (crystalObject != null)
+                                    {
+                                        if (!crystalObject.activeSelf)
+                                        {
+                                            crystalObject.SetActive(true);
+                                        }
+                                        crystalObject.transform.position = position;
+                                    }
+                                    if (arObject != null)
+                                    {
+                                        Add(arObject);
+                                    }
+                                }
                             }
-                            gameObject.transform.position = position;
                         }
                     }
+                    Fade(); // Set the initial fade value
                 }
             }
+        }
+        else
+        {
+            base.Update();
         }
     }
 }

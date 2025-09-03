@@ -155,6 +155,7 @@ namespace com.arpoise.arpoiseapp
 
             while (string.IsNullOrWhiteSpace(ErrorMessage))
             {
+                PauseCheckWebRequestsRoutine = true;
                 MenuEnabled = null;
                 count++;
 
@@ -176,6 +177,7 @@ namespace com.arpoise.arpoiseapp
                 LayerWebUrl = null;
                 for (; ; )
                 {
+                    PauseCheckWebRequestsRoutine = true;
                     var url = uri + "?lang=en&version=1&radius=1500&accuracy=100"
                         + "&lat=" + usedLatitude.ToString("F6", CultureInfo.InvariantCulture)
                         + "&lon=" + usedLongitude.ToString("F6", CultureInfo.InvariantCulture)
@@ -295,7 +297,7 @@ namespace com.arpoise.arpoiseapp
                 }
                 foreach (var url in assetBundleUrls)
                 {
-                    if (AssetBundles.ContainsKey(url.Key))
+                    if (ArAssetBundleManager.ExistsAssetBundle(url.Key))
                     {
                         continue;
                     }
@@ -347,7 +349,7 @@ namespace com.arpoise.arpoiseapp
                         }
                         continue;
                     }
-                    AssetBundles[url.Key] = assetBundle;
+                    ArAssetBundleManager.SetAssetBundle(url.Key, assetBundle);
                 }
                 #endregion
 
@@ -364,11 +366,7 @@ namespace com.arpoise.arpoiseapp
                                 var spriteName = poi.line4;
                                 if (!string.IsNullOrWhiteSpace(spriteName))
                                 {
-                                    AssetBundle iconAssetBundle = null;
-                                    if (AssetBundles.TryGetValue(iconAssetBundleUrl, out iconAssetBundle))
-                                    {
-                                        spriteObject = iconAssetBundle.LoadAsset<GameObject>(spriteName);
-                                    }
+                                    spriteObject = ArAssetBundleManager.TryLoadGameObject(iconAssetBundleUrl, spriteName);
                                 }
                                 var sprite = spriteObject != null ? spriteObject.GetComponent<SpriteRenderer>().sprite : (Sprite)null;
 
@@ -568,16 +566,19 @@ namespace com.arpoise.arpoiseapp
                                 if (hotspot.AssetBundleCacheVersion == 0)
                                 {
                                     assetBundleUrls[hotspot.BaseUrl] = 0;
+                                    ArAssetBundleManager.SetAllowDeferredLoadAssetBundle(hotspot.BaseUrl, hotspot.AllowDeferredLoad);
                                 }
                                 else if (hotspot.AssetBundleCacheVersion > version)
                                 {
                                     assetBundleUrls[hotspot.BaseUrl] = hotspot.AssetBundleCacheVersion;
+                                    ArAssetBundleManager.SetAllowDeferredLoadAssetBundle(hotspot.BaseUrl, hotspot.AllowDeferredLoad);
                                 }
                             }
                         }
                         else
                         {
                             assetBundleUrls[hotspot.BaseUrl] = hotspot.AssetBundleCacheVersion;
+                            ArAssetBundleManager.SetAllowDeferredLoadAssetBundle(hotspot.BaseUrl, hotspot.AllowDeferredLoad);
                         }
                     }
                 }
@@ -596,106 +597,56 @@ namespace com.arpoise.arpoiseapp
                                     if (hotspot.AssetBundleCacheVersion == 0)
                                     {
                                         assetBundleUrls[hotspot.BaseUrl] = 0;
+                                        ArAssetBundleManager.SetAllowDeferredLoadAssetBundle(hotspot.BaseUrl, hotspot.AllowDeferredLoad);
                                     }
                                     else if (hotspot.AssetBundleCacheVersion > version)
                                     {
                                         assetBundleUrls[hotspot.BaseUrl] = hotspot.AssetBundleCacheVersion;
+                                        ArAssetBundleManager.SetAllowDeferredLoadAssetBundle(hotspot.BaseUrl, hotspot.AllowDeferredLoad);
                                     }
                                 }
                             }
                             else
                             {
                                 assetBundleUrls[hotspot.BaseUrl] = hotspot.AssetBundleCacheVersion;
+                                ArAssetBundleManager.SetAllowDeferredLoadAssetBundle(hotspot.BaseUrl, hotspot.AllowDeferredLoad);
                             }
                         }
                     }
                 }
-
-                for (int i = 0; i < 3; i++)
                 {
-                    var bundleWebRequests = new List<Tuple<string, string, UnityWebRequest>>();
-                    if (i > 0)
+                    var requests = ArAssetBundleManager.CreateWebRequests(assetBundleUrls);
+                    foreach (var request in requests.Where(x => x.UnityWebRequest != null))
                     {
-                        yield return new WaitForSeconds(3);
+                        yield return request.UnityWebRequest.SendWebRequest();
                     }
-                    foreach (var url in assetBundleUrls)
-                    {
-                        if (AssetBundles.ContainsKey(url.Key))
-                        {
-                            continue;
-                        }
-                        var assetBundleUri = FixUrl(GetAssetBundleUrl(url.Key));
-                        UnityWebRequest request;
-                        if (url.Value <= 0)
-                        {
-                            request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleUri, 0);
-                        }
-                        else
-                        {
-                            request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleUri, (uint)url.Value, 0);
-                        }
-                        request.certificateHandler = new ArpoiseCertificateHandler();
-                        request.timeout = 60;
-                        bundleWebRequests.Add(new Tuple<string, string, UnityWebRequest>(url.Key, assetBundleUri, request));
-                        yield return request.SendWebRequest();
-                    }
+                    yield return new WaitForSeconds(0.1f);
 
-                    foreach (var tuple in bundleWebRequests)
+                    DateTime startTime = DateTime.Now;
+                    var maxWait = 120 * 100;
+                    while (!ArAssetBundleManager.CheckWebRequests(startTime) && maxWait > 0)
                     {
-                        var url = tuple.Item1;
-                        var assetBundleUri = tuple.Item2;
-                        var request = tuple.Item3;
-
-                        var maxWait = request.timeout * 100;
-                        while (request.result != UnityWebRequest.Result.Success
-                            && request.result != UnityWebRequest.Result.ConnectionError
-                            && request.result != UnityWebRequest.Result.ProtocolError
-                            && request.result != UnityWebRequest.Result.DataProcessingError
-                            && !request.isDone && maxWait > 0)
-                        {
-                            yield return new WaitForSeconds(.01f);
-                            maxWait--;
-                        }
-
-                        if (maxWait < 1)
-                        {
-                            if (setError)
-                            {
-                                ErrorMessage = $"Bundle '{assetBundleUri}' download timeout.";
-                            }
-                            break;
-                        }
-                        if (request.result == UnityWebRequest.Result.ConnectionError
-                            || request.result == UnityWebRequest.Result.ProtocolError
-                            || request.result == UnityWebRequest.Result.DataProcessingError)
-                        {
-                            if (setError)
-                            {
-                                ErrorMessage = $"Bundle '{assetBundleUri}' {request.result}, {request.error}";
-                            }
-                            break;
-                        }
-
-                        var assetBundle = DownloadHandlerAssetBundle.GetContent(request);
-                        if (assetBundle == null)
-                        {
-                            if (setError)
-                            {
-                                ErrorMessage = $"Bundle '{assetBundleUri}' is null.";
-                            }
-                            break;
-                        }
-                        AssetBundles[url] = assetBundle;
+                        yield return new WaitForSeconds(.01f);
+                        maxWait--;
                     }
-                    if (string.IsNullOrWhiteSpace(ErrorMessage))
+                    if (maxWait < 1)
                     {
-                        break;
+                        if (setError)
+                        {
+                            ErrorMessage = $"Asset Bundle download timeout.";
+                            yield break;
+                        }
                     }
-                    if (i == 2)
+                    if (setError)
                     {
-                        yield break;
+                        var errorMessage = ArAssetBundleManager.GetWebRequests().Select(x => x.ErrorMessage).FirstOrDefault(m => !string.IsNullOrWhiteSpace(m));
+                        if (!string.IsNullOrWhiteSpace(errorMessage))
+                        {
+                            ErrorMessage = errorMessage;
+                            yield break;
+                        }
                     }
-                    ErrorMessage = string.Empty;
+                    PauseCheckWebRequestsRoutine = false;
                 }
                 #endregion
 
@@ -942,7 +893,7 @@ namespace com.arpoise.arpoiseapp
                     arObjectState.SetArObjectsToPlace();
 
                     StartTicks = DateTime.Now.Ticks;
-                    ArObjectState = arObjectState;
+                    ArObjectState = ArAssetBundleManager.ArObjectState = arObjectState;
                 }
                 else
                 {
@@ -1058,7 +1009,7 @@ namespace com.arpoise.arpoiseapp
         {
         }
 
-        private string GetAssetBundleUrl(string url)
+        public static string GetAssetBundleUrl(string url)
         {
 #if UNITY_IOS
             if (url.EndsWith(".ace"))

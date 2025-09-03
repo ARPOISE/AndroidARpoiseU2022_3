@@ -79,7 +79,6 @@ namespace com.arpoise.arpoiseapp
         protected float RefreshInterval = 0;
         protected float RefreshDistance = 0;
         protected readonly Dictionary<string, List<ArLayer>> InnerLayers = new Dictionary<string, List<ArLayer>>();
-        protected readonly Dictionary<string, AssetBundle> AssetBundles = new Dictionary<string, AssetBundle>();
         protected readonly Dictionary<string, Texture2D> TriggerImages = new Dictionary<string, Texture2D>();
         protected readonly List<TriggerObject> SlamObjects = new List<TriggerObject>();
         protected readonly List<TriggerObject> HumanBodyObjects = new List<TriggerObject>();
@@ -116,12 +115,7 @@ namespace com.arpoise.arpoiseapp
         {
             get
             {
-                var result = new List<TriggerObject>();
-                foreach (var crystalObject in CrystalObjects.Where(x => x.poi != null && x.layerWebUrl == LayerWebUrl))
-                {
-                    result.Add(crystalObject);
-                }
-                return result;
+                return CrystalObjects.Where(x => x.poi != null && x.layerWebUrl == LayerWebUrl).ToList();
             }
         }
 
@@ -149,10 +143,25 @@ namespace com.arpoise.arpoiseapp
             }
         }
 
+        protected bool PauseCheckWebRequestsRoutine = true;
+        protected IEnumerator CheckWebRequestsRoutine()
+        {
+            for (; ; )
+            {
+                if (PauseCheckWebRequestsRoutine)
+                {
+                    yield return new WaitForSeconds(1f);
+                    continue;
+                }
+                ArAssetBundleManager.CheckWebRequests();
+                yield return new WaitForSeconds(1f);
+            }
+        }
+
         #region ArObjects
         public GameObject CreateObject(GameObject objectToAdd)
         {
-            return Instantiate(objectToAdd);
+            return ArAssetBundleManager.CreateGameObject(objectToAdd);
         }
 
         // Link ar object to ar object state or to parent object
@@ -280,6 +289,32 @@ namespace com.arpoise.arpoiseapp
                     }
                 }
             }
+            if (title.Contains(nameof(ArpoisePoiRain)))
+            {
+                objectToAdd.AddComponent<ArpoisePoiRain>();
+                var arpoisePoiRain = objectToAdd.GetComponent<ArpoisePoiRain>();
+                if (arpoisePoiRain != null)
+                {
+                    arpoisePoiRain.ArBehaviour = this;
+                    foreach (var action in poi.actions)
+                    {
+                        arpoisePoiRain.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                    }
+                }
+            }
+            if (title.Contains(nameof(ArpoisePoiSpiral)))
+            {
+                objectToAdd.AddComponent<ArpoisePoiSpiral>();
+                var arpoisePoiSpiral = objectToAdd.GetComponent<ArpoisePoiSpiral>();
+                if (arpoisePoiSpiral != null)
+                {
+                    arpoisePoiSpiral.ArBehaviour = this;
+                    foreach (var action in poi.actions)
+                    {
+                        arpoisePoiSpiral.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                    }
+                }
+            }
             if (objectName.Contains(nameof(ArpoiseVeraPlastica)))
             {
                 var arpoiseVeraPlastica = objectToAdd.GetComponent<ArpoiseVeraPlastica>();
@@ -344,10 +379,12 @@ namespace com.arpoise.arpoiseapp
             Transform parentObjectTransform,
             Poi poi,
             long arObjectId,
-            out GameObject createdObject
+            out GameObject createdObject,
+            out ArObject arObject
             )
         {
             createdObject = null;
+            arObject = null;
 
             // Create a copy of the object
             if (string.IsNullOrWhiteSpace(poi.LindenmayerString))
@@ -360,11 +397,7 @@ namespace com.arpoise.arpoiseapp
                 var leafPrefab = poi.LeafPrefab;
                 if (!string.IsNullOrWhiteSpace(leafPrefab) && !string.IsNullOrWhiteSpace(poi.BaseUrl))
                 {
-                    AssetBundle assetBundle;
-                    if (AssetBundles.TryGetValue(poi.BaseUrl, out assetBundle))
-                    {
-                        leafToAdd = assetBundle.LoadAsset<GameObject>(leafPrefab);
-                    }
+                    leafToAdd = ArAssetBundleManager.TryLoadGameObject(poi.BaseUrl, leafPrefab);
                 }
 
                 objectToAdd = ArCreature.Create(
@@ -746,7 +779,7 @@ namespace com.arpoise.arpoiseapp
                 var yOffset = relativeLocation[1];
                 var zOffset = relativeLocation[2];
 
-                var arObject = new ArObject(
+                arObject = new ArObject(
                     poi, arObjectId, poi.title, objectToAdd.name, poi.BaseUrl, wrapper, objectToAdd,
                     poi.Latitude, poi.Longitude, poi.relativeAlt + yOffset, true);
 
@@ -792,7 +825,7 @@ namespace com.arpoise.arpoiseapp
                     return null;
                 }
 
-                var arObject = new ArObject(
+                arObject = new ArObject(
                     poi, arObjectId, poi.title, objectToAdd.name, poi.BaseUrl, wrapper, objectToAdd,
                     poi.Latitude, poi.Longitude, poi.relativeAlt, false);
 
@@ -828,11 +861,11 @@ namespace com.arpoise.arpoiseapp
                 return $"Poi with id {poi.id}, empty asset bundle url";
             }
 
-            AssetBundle assetBundle = null;
-            if (!AssetBundles.TryGetValue(assetBundleUrl, out assetBundle))
-            {
-                return $"Missing asset bundle '{assetBundleUrl}'.";
-            }
+            //AssetBundle assetBundle = null;
+            //if (!AssetBundles.TryGetValue(assetBundleUrl, out assetBundle))
+            //{
+            //    return $"Missing asset bundle '{assetBundleUrl}'.";
+            //}
 
             string objectName = poi.GameObjectName;
             if (string.IsNullOrWhiteSpace(objectName))
@@ -840,10 +873,17 @@ namespace com.arpoise.arpoiseapp
                 return null;
             }
 
-            var objectToAdd = assetBundle.LoadAsset<GameObject>(objectName);
-            if (objectToAdd == null)
+            //var objectToAdd = assetBundle.LoadAsset<GameObject>(objectName);
+            //if (objectToAdd == null)
+            //{
+            //    return $"Poi with id {poi.id}, unknown game object: '{objectName}'";
+            //}
+
+            GameObject objectToAdd;
+            var message = ArAssetBundleManager.LoadGameObject("" + poi.id, assetBundleUrl, objectName, out objectToAdd);
+            if (!string.IsNullOrWhiteSpace(message))
             {
-                return $"Poi with id {poi.id}, unknown game object: '{objectName}'";
+                return message;
             }
             if (LightRange.HasValue)
             {
@@ -892,24 +932,6 @@ namespace com.arpoise.arpoiseapp
                         }
                         else if (isCrystalUrl)
                         {
-                            if (poi.title is not null && poi.title.Contains(nameof(ArpoisePoiCrystal)))
-                            {
-                                GameObject newObject;
-                                var result = CreateArObject(
-                                    arObjectState,
-                                    objectToAdd,
-                                    parentObject,
-                                    parentObjectTransform,
-                                    poi,
-                                    arObjectId,
-                                    out newObject
-                                    );
-                                if (!string.IsNullOrWhiteSpace(result))
-                                {
-                                    return result;
-                                }
-                                t.gameObject = newObject;
-                            }
                             CrystalObjects.Add(t);
                         }
                         else if(isSlamUrl)
@@ -950,7 +972,8 @@ namespace com.arpoise.arpoiseapp
                     parentObjectTransform,
                     poi,
                     arObjectId,
-                    out newObject
+                    out newObject,
+                    out var arObject
                     );
                 if (!string.IsNullOrWhiteSpace(result))
                 {
@@ -1198,12 +1221,24 @@ namespace com.arpoise.arpoiseapp
         private static readonly System.Random _random = new System.Random((int)DateTime.Now.Ticks);
         protected override void Update()
         {
-            foreach (var triggerObject in CrystalObjects)
+            foreach (var crystalObject in CrystalObjects)
             {
-                var arpoisePoiCrystal = triggerObject.gameObject.GetComponentInChildren<ArpoisePoiCrystal>();
+                var arpoisePoiCrystal = crystalObject.gameObject.GetComponent<ArpoisePoiCrystal>();
                 if (arpoisePoiCrystal != null)
                 {
                     arpoisePoiCrystal.CallUpdate();
+                }
+
+                var arpoisePoiRain = crystalObject.gameObject.GetComponent<ArpoisePoiRain>();
+                if (arpoisePoiRain != null)
+                {
+                    arpoisePoiRain.CallUpdate();
+                }
+
+                var arpoisePoiSpiral = crystalObject.gameObject.GetComponent<ArpoisePoiSpiral>();
+                if (arpoisePoiSpiral != null)
+                {
+                    arpoisePoiSpiral.CallUpdate();
                 }
             }
             base.Update();
@@ -1211,31 +1246,35 @@ namespace com.arpoise.arpoiseapp
 
         protected bool UpdateArObjects()
         {
+            bool result = false;
             var arObjectState = ArObjectState;
-            if (arObjectState.IsDirty)
+            if (arObjectState != null)
             {
-                if (arObjectState.ArObjectsToDelete.Any())
+                if (arObjectState.IsDirty)
                 {
-                    arObjectState.DestroyArObjects();
+                    if (arObjectState.ArObjectsToDelete.Any())
+                    {
+                        arObjectState.DestroyArObjects();
+                    }
+                    if (arObjectState.ArPois.Any())
+                    {
+                        CreateArObjects(arObjectState, null, SceneAnchor.transform, arObjectState.ArPois);
+                        arObjectState.ArPois.Clear();
+                    }
+                    arObjectState.SetArObjectsToPlace();
+                    arObjectState.IsDirty = false;
+                    foreach (var triggerObject in TriggerObjects.Values)
+                    {
+                        triggerObject.isActive = triggerObject.layerWebUrl == LayerWebUrl;
+                    }
+                    HasTriggerImages = TriggerObjects.Values.Any(x => x.isActive);
                 }
-                if (arObjectState.ArPois.Any())
-                {
-                    CreateArObjects(arObjectState, null, SceneAnchor.transform, arObjectState.ArPois);
-                    arObjectState.ArPois.Clear();
-                }
-                arObjectState.SetArObjectsToPlace();
-                arObjectState.IsDirty = false;
-                foreach (var triggerObject in TriggerObjects.Values)
-                {
-                    triggerObject.isActive = triggerObject.layerWebUrl == LayerWebUrl;
-                }
-                HasTriggerImages = TriggerObjects.Values.Any(x => x.isActive);
-            }
-            var result = arObjectState.HandleAnimations(this, StartTicks, NowTicks);
-            DuplicateArObjects(arObjectState);
+                result = arObjectState.HandleAnimations(this, StartTicks, NowTicks);
+                DuplicateArObjects(arObjectState);
 
-            // Place the ar objects
-            PlaceArObjects(arObjectState);
+                // Place the ar objects
+                PlaceArObjects(arObjectState);
+            }
             return result;
         }
 

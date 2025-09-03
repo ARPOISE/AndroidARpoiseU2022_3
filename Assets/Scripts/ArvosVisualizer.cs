@@ -142,7 +142,6 @@ namespace com.arpoise.arpoiseapp
             {
                 _gameObjectCreated = true;
                 SetTransform();
-
                 var result = ArBehaviour.CreateArObject(
                     arObjectState,
                     TriggerObject.gameObject,
@@ -150,7 +149,8 @@ namespace com.arpoise.arpoiseapp
                     transform,
                     TriggerObject.poi,
                     TriggerObject.poi.id,
-                    out _gameObject
+                    out _gameObject,
+                    out var arObject
                     );
                 if (!string.IsNullOrWhiteSpace(result))
                 {

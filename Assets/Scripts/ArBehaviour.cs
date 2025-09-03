@@ -55,6 +55,7 @@ namespace com.arpoise.arpoiseapp
             StartCoroutine(nameof(GetPosition));
             StartCoroutine(nameof(GetData));
             StartCoroutine(nameof(TakeScreenshotRoutine));
+            StartCoroutine(nameof(CheckWebRequestsRoutine));
         }
         #endregion
 

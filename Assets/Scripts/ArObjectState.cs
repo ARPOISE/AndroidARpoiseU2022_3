@@ -76,6 +76,19 @@ namespace com.arpoise.arpoiseapp
             set
             {
                 _allAnimations = value;
+                _animationsWithName = null;
+            }
+        }
+        private ArAnimation[] _animationsWithName = null;
+        private ArAnimation[] AnimationsWithName
+        {
+            get
+            {
+                if (_animationsWithName == null)
+                {
+                    _animationsWithName = AllAnimations.Where(x => !string.IsNullOrWhiteSpace(x.Name) && !x.Name.StartsWith(nameof(ArAnimation.RandomDelay))).ToArray();
+                }
+                return _animationsWithName;
             }
         }
         private readonly List<ArObject> _arObjects = new List<ArObject>();
@@ -205,6 +218,21 @@ namespace com.arpoise.arpoiseapp
             _arObjects.Add(arObject);
         }
 
+        public void DestroyArObjects(List<ArObject> arObjects)
+        {
+            foreach (var arObject in arObjects)
+            {
+                RemoveFromAnimations(arObject);
+                foreach (var child in arObject.ArObjects)
+                {
+                    RemoveFromAnimations(child);
+                }
+                _arObjects.Remove(arObject);
+                UnityEngine.Object.Destroy(arObject.WrapperObject);
+            }
+            SetArObjectsToPlace();
+        }
+
         private void DestroyArObject(ArObject arObject)
         {
             RemoveFromAnimations(arObject);
@@ -249,7 +277,7 @@ namespace com.arpoise.arpoiseapp
         public bool RemoteActivate(string animationName, long startTicks, long nowTicks)
         {
             bool rc = false;
-            foreach (var animation in AllAnimations.Where(x => animationName.Equals(x.Name)))
+            foreach (var animation in AnimationsWithName.Where(x => animationName == x.Name))
             {
                 if (!animation.IsActive)
                 {
@@ -287,7 +315,7 @@ namespace com.arpoise.arpoiseapp
                     var objectHit = raycastHits[i].transform.gameObject;
                     if (objectHit != null)
                     {
-                        foreach (var arAnimation in _onFocusAnimations.Where(x => objectHit.Equals(x.GameObject)))
+                        foreach (var arAnimation in _onFocusAnimations.Where(x => objectHit.Equals(x.AnimatedObject)))
                         {
                             if (!arAnimation.IsActive)
                             {
@@ -295,7 +323,7 @@ namespace com.arpoise.arpoiseapp
                             }
                         }
 
-                        foreach (var arAnimation in _inFocusAnimations.Where(x => objectHit.Equals(x.GameObject)))
+                        foreach (var arAnimation in _inFocusAnimations.Where(x => objectHit.Equals(x.AnimatedObject)))
                         {
                             if (!arAnimation.IsActive)
                             {
@@ -327,7 +355,7 @@ namespace com.arpoise.arpoiseapp
                 whenActiveAnimationsToStop = new HashSet<ArAnimation>(_whenActiveAnimations.Where(x => x.IsActive));
                 foreach (var arAnimation in _whenActiveAnimations)
                 {
-                    if (arAnimation.GameObject.activeSelf)
+                    if (arAnimation.AnimatedObject.activeSelf)
                     {
                         whenActiveAnimationsToStop.Remove(arAnimation);
                     }
@@ -345,7 +373,7 @@ namespace com.arpoise.arpoiseapp
                     var objectHit = raycastHits[i].transform.gameObject;
                     if (objectHit != null)
                     {
-                        foreach (var arAnimation in _onClickAnimations.Where(x => objectHit.Equals(x.GameObject)))
+                        foreach (var arAnimation in _onClickAnimations.Where(x => objectHit.Equals(x.AnimatedObject)))
                         {
                             hasHit = true;
                             if (!arAnimation.IsActive)
@@ -371,7 +399,7 @@ namespace com.arpoise.arpoiseapp
                         PoisToActivate.Remove(arAnimation.PoiId);
                         if (!arAnimation.IsActive)
                         {
-                            var arGameObject = arAnimation.GameObject;
+                            var arGameObject = arAnimation.AnimatedObject;
                             if (arGameObject != null && !arGameObject.activeSelf)
                             {
                                 arGameObject.SetActive(true);
@@ -390,7 +418,7 @@ namespace com.arpoise.arpoiseapp
                     if (PoisToDeactivate.Contains(arAnimation.PoiId))
                     {
                         PoisToDeactivate.Remove(arAnimation.PoiId);
-                        var arGameObject = arAnimation.GameObject;
+                        var arGameObject = arAnimation.AnimatedObject;
                         if (!arAnimation.IsActive && arGameObject != null && arGameObject.activeSelf)
                         {
                             //Debug.Log($"Animation {arAnimation.Name}, PoiId {arAnimation.PoiId} is being activated");
@@ -413,6 +441,7 @@ namespace com.arpoise.arpoiseapp
 
             var isToBeDestroyed = false;
             var animations = AllAnimations;
+            var animationsWithName = AnimationsWithName;
             for (int i = 0; i < animations.Length; i++)
             {
                 var animation = animations[i];
@@ -454,11 +483,11 @@ namespace com.arpoise.arpoiseapp
                         {
                             continue;
                         }
-                        foreach (var animationToFollow in animations.Where(x => animationName.Equals(x.Name)))
+                        foreach (var animationToFollow in animationsWithName.Where(x => animationName == x.Name))
                         {
                             if (!animationToFollow.IsActive)
                             {
-                                if (animationToFollow.ArEventType != ArEventType.WhenActive || animationToFollow.GameObject.activeSelf)
+                                if (animationToFollow.ArEventType != ArEventType.WhenActive || animationToFollow.AnimatedObject.activeSelf)
                                 {
                                     animationToFollow.Activate(startTicks, nowTicks);
                                 }
@@ -515,6 +544,14 @@ namespace com.arpoise.arpoiseapp
             foreach (var arAnimation in AllAnimations)
             {
                 arAnimation.HandleApplicationSleep(shouldSleep);
+            }
+        }
+
+        public void Replace(GameObject oldObject, GameObject newObject)
+        {
+            foreach (var arAnimation in AllAnimations.Where(x => x.AnimatedObject == oldObject))
+            {
+                arAnimation.Replace(oldObject, newObject);
             }
         }
     }

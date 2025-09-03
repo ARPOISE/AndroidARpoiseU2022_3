@@ -335,7 +335,7 @@ namespace com.arpoise.arpoiseapp
                 FixedDeviceLongitude = inputPanel.GetLongitude();
             }
 
-            
+
             if (InfoPanel != null)
             {
                 var infoPanel = InfoPanel.GetComponent<InfoPanel>();
@@ -562,33 +562,33 @@ namespace com.arpoise.arpoiseapp
                         message = message.Replace("{t}", string.Empty + (_currentSecond - InitialSecond));
                         message = message.Replace("{F}", string.Empty + FramesPerSecond);
                         message = message.Replace("{N}", string.Empty + arObjectState.Count);
-                        message = message.Replace("{O}", string.Empty + arObjectState.CountArObjects());
+                        //message = message.Replace("{O}", string.Empty + arObjectState.CountArObjects());
                         message = message.Replace("{A}", string.Empty + arObjectState.NumberOfAnimations);
-                        message = message.Replace("{AA}", string.Empty + arObjectState.NumberOfActiveAnimations);
+                        //message = message.Replace("{AA}", string.Empty + arObjectState.NumberOfActiveAnimations);
                         message = message.Replace("{T}", string.Empty + TriggerObjects.Values.Count(x => x.isActive));
-                        message = message.Replace("{I}", string.Empty + TriggerImages.Count);
+                        //message = message.Replace("{I}", string.Empty + TriggerImages.Count);
                         message = message.Replace("{SO}", string.Empty + SlamObjects.Count(x => x.isActive));
-                        message = message.Replace("{HBO}", string.Empty + HumanBodyObjects.Count(x => x.isActive));
-                        message = message.Replace("{AHBO}", string.Empty + AvailableHumanBodyObjects.Count(x => x.isActive));
-                        message = message.Replace("{CO}", string.Empty + CrystalObjects.Count(x => x.isActive));
+                        //message = message.Replace("{HBO}", string.Empty + HumanBodyObjects.Count(x => x.isActive));
+                        //message = message.Replace("{AHBO}", string.Empty + AvailableHumanBodyObjects.Count(x => x.isActive));
+                        //message = message.Replace("{CO}", string.Empty + CrystalObjects.Count(x => x.isActive));
 
-                        message = message.Replace("{IC}", string.Empty + (int)_initialCameraAngle);
-                        message = message.Replace("{IH}", string.Empty + (int)_initialHeading);
+                        //message = message.Replace("{IC}", string.Empty + (int)_initialCameraAngle);
+                        //message = message.Replace("{IH}", string.Empty + (int)_initialHeading);
                         message = message.Replace("{H}", string.Empty + (int)_compassHeading);
-                        message = message.Replace("{CY}", string.Empty + (int)ArCamera.transform.localEulerAngles.y);
-                        message = message.Replace("{AY}", string.Empty + (int)SceneAnchor.transform.localEulerAngles.y);
-                        message = message.Replace("{OY}", string.Empty + (int)_originQuaternion.eulerAngles.y);
+                        //message = message.Replace("{CY}", string.Empty + (int)ArCamera.transform.localEulerAngles.y);
+                        //message = message.Replace("{AY}", string.Empty + (int)SceneAnchor.transform.localEulerAngles.y);
+                        //message = message.Replace("{OY}", string.Empty + (int)_originQuaternion.eulerAngles.y);
 
                         message = message.Replace("{LAT}", UsedLatitude.ToString("F6", CultureInfo.InvariantCulture));
                         message = message.Replace("{LON}", UsedLongitude.ToString("F6", CultureInfo.InvariantCulture));
- 
-                        message = message.Replace("{X1}", (firstArObject != null ? firstArObject.TargetPosition.x : 0).ToString("F1", CultureInfo.InvariantCulture));
-                        message = message.Replace("{Y1}", (firstArObject != null ? firstArObject.TargetPosition.y : 0).ToString("F1", CultureInfo.InvariantCulture));
-                        message = message.Replace("{Z1}", (firstArObject != null ? firstArObject.TargetPosition.z : 0).ToString("F1", CultureInfo.InvariantCulture));
 
-                        message = message.Replace("{LAT1}", (firstArObject != null ? firstArObject.Latitude : 0).ToString("F6", CultureInfo.InvariantCulture));
-                        message = message.Replace("{LON1}", (firstArObject != null ? firstArObject.Longitude : 0).ToString("F6", CultureInfo.InvariantCulture));
-                        message = message.Replace("{D1}", (firstArObject != null ? CalculateDistance(UsedLatitude, UsedLongitude, firstArObject.Latitude, firstArObject.Longitude) : 0).ToString("F1", CultureInfo.InvariantCulture));
+                        //message = message.Replace("{X1}", (firstArObject != null ? firstArObject.TargetPosition.x : 0).ToString("F1", CultureInfo.InvariantCulture));
+                        //message = message.Replace("{Y1}", (firstArObject != null ? firstArObject.TargetPosition.y : 0).ToString("F1", CultureInfo.InvariantCulture));
+                        //message = message.Replace("{Z1}", (firstArObject != null ? firstArObject.TargetPosition.z : 0).ToString("F1", CultureInfo.InvariantCulture));
+
+                        //message = message.Replace("{LAT1}", (firstArObject != null ? firstArObject.Latitude : 0).ToString("F6", CultureInfo.InvariantCulture));
+                        //message = message.Replace("{LON1}", (firstArObject != null ? firstArObject.Longitude : 0).ToString("F6", CultureInfo.InvariantCulture));
+                        //message = message.Replace("{D1}", (firstArObject != null ? CalculateDistance(UsedLatitude, UsedLongitude, firstArObject.Latitude, firstArObject.Longitude) : 0).ToString("F1", CultureInfo.InvariantCulture));
 
                         //message = message.Replace("{XW1}", (firstArObject != null ? firstArObject.WrapperObject.transform.position.x : 0).ToString("F1", CultureInfo.InvariantCulture));
                         //message = message.Replace("{YW1}", (firstArObject != null ? firstArObject.WrapperObject.transform.position.y : 0).ToString("F1", CultureInfo.InvariantCulture));
@@ -608,24 +608,24 @@ namespace com.arpoise.arpoiseapp
                         //message = message.Replace("{DGPZ}", DisplayGoalPosition.z.ToString("F1", CultureInfo.InvariantCulture));
                         //message = message.Replace("{DPCT}", DisplayPercentage.ToString("F1", CultureInfo.InvariantCulture));
 
-                        message = message.Replace("{VPX}", VisualizerPosition.x.ToString("F1", CultureInfo.InvariantCulture));
-                        message = message.Replace("{VPY}", VisualizerPosition.y.ToString("F1", CultureInfo.InvariantCulture));
-                        message = message.Replace("{VPZ}", VisualizerPosition.z.ToString("F1", CultureInfo.InvariantCulture));
+                        //message = message.Replace("{VPX}", VisualizerPosition.x.ToString("F1", CultureInfo.InvariantCulture));
+                        //message = message.Replace("{VPY}", VisualizerPosition.y.ToString("F1", CultureInfo.InvariantCulture));
+                        //message = message.Replace("{VPZ}", VisualizerPosition.z.ToString("F1", CultureInfo.InvariantCulture));
 
-                        message = message.Replace("{DSF}", DurationStretchFactor?.ToString("F2", CultureInfo.InvariantCulture));
+                        //message = message.Replace("{DSF}", DurationStretchFactor?.ToString("F2", CultureInfo.InvariantCulture));
 
-                        if (ArMutableLibrary != null)
-                        {
-                            message = message.Replace("{L}", string.Empty + ArMutableLibrary.count);
-                        }
-                        if (ArTrackedImageManager != null)
-                        {
-                            message = message.Replace("{IM}", $"{(ArTrackedImageManager.enabled ? "T," : "F,")} {ArTrackedImageManager.trackables.count}");
-                        }
-                        if (ArHumanBodyManager != null)
-                        {
-                            message = message.Replace("{HBM}", $"{(ArHumanBodyManager.enabled ? "T," : "F,")} {ArHumanBodyManager.trackables.count}");
-                        }
+                        //if (ArMutableLibrary != null)
+                        //{
+                        //    message = message.Replace("{L}", string.Empty + ArMutableLibrary.count);
+                        //}
+                        //if (ArTrackedImageManager != null)
+                        //{
+                        //    message = message.Replace("{IM}", $"{(ArTrackedImageManager.enabled ? "T," : "F,")} {ArTrackedImageManager.trackables.count}");
+                        //}
+                        //if (ArHumanBodyManager != null)
+                        //{
+                        //    message = message.Replace("{HBM}", $"{(ArHumanBodyManager.enabled ? "T," : "F,")} {ArHumanBodyManager.trackables.count}");
+                        //}
                     }
                     SetInfoText(message);
                     return;
@@ -690,6 +690,6 @@ namespace com.arpoise.arpoiseapp
                 }
             }
         }
-#endregion
+        #endregion
     }
 }
