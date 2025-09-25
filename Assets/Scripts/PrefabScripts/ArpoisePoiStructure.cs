@@ -44,6 +44,18 @@ public class ArpoisePoiStructure : MonoBehaviour
     #endregion
 
     protected List<ArObject> ArObjects = null;
+    protected ArObject ArObject = null;
+
+    public void SetArObject(ArObject arObject)
+    {
+        ArObject = arObject;
+    }
+
+    public void SeedRandom(int seed)
+    {
+        Random = new System.Random(Random.Next(int.MaxValue) ^ seed);
+    }
+    public System.Random Random = new System.Random((int)DateTime.Now.Ticks);
 
     public virtual void SetParameter(bool setValue, string label, string value)
     {
@@ -53,24 +65,7 @@ public class ArpoisePoiStructure : MonoBehaviour
         }
         else if (label.Equals(nameof(Poi)))
         {
-            if (setValue && !string.IsNullOrWhiteSpace(value))
-            {
-                if (value.Contains(","))
-                {
-                    foreach (var p in value.Split(",", StringSplitOptions.RemoveEmptyEntries))
-                    {
-                        var v = p.Trim();
-                        if (!string.IsNullOrEmpty(v) && !Pois.Contains(v))
-                        {
-                            Pois.Add(v);
-                        }
-                    }
-                }
-                else
-                {
-                    Pois.Add(value);
-                }
-            }
+            ParameterHelper.SetParameter(setValue, value, Pois);
         }
     }
 

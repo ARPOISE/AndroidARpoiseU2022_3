@@ -509,10 +509,20 @@ namespace com.arpoise.arpoiseapp
                 {
                     arpoisePoiRain.CallUpdate();
                 }
+                var arpoisePoiGrid = gameObject.GetComponent<ArpoisePoiGrid>();
+                if (arpoisePoiGrid != null)
+                {
+                    arpoisePoiGrid.CallUpdate();
+                }
                 var arpoisePoiSpiral = gameObject.GetComponent<ArpoisePoiSpiral>();
                 if (arpoisePoiSpiral != null)
                 {
                     arpoisePoiSpiral.CallUpdate();
+                }
+                var arpoisePoiAtomPhoton = gameObject.GetComponent<ArpoisePoiAtomPhoton>();
+                if (arpoisePoiAtomPhoton != null)
+                {
+                    arpoisePoiAtomPhoton.CallUpdate();
                 }
             }
         }
@@ -720,10 +730,20 @@ namespace com.arpoise.arpoiseapp
             {
                 arpoisePoiRain.Fade(value);
             }
+            var arpoisePoiGrid = AnimatedObject.GetComponent<ArpoisePoiGrid>();
+            if (arpoisePoiGrid != null)
+            {
+                arpoisePoiGrid.Fade(value);
+            }
             var arpoisePoiSpiral = AnimatedObject.GetComponent<ArpoisePoiSpiral>();
             if (arpoisePoiSpiral != null)
             {
                 arpoisePoiSpiral.Fade(value);
+            }
+            var arpoisePoiAtomPhoton = AnimatedObject.GetComponent<ArpoisePoiAtomPhoton>();
+            if (arpoisePoiAtomPhoton != null)
+            {
+                arpoisePoiAtomPhoton.Fade(value);
             }
         }
 

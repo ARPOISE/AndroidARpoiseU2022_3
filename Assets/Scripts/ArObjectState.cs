@@ -80,7 +80,7 @@ namespace com.arpoise.arpoiseapp
             }
         }
         private ArAnimation[] _animationsWithName = null;
-        private ArAnimation[] AnimationsWithName
+        public ArAnimation[] AnimationsWithName
         {
             get
             {
@@ -229,11 +229,12 @@ namespace com.arpoise.arpoiseapp
                 }
                 _arObjects.Remove(arObject);
                 UnityEngine.Object.Destroy(arObject.WrapperObject);
+                arObject.WrapperObject = null;
             }
             SetArObjectsToPlace();
         }
 
-        private void DestroyArObject(ArObject arObject)
+        public void DestroyArObject(ArObject arObject)
         {
             RemoveFromAnimations(arObject);
             foreach (var child in arObject.ArObjects)
@@ -242,6 +243,7 @@ namespace com.arpoise.arpoiseapp
             }
             _arObjects.Remove(arObject);
             UnityEngine.Object.Destroy(arObject.WrapperObject);
+            arObject.WrapperObject = null;
             SetArObjectsToPlace();
         }
 

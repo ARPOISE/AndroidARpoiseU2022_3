@@ -1,5 +1,5 @@
 /*
-ArpoisePoiRain.cs - A script handling an 'poi rain' for ARpoise.
+ArpoisePoiRain.cs - A script handling a 'poi rain' for ARpoise.
 
 Copyright (C) 2025, Tamiko Thiel and Peter Graf - All Rights Reserved
 
@@ -94,6 +94,7 @@ public class ArpoisePoiRain : ArpoisePoiStructure
             var doFade = false;
             if (ArObjects is null)
             {
+                SeedRandom(GetInstanceID());
                 ArObjects = new List<ArObject>();
                 doFade = true;
             }
@@ -110,8 +111,7 @@ public class ArpoisePoiRain : ArpoisePoiStructure
                     return;
                 }
 
-                var rnd = new System.Random((int)DateTime.Now.Ticks);
-                var poi = Pois[rnd.Next(Pois.Count)];
+                var poi = Pois[Random.Next(Pois.Count)];
                 var poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
                 var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
                 if (arObjectState is null || poiObject is null)
@@ -122,7 +122,7 @@ public class ArpoisePoiRain : ArpoisePoiStructure
                 var expectedRainObjects = (millisecond - StartSecond * 1000) * NumberOfNewRainObjectsPerSecond / 1000;
                 while (ArObjects.Count < expectedRainObjects && (MaxNofObjects < 0 || ArObjects.Count < MaxNofObjects))
                 {
-                    poi = Pois[rnd.Next(Pois.Count)];
+                    poi = Pois[Random.Next(Pois.Count)];
                     poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
                     if (poiObject is not null)
                     {
@@ -131,7 +131,6 @@ public class ArpoisePoiRain : ArpoisePoiStructure
                         UnityEngine.Random.Range(-1000 * DropHeight / 5, 1000 * DropHeight / 5) / 1000.0f + DropHeight,
                         UnityEngine.Random.Range(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f + OffsetZ
                         );
-
 
                         var result = ArBehaviour.CreateArObject(
                             arObjectState,

@@ -41,7 +41,7 @@ namespace com.arpoise.arpoiseapp
         public readonly long Id = 0;
         public readonly string GameObjectName;
         public readonly string BaseUrl;
-        public readonly GameObject WrapperObject;
+        public GameObject WrapperObject;
         public readonly List<GameObject> GameObjects;
         public readonly List<ArObject> ArObjects;
         public readonly string Text;

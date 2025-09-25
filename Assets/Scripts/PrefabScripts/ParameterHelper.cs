@@ -27,12 +27,35 @@ Peter Graf, see www.mission-base.com/peter/
 ARpoise, see www.ARpoise.com/
 
 */
+using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using UnityEngine;
 
 public static class ParameterHelper
 {
+    public static void SetParameter(bool setValue, string value, List<string> values)
+    {
+        if (setValue && !string.IsNullOrWhiteSpace(value))
+        {
+            if (value.Contains(","))
+            {
+                foreach (var p in value.Split(",", StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var v = p.Trim();
+                    if (!string.IsNullOrEmpty(v) && !values.Contains(v))
+                    {
+                        values.Add(v);
+                    }
+                }
+            }
+            else
+            {
+                values.Add(value);
+            }
+        }
+    }
     public static int? SetParameter(bool setValue, string value, int? defaultValue)
     {
         if (setValue && !string.IsNullOrWhiteSpace(value))

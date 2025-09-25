@@ -1,5 +1,5 @@
 ﻿/*
-ArpoisePoiCrystal.cs - A script handling an 'poi spiral' for ARpoise.
+ArpoisePoiSpiral.cs - A script handling a 'poi spiral' for ARpoise.
 
 Copyright (C) 2025, Tamiko Thiel and Peter Graf - All Rights Reserved
 
@@ -30,7 +30,6 @@ ARpoise, see www.ARpoise.com/
 using com.arpoise.arpoiseapp;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class ArpoisePoiSpiral : ArpoisePoiStructure
@@ -212,12 +211,12 @@ public class ArpoisePoiSpiral : ArpoisePoiStructure
         {
             if (ArObjects is null)
             {
+                SeedRandom(GetInstanceID());
                 ArObjects = new List<ArObject>();
 
                 if (Pois.Count > 0)
                 {
-                    var rnd = new System.Random((int)DateTime.Now.Ticks);
-                    var poi = Pois[rnd.Next(Pois.Count)];
+                    var poi = Pois[Random.Next(Pois.Count)];
                     var poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
                     var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
                     if (arObjectState is null || poiObject is null || MaxNofObjects <= 0)
@@ -243,7 +242,7 @@ public class ArpoisePoiSpiral : ArpoisePoiStructure
 
                     for (int i = 0; i < MaxNofObjects; i++)
                     {
-                        poi = Pois[rnd.Next(Pois.Count)];
+                        poi = Pois[Random.Next(Pois.Count)];
                         poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
                         if (poiObject is not null)
                         {

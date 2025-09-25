@@ -50,7 +50,7 @@ namespace com.arpoise.arpoiseapp
 #else
         public const string OperatingSystem = "Android";
 #endif
-        public const int Bundle = 25082400;
+        public const int Bundle = 25091500;
         public const string ArvosApplicationName = "Arvos";
         public const string ArpoiseApplicationName = "Arpoise";
 #if AndroidArvosU2022_3 || iOsArvosU2022_3
@@ -58,6 +58,7 @@ namespace com.arpoise.arpoiseapp
 #else
         protected readonly string ApplicationName = ArpoiseApplicationName;
 #endif
+        public long StartTicks = 0;
         public GameObject ArCamera = null;
         public const string AnimationTag = "Animation";
         public const string LockTag = "Lock";
@@ -69,8 +70,7 @@ namespace com.arpoise.arpoiseapp
         protected float? FixedDeviceLongitude = null;
         protected float UsedLatitude => FixedDeviceLatitude.HasValue ? FixedDeviceLatitude.Value : FilteredLatitude;
         protected float UsedLongitude => FixedDeviceLongitude.HasValue ? FixedDeviceLongitude.Value : FilteredLongitude;
-        protected long StartTicks = 0;
-
+        
         public ArObjectState ArObjectState { get; protected set; }
 
         private long _nowTicks;

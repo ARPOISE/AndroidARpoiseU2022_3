@@ -1,5 +1,5 @@
 /*
-ArpoisePoiCrystal.cs - A script handling an 'poi crystal' for ARpoise.
+ArpoisePoiCrystal.cs - A script handling a 'poi crystal' for ARpoise.
 
 Copyright (C) 2025, Tamiko Thiel and Peter Graf - All Rights Reserved
 
@@ -66,12 +66,12 @@ public class ArpoisePoiCrystal : ArpoisePoiStructure
         {
             if (ArObjects is null)
             {
+                SeedRandom(GetInstanceID());
                 ArObjects = new List<ArObject>();
 
                 if (Pois.Count > 0)
                 {
-                    var rnd = new System.Random((int)DateTime.Now.Ticks);
-                    var poi = Pois[rnd.Next(Pois.Count)];
+                    var poi = Pois[Random.Next(Pois.Count)];
                     var poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
                     var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
                     if (arObjectState is null || poiObject is null || Step.x <= 0 || Step.y <= 0 || Step.z <= 0)
@@ -85,7 +85,7 @@ public class ArpoisePoiCrystal : ArpoisePoiStructure
                         {
                             for (float z = LowerLeft.z; z <= UpperRight.z; z += Step.z)
                             {
-                                poi = Pois[rnd.Next(Pois.Count)];
+                                poi = Pois[Random.Next(Pois.Count)];
                                 poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
                                 if (poiObject is not null)
                                 {
