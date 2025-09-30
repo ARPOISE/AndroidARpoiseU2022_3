@@ -56,7 +56,6 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
     private GameObject _photon;
     private ArObject _photonArObject;
 
-
     private List<string> _rydbergAtomNames = new();
     private GameObject _rydbergAtom;
     private ArObject _rydbergAtomArObject;
@@ -309,6 +308,10 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
         }
     }
 
+    private long? _lastTicks = null;
+    private float? _lastDistanceToAtom = null;
+    private Vector3 _forward;
+
     private enum AtomPhotonState
     {
         WaitBeforePhoton,
@@ -318,9 +321,6 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
     }
 
     private DateTime? _nextStateChange = null;
-    private long? _lastTicks = null;
-    private float? _lastDistanceToAtom = null;
-    private Vector3 _forward;
     private AtomPhotonState _state = AtomPhotonState.WaitBeforePhoton;
     private AtomPhotonState State
     {
@@ -341,12 +341,9 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
 
         if (!gameObject.activeSelf)
         {
-            _rydbergAtomArObject = null;
-            _rydbergAtom = null;
-            _photonArObject = null;
-            _photon = null;
-            _atomArObject = null;
-            _atom = null;
+            DestroyRydbergAtom();
+            DestroyPhoton();
+            DestroyAtom();
             _lastTicks = null;
             _lastDistanceToAtom = null;
             State = AtomPhotonState.WaitBeforePhoton;
@@ -365,7 +362,7 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
             case AtomPhotonState.WaitBeforePhoton:
                 if (_nextStateChange is null)
                 {
-                    _nextStateChange = DateTime.Now.AddMilliseconds(Random.Next(WaitBeforePhoton));
+                    _nextStateChange = DateTime.Now.AddMilliseconds(WaitBeforePhoton * .5f + Random.Next(WaitBeforePhoton));
                 }
                 else if (DateTime.Now >= _nextStateChange.Value)
                 {
@@ -422,7 +419,7 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
                 }
                 if (_nextStateChange is null)
                 {
-                    _nextStateChange = DateTime.Now.AddMilliseconds(Random.Next(RydbergDuration));
+                    _nextStateChange = DateTime.Now.AddMilliseconds(RydbergDuration * .5f + Random.Next(RydbergDuration));
                 }
                 else if (DateTime.Now >= _nextStateChange.Value)
                 {
@@ -434,7 +431,7 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
             case AtomPhotonState.WaitAfterRydbergAtom:
                 if (_nextStateChange is null)
                 {
-                    _nextStateChange = DateTime.Now.AddMilliseconds(Random.Next(WaitAfterRydberg));
+                    _nextStateChange = DateTime.Now.AddMilliseconds(WaitAfterRydberg * .5f + Random.Next(WaitAfterRydberg));
                 }
                 else if (DateTime.Now >= _nextStateChange.Value)
                 {

@@ -371,6 +371,19 @@ namespace com.arpoise.arpoiseapp
                         }
                     }
                 }
+                else if (title.Contains(nameof(ArpoisePoiBeam)))
+                {
+                    objectToAdd.AddComponent<ArpoisePoiBeam>();
+                    var arpoisePoiBeam = result = objectToAdd.GetComponent<ArpoisePoiBeam>();
+                    if (arpoisePoiBeam != null)
+                    {
+                        arpoisePoiBeam.ArBehaviour = this;
+                        foreach (var action in poi.actions)
+                        {
+                            arpoisePoiBeam.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                        }
+                    }
+                }
                 else if (title.Contains(nameof(ArpoisePoiSpiral)))
                 {
                     objectToAdd.AddComponent<ArpoisePoiSpiral>();
@@ -1271,6 +1284,11 @@ namespace com.arpoise.arpoiseapp
                 if (arpoisePoiGrid != null)
                 {
                     arpoisePoiGrid.CallUpdate();
+                }
+                var arpoisePoiBeam = crystalObject.gameObject.GetComponent<ArpoisePoiBeam>();
+                if (arpoisePoiBeam != null)
+                {
+                    arpoisePoiBeam.CallUpdate();
                 }
                 var arpoisePoiSpiral = crystalObject.gameObject.GetComponent<ArpoisePoiSpiral>();
                 if (arpoisePoiSpiral != null)

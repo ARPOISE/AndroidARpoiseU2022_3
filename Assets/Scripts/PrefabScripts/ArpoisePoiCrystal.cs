@@ -108,7 +108,7 @@ public class ArpoisePoiCrystal : ArpoisePoiStructure
                                         {
                                             crystalObject.SetActive(true);
                                         }
-                                        crystalObject.transform.position = position;
+                                        crystalObject.transform.localPosition = position;
                                     }
                                     if (arObject != null)
                                     {

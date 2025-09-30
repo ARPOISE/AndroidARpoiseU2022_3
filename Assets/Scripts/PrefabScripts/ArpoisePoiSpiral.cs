@@ -265,7 +265,7 @@ public class ArpoisePoiSpiral : ArpoisePoiStructure
                                 {
                                     spiralObject.SetActive(true);
                                 }
-                                spiralObject.transform.position = position;
+                                spiralObject.transform.localPosition = position;
                             }
                             if (arObject != null)
                             {

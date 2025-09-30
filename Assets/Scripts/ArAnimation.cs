@@ -89,10 +89,10 @@ namespace com.arpoise.arpoiseapp
         private readonly bool _persisting;
         private readonly bool _repeating;
         private readonly float _from;
-        private readonly float _to;
         private readonly Vector3 _axis;
         private readonly IArpoiseBehaviour _behaviour;
         private readonly bool _isTimeSync;
+        private float _to;
 
         private static readonly string _rotate = nameof(ArAnimationType.Rotate).ToLower();
         private static readonly string _scale = nameof(ArAnimationType.Scale).ToLower();
@@ -121,6 +121,11 @@ namespace com.arpoise.arpoiseapp
         private float? _lastSpatialBlend = null;
         private List<Material> _materialsToFade = null;
         private AudioSource _audioSource = null;
+
+        public void SetTo(float to)
+        {
+            _to = to;
+        }
 
         private static readonly System.Random _random = new System.Random((int)DateTime.Now.Ticks);
         private int? _randomDelay = null; // Used for random delay in milliseconds, if not null
@@ -514,6 +519,11 @@ namespace com.arpoise.arpoiseapp
                 {
                     arpoisePoiGrid.CallUpdate();
                 }
+                var arpoisePoiBeam = gameObject.GetComponent<ArpoisePoiBeam>();
+                if (arpoisePoiBeam != null)
+                {
+                    arpoisePoiBeam.CallUpdate();
+                }
                 var arpoisePoiSpiral = gameObject.GetComponent<ArpoisePoiSpiral>();
                 if (arpoisePoiSpiral != null)
                 {
@@ -734,6 +744,11 @@ namespace com.arpoise.arpoiseapp
             if (arpoisePoiGrid != null)
             {
                 arpoisePoiGrid.Fade(value);
+            }
+            var arpoisePoiBeam = AnimatedObject.GetComponent<ArpoisePoiBeam>();
+            if (arpoisePoiBeam != null)
+            {
+                arpoisePoiBeam.Fade(value);
             }
             var arpoisePoiSpiral = AnimatedObject.GetComponent<ArpoisePoiSpiral>();
             if (arpoisePoiSpiral != null)
