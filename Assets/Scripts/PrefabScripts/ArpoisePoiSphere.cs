@@ -1,5 +1,5 @@
 /*
-ArpoisePoiRain.cs - A script handling a 'poi rain' for ARpoise.
+ArpoisePoiSphere.cs - A script handling a 'poi sphere' for ARpoise.
 
 Copyright (C) 2025, Tamiko Thiel and Peter Graf - All Rights Reserved
 
@@ -32,16 +32,13 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ArpoisePoiRain : ArpoisePoiStructure
+public class ArpoisePoiSphere : ArpoisePoiStructure
 {
     #region Rain parameters
-    public int OffsetX = 0; // Move the center of the rain in X direction
-    public int OffsetZ = 0; // Move the center of the rain in Z direction
-    public float DropHeight = 5; // Height to drop from, some random component is added below
-    public float AreaSize = 10; // The dimensions of the area the rain happens in
-    public int StartSecond = 0; // The number of seconds after the load of the layer to start
-    public int EndSecond = 600; // The number of seconds to run after the start
-    public float NumberOfNewRainObjectsPerSecond = 2.5f; // How many objects are to be created every second
+    public float OffsetX = 0; // Move the center of the sphere in X direction
+    public float OffsetY = 0; // Move the center of the sphere in Y direction
+    public float OffsetZ = 0; // Move the center of the sphere in Z direction
+    public float AreaSize = 10; // The dimensions of the sphere
     #endregion
 
     public override void SetParameter(bool setValue, string label, string value)
@@ -50,41 +47,22 @@ public class ArpoisePoiRain : ArpoisePoiStructure
         {
             OffsetX = ParameterHelper.SetParameter(setValue, value, OffsetX).Value;
         }
+        else if (label.Equals(nameof(OffsetY)))
+        {
+            OffsetY = ParameterHelper.SetParameter(setValue, value, OffsetY).Value;
+        }
         else if (label.Equals(nameof(OffsetZ)))
         {
             OffsetZ = ParameterHelper.SetParameter(setValue, value, OffsetZ).Value;
-        }
-        else if (label.Equals(nameof(DropHeight)))
-        {
-            DropHeight = ParameterHelper.SetParameter(setValue, value, DropHeight).Value;
         }
         else if (label.Equals(nameof(AreaSize)))
         {
             AreaSize = ParameterHelper.SetParameter(setValue, value, AreaSize).Value;
         }
-        else if (label.Equals(nameof(StartSecond)))
-        {
-            StartSecond = ParameterHelper.SetParameter(setValue, value, StartSecond).Value;
-        }
-        else if (label.Equals(nameof(EndSecond)))
-        {
-            EndSecond = ParameterHelper.SetParameter(setValue, value, EndSecond).Value;
-        }
-        else if (label.Equals(nameof(NumberOfNewRainObjectsPerSecond)))
-        {
-            NumberOfNewRainObjectsPerSecond = ParameterHelper.SetParameter(setValue, value, NumberOfNewRainObjectsPerSecond).Value;
-        }
         else
         {
             base.SetParameter(setValue, label, value);
         }
-    }
-
-    private long _millisecondAtStart;
-
-    protected void Start()
-    {
-        _millisecondAtStart = DateTime.Now.Ticks / 10000;
     }
 
     protected override void Update()
@@ -101,18 +79,8 @@ public class ArpoisePoiRain : ArpoisePoiStructure
 
             if (Pois.Count > 0)
             {
-                long millisecond = DateTime.Now.Ticks / 10000 - _millisecondAtStart;
-                if (millisecond / 1000 < StartSecond)
-                {
-                    return;
-                }
-                if (millisecond / 1000 >= EndSecond)
-                {
-                    return;
-                }
-
-                var expectedRainObjects = (millisecond - StartSecond * 1000) * NumberOfNewRainObjectsPerSecond / 1000;
-                while (ArObjects.Count < expectedRainObjects && (MaxNofObjects < 0 || ArObjects.Count < MaxNofObjects))
+                var offset = new Vector3(OffsetX, OffsetY, OffsetZ);
+                while (ArObjects.Count < MaxNofObjects)
                 {
                     var poi = Pois[Random.Next(Pois.Count)];
                     var poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
@@ -124,9 +92,14 @@ public class ArpoisePoiRain : ArpoisePoiStructure
 
                     Vector3 position = new Vector3(
                     UnityEngine.Random.Range(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f + OffsetX,
-                    UnityEngine.Random.Range(-1000 * DropHeight / 5, 1000 * DropHeight / 5) / 1000.0f + DropHeight,
+                    UnityEngine.Random.Range(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f + OffsetY,
                     UnityEngine.Random.Range(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f + OffsetZ
                     );
+
+                    if (Vector3.Distance(offset, position) > AreaSize / 2)
+                    {
+                        continue;
+                    }
 
                     var result = ArBehaviour.CreateArObject(
                         arObjectState,

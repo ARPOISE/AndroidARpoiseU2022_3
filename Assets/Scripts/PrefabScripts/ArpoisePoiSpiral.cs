@@ -35,7 +35,7 @@ using UnityEngine;
 public class ArpoisePoiSpiral : ArpoisePoiStructure
 {
     #region Spiral parameters
-    public Vector3 Center = new Vector3(0, 0, 10);
+    public Vector3 Center = new Vector3(0, 0, 0);
     public int Arms = 4;
     public float Diameter = 1f;
     public string Pattern = "Sunflower"; // "Sunflower" or "Galaxy"
@@ -152,6 +152,7 @@ public class ArpoisePoiSpiral : ArpoisePoiStructure
         if (p.scaleLength <= 0f) p.scaleLength = 0.35f * p.R;
         if (p.bulgeSigma <= 0f) p.bulgeSigma = 0.08f * p.R;
         if (p.barRadius <= 0f) p.barRadius = 0.35f * p.R;
+        if (p.bulgeFraction <= 0f) p.bulgeFraction = 0.25f;
         p.bulgeFraction = Mathf.Clamp01(p.bulgeFraction);
         p.barStrength = Mathf.Clamp01(p.barStrength);
 
@@ -216,14 +217,6 @@ public class ArpoisePoiSpiral : ArpoisePoiStructure
 
                 if (Pois.Count > 0)
                 {
-                    var poi = Pois[Random.Next(Pois.Count)];
-                    var poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
-                    var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
-                    if (arObjectState is null || poiObject is null || MaxNofObjects <= 0)
-                    {
-                        return;
-                    }
-
                     var points = new List<Vector2>();
                     if (Pattern.Equals("Galaxy", StringComparison.OrdinalIgnoreCase))
                     {
@@ -242,39 +235,42 @@ public class ArpoisePoiSpiral : ArpoisePoiStructure
 
                     for (int i = 0; i < MaxNofObjects; i++)
                     {
-                        poi = Pois[Random.Next(Pois.Count)];
-                        poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
-                        if (poiObject is not null)
+                        var poi = Pois[Random.Next(Pois.Count)];
+                        var poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
+                        var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
+                        if (arObjectState is null || poiObject is null || MaxNofObjects <= 0)
                         {
-                            var position = new Vector3(Center.x + points[i].x, Center.y + points[i].y, Center.z);
+                            return;
+                        }
 
-                            var result = ArBehaviour.CreateArObject(
-                                arObjectState,
-                                poiObject.gameObject,
-                                null,
-                                transform,
-                                poiObject.poi,
-                                poiObject.poi.id,
-                                out var spiralObject,
-                                out var arObject
-                                );
+                        var position = new Vector3(Center.x + points[i].x, Center.y + points[i].y, Center.z);
 
-                            if (spiralObject != null)
+                        var result = ArBehaviour.CreateArObject(
+                            arObjectState,
+                            poiObject.gameObject,
+                            null,
+                            transform,
+                            poiObject.poi,
+                            ArBehaviourArObject.ArObjectId,
+                            out var spiralObject,
+                            out var arObject
+                            );
+
+                        if (spiralObject != null)
+                        {
+                            if (!spiralObject.activeSelf)
                             {
-                                if (!spiralObject.activeSelf)
-                                {
-                                    spiralObject.SetActive(true);
-                                }
-                                spiralObject.transform.localPosition = position;
+                                spiralObject.SetActive(true);
                             }
-                            if (arObject != null)
-                            {
-                                Add(arObject);
-                            }
+                            spiralObject.transform.localPosition = position;
+                        }
+                        if (arObject != null)
+                        {
+                            Add(arObject);
                         }
                     }
-                    Fade(); // Set the initial fade value
                 }
+                Fade(); // Set the initial fade value
             }
         }
         else

@@ -38,7 +38,7 @@ public class ArpoisePoiBeam : ArpoisePoiStructure
     public float PhotonStartPos = -8;
     public float PhotonMaxPos = 8;
     public float Speed = 1.0f; // meters per second
-    public int AreaSize = 3;
+    public float AreaSize = 3;
     #endregion
 
     private List<GameObject> _photons;
@@ -116,7 +116,7 @@ public class ArpoisePoiBeam : ArpoisePoiStructure
                         null,
                         transform,
                         photonObject.poi,
-                        photonObject.poi.id,
+                        ArBehaviourArObject.ArObjectId,
                         out var _photonObject,
                         out var _photonArObject);
 

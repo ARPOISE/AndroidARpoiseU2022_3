@@ -71,54 +71,47 @@ public class ArpoisePoiCrystal : ArpoisePoiStructure
 
                 if (Pois.Count > 0)
                 {
-                    var poi = Pois[Random.Next(Pois.Count)];
-                    var poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
-                    var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
-                    if (arObjectState is null || poiObject is null || Step.x <= 0 || Step.y <= 0 || Step.z <= 0)
-                    {
-                        return;
-                    }
-
                     for (float x = LowerLeft.x; x <= UpperRight.x; x += Step.x)
                     {
                         for (float y = LowerLeft.y; y <= UpperRight.y; y += Step.y)
                         {
                             for (float z = LowerLeft.z; z <= UpperRight.z; z += Step.z)
                             {
-                                poi = Pois[Random.Next(Pois.Count)];
-                                poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
-                                if (poiObject is not null)
+                                var poi = Pois[Random.Next(Pois.Count)];
+                                var poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
+                                var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
+                                if (arObjectState is null || poiObject is null || Step.x <= 0 || Step.y <= 0 || Step.z <= 0)
                                 {
-                                    var position = new Vector3(x, y, z);
+                                    return;
+                                }
+                                var position = new Vector3(x, y, z);
 
-                                    var result = ArBehaviour.CreateArObject(
-                                        arObjectState,
-                                        poiObject.gameObject,
-                                        null,
-                                        transform,
-                                        poiObject.poi,
-                                        poiObject.poi.id,
-                                        out var crystalObject,
-                                        out var arObject
-                                        );
+                                var result = ArBehaviour.CreateArObject(
+                                    arObjectState,
+                                    poiObject.gameObject,
+                                    null,
+                                    transform,
+                                    poiObject.poi,
+                                    ArBehaviourArObject.ArObjectId,
+                                    out var crystalObject,
+                                    out var arObject
+                                    );
 
-                                    if (crystalObject != null)
+                                if (crystalObject != null)
+                                {
+                                    if (!crystalObject.activeSelf)
                                     {
-                                        if (!crystalObject.activeSelf)
-                                        {
-                                            crystalObject.SetActive(true);
-                                        }
-                                        crystalObject.transform.localPosition = position;
+                                        crystalObject.SetActive(true);
                                     }
-                                    if (arObject != null)
-                                    {
-                                        Add(arObject);
-                                    }
+                                    crystalObject.transform.localPosition = position;
+                                }
+                                if (arObject != null)
+                                {
+                                    Add(arObject);
                                 }
                             }
                         }
                     }
-                    Fade(); // Set the initial fade value
                 }
             }
         }

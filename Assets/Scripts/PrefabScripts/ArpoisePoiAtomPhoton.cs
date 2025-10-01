@@ -132,37 +132,32 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
                 return arObjects;
             }
 
-            poi = Pois[Random.Next(Pois.Count)];
-            poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
-            if (poiObject is not null)
-            {
-                var result = ArBehaviour.CreateArObject(
-                    arObjectState,
-                    poiObject.gameObject,
-                    ArObject,
-                    ArObject.GameObjects.First().transform,
-                    poiObject.poi,
-                    poiObject.poi.id,
-                    out _atom,
-                    out _atomArObject
-                    );
+            var result = ArBehaviour.CreateArObject(
+                arObjectState,
+                poiObject.gameObject,
+                ArObject,
+                ArObject.GameObjects.First().transform,
+                poiObject.poi,
+                ArBehaviourArObject.ArObjectId,
+                out _atom,
+                out _atomArObject
+                );
 
-                if (_atom != null)
+            if (_atom != null)
+            {
+                if (!_atom.activeSelf)
                 {
-                    if (!_atom.activeSelf)
-                    {
-                        _atom.SetActive(true);
-                    }
+                    _atom.SetActive(true);
                 }
-                var newAtomTransform = _atomArObject?.GameObjects?.FirstOrDefault()?.transform;
-                if (newAtomTransform != null)
-                {
-                    newAtomTransform.localPosition = Vector3.zero;
-                }
-                if (_atomArObject != null)
-                {
-                    Add(_atomArObject);
-                }
+            }
+            var newAtomTransform = _atomArObject?.GameObjects?.FirstOrDefault()?.transform;
+            if (newAtomTransform != null)
+            {
+                newAtomTransform.localPosition = Vector3.zero;
+            }
+            if (_atomArObject != null)
+            {
+                Add(_atomArObject);
             }
             Fade();
         }
@@ -204,7 +199,7 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
                     ArObject,
                     atomTransform,
                     photonObject.poi,
-                    photonObject.poi.id,
+                    ArBehaviourArObject.ArObjectId,
                     out _photon,
                     out _photonArObject
                     );
@@ -287,7 +282,7 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
                     ArObject,
                     atomTransform,
                     rydbergAtomObject.poi,
-                    rydbergAtomObject.poi.id,
+                    ArBehaviourArObject.ArObjectId,
                     out _rydbergAtom,
                     out _rydbergAtomArObject
                     );

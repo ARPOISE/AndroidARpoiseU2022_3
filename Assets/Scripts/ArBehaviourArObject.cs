@@ -358,6 +358,19 @@ namespace com.arpoise.arpoiseapp
                         }
                     }
                 }
+                else if (title.Contains(nameof(ArpoisePoiSphere)))
+                {
+                    objectToAdd.AddComponent<ArpoisePoiSphere>();
+                    var arpoisePoiSphere = result = objectToAdd.GetComponent<ArpoisePoiSphere>();
+                    if (arpoisePoiSphere != null)
+                    {
+                        arpoisePoiSphere.ArBehaviour = this;
+                        foreach (var action in poi.actions)
+                        {
+                            arpoisePoiSphere.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                        }
+                    }
+                }
                 else if (title.Contains(nameof(ArpoisePoiGrid)))
                 {
                     objectToAdd.AddComponent<ArpoisePoiGrid>();
@@ -813,7 +826,7 @@ namespace com.arpoise.arpoiseapp
             // Relative to user, parent or with absolute coordinates
             var relativePosition = poi.poiObject.relativeLocation;
 
-            if ((poi.Latitude == 0 && poi.Longitude == 0) || !string.IsNullOrWhiteSpace(relativePosition))
+            if ((poi.Latitude == 0 && poi.Longitude == 0) || !string.IsNullOrWhiteSpace(relativePosition) || !string.IsNullOrWhiteSpace(poi?.TriggerImageURL))
             {
                 // Relative to user or parent
                 var relativeLocation = poi.poiObject.RelativeLocation;
@@ -1265,6 +1278,13 @@ namespace com.arpoise.arpoiseapp
 
         #region Update
         private static long _arObjectId = -1000000000;
+        public static long ArObjectId
+        {
+            get
+            {
+                return _arObjectId--;
+            }
+        }
         private static readonly System.Random _random = new System.Random((int)DateTime.Now.Ticks);
         protected override void Update()
         {
@@ -1279,6 +1299,11 @@ namespace com.arpoise.arpoiseapp
                 if (arpoisePoiRain != null)
                 {
                     arpoisePoiRain.CallUpdate();
+                }
+                var arpoisePoiSphere = crystalObject.gameObject.GetComponent<ArpoisePoiSphere>();
+                if (arpoisePoiSphere != null)
+                {
+                    arpoisePoiSphere.CallUpdate();
                 }
                 var arpoisePoiGrid = crystalObject.gameObject.GetComponent<ArpoisePoiGrid>();
                 if (arpoisePoiGrid != null)
@@ -1412,7 +1437,7 @@ namespace com.arpoise.arpoiseapp
                         relativeLocation[0] += 0.001f * ((_random.Next(2001) - 1000) / 100f);
                         relativeLocation[2] += 0.001f * ((_random.Next(2001) - 1000) / 100f);
                         poi.poiObject.RelativeLocation = relativeLocation;
-                        CreateArObject(arObjectState, arObject, arObject.GameObjects.First().transform, poi, _arObjectId--);
+                        CreateArObject(arObjectState, arObject, arObject.GameObjects.First().transform, poi, ArObjectId);
                     }
                     else if (IsSlamUrl(poi.TriggerImageURL))
                     {
@@ -1422,7 +1447,7 @@ namespace com.arpoise.arpoiseapp
                         relativeLocation[0] += 0.001f * ((_random.Next(2001) - 1000) / 100f);
                         relativeLocation[2] += 0.001f * ((_random.Next(2001) - 1000) / 100f);
                         poi.poiObject.RelativeLocation = relativeLocation;
-                        CreateArObject(arObjectState, arObject, arObject.GameObjects.First().transform, poi, _arObjectId--);
+                        CreateArObject(arObjectState, arObject, arObject.GameObjects.First().transform, poi, ArObjectId);
                     }
                     else if (!string.IsNullOrWhiteSpace(poi.TriggerImageURL))
                     {
@@ -1432,7 +1457,7 @@ namespace com.arpoise.arpoiseapp
                         relativeLocation[0] += 0.001f * ((_random.Next(2001) - 1000) / 100f);
                         relativeLocation[2] += 0.001f * ((_random.Next(2001) - 1000) / 100f);
                         poi.poiObject.RelativeLocation = relativeLocation;
-                        CreateArObject(arObjectState, arObject, arObject.GameObjects.First().transform, poi, _arObjectId--);
+                        CreateArObject(arObjectState, arObject, arObject.GameObjects.First().transform, poi, ArObjectId);
                     }
                     else if (!string.IsNullOrWhiteSpace(poi?.poiObject?.relativeLocation))
                     {
@@ -1440,13 +1465,13 @@ namespace com.arpoise.arpoiseapp
                         relativeLocation[0] += (_random.Next(2001) - 1000) / 100f;
                         relativeLocation[2] += (_random.Next(2001) - 1000) / 100f;
                         poi.poiObject.RelativeLocation = relativeLocation;
-                        CreateArObject(arObjectState, null, SceneAnchor.transform, poi, _arObjectId--);
+                        CreateArObject(arObjectState, null, SceneAnchor.transform, poi, ArObjectId);
                     }
                     else
                     {
                         poi.lat += _random.Next(201) - 100;
                         poi.lon += _random.Next(201) - 100;
-                        CreateArObject(arObjectState, null, SceneAnchor.transform, poi, _arObjectId--);
+                        CreateArObject(arObjectState, null, SceneAnchor.transform, poi, ArObjectId);
                     }
                 }
             }

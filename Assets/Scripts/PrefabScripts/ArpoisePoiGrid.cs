@@ -136,55 +136,50 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
 
         if (Pois.Count > 0)
         {
-            var poi = Pois[Random.Next(Pois.Count)];
-            var poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
-            var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
-            if (arObjectState is null || poiObject is null)
-            {
-                return ArObjects;
-            }
-
             _atomPositions = new();
             while (ArObjects.Count < MaxNofObjects)
             {
-                poi = Pois[Random.Next(Pois.Count)];
-                poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
-                if (poiObject is not null)
+                var poi = Pois[Random.Next(Pois.Count)];
+                var poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
+                var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
+                if (arObjectState is null || poiObject is null)
                 {
-                    var result = ArBehaviour.CreateArObject(
-                        arObjectState,
-                        poiObject.gameObject,
-                        null,
-                        transform,
-                        poiObject.poi,
-                        poiObject.poi.id,
-                        out var gridObject,
-                        out var gridArObject
-                        );
+                    return ArObjects;
+                }
 
-                    if (gridObject != null)
-                    {
-                        if (!gridObject.activeSelf)
-                        {
-                            gridObject.SetActive(true);
-                        }
-                        Vector3 position = new Vector3(
-                            Random.Next(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f,
-                            Random.Next(-1000 * AreaHeight / 2, 1000 * AreaHeight / 2) / 1000.0f,
-                            Random.Next(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f);
+                var result = ArBehaviour.CreateArObject(
+                    arObjectState,
+                    poiObject.gameObject,
+                    null,
+                    transform,
+                    poiObject.poi,
+                    ArBehaviourArObject.ArObjectId,
+                    out var gridObject,
+                    out var gridArObject
+                    );
 
-                        gridObject.transform.localPosition = position;
-                        _atomPositions.Add(position);
-                    }
-                    if (gridArObject != null)
+                if (gridObject != null)
+                {
+                    if (!gridObject.activeSelf)
                     {
-                        Add(gridArObject);
-                        _atomArObjects.Add(gridArObject);
+                        gridObject.SetActive(true);
                     }
-                    if (gridObject != null)
-                    {
-                        _atoms.Add(gridObject);
-                    }
+                    Vector3 position = new Vector3(
+                        Random.Next(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f,
+                        Random.Next(-1000 * AreaHeight / 2, 1000 * AreaHeight / 2) / 1000.0f,
+                        Random.Next(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f);
+
+                    gridObject.transform.localPosition = position;
+                    _atomPositions.Add(position);
+                }
+                if (gridArObject != null)
+                {
+                    Add(gridArObject);
+                    _atomArObjects.Add(gridArObject);
+                }
+                if (gridObject != null)
+                {
+                    _atoms.Add(gridObject);
                 }
             }
             Fade(); // Set the initial fade value
@@ -247,7 +242,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                             null,
                             transform,
                             photonObject.poi,
-                            photonObject.poi.id,
+                            ArBehaviourArObject.ArObjectId,
                             out var _photonObject,
                             out var _photonArObject);
 
@@ -293,7 +288,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                             null,
                             transform,
                             photonObject.poi,
-                            photonObject.poi.id,
+                            ArBehaviourArObject.ArObjectId,
                             out var _photonObject,
                             out var _photonArObject);
 

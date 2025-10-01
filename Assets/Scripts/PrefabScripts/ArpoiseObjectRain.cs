@@ -73,8 +73,8 @@ public class ArpoiseObjectRain : MonoBehaviour
     #region Rain parameters
     public int OffsetX = 0; // Move the center of the rain in X direction
     public int OffsetZ = 0; // Move the center of the rain in Z direction
-    public int DropHeight = 5; // Height to drop from, some random component is added below
-    public int AreaSize = 10; // The dimensions of the area the rain happens in
+    public float DropHeight = 5; // Height to drop from, some random component is added below
+    public float AreaSize = 10; // The dimensions of the area the rain happens in
     public int StartSecond = 0; // The number of seconds after the load of the layer to start
     public int EndSecond = 600; // The number of seconds to run after the start
     public float NumberOfNewRainObjectsPerSecond = 2.5f; // How many objects are to be created every second
@@ -241,9 +241,9 @@ public class ArpoiseObjectRain : MonoBehaviour
         while (_numberOfRainObjects < (millisecond - StartSecond * 1000) * NumberOfNewRainObjectsPerSecond / 1000)
         {
             Vector3 position = new Vector3(
-                UnityEngine.Random.Range(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f + OffsetX,
-                UnityEngine.Random.Range(-1000 * DropHeight / 5, 1000 * DropHeight / 5) / 1000.0f + DropHeight,
-                UnityEngine.Random.Range(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f + OffsetZ
+                UnityEngine.Random.Range((int)(-1000 * AreaSize / 2), (int)(1000 * AreaSize / 2)) / 1000.0f + OffsetX,
+                UnityEngine.Random.Range((int)(-1000 * DropHeight / 5), (int)(1000 * DropHeight / 5)) / 1000.0f + DropHeight,
+                UnityEngine.Random.Range((int)(-1000 * AreaSize / 2), (int)(1000 * AreaSize / 2)) / 1000.0f + OffsetZ
                 );
 
             GameObject rainObject = Instantiate(_rainObjects[_numberOfRainObjects++ % _rainObjects.Count], position, UnityEngine.Random.rotation, transform);
