@@ -1,7 +1,7 @@
 ![ARpoise Logo](/Assets/Images/arpoise_logo_rgb-128.png)
 # *A*ugmented *R*eality *p*oint *o*f *i*nterest *s*ervice *e*nvironment
 # AndroidArpoiseU2022_3
-This is the [Unity](https://unity3d.com) project allowing to build **ARpoise** for Android. Open the project with [Unity 2022.3.10f1](https://unity.com/download) and make sure the Android build is selected in the build settings.
+This is the [Unity](https://unity3d.com) project allowing to build **ARpoise** for Android. Open the project with [Unity 2022.3.62f2](https://unity.com/download) and make sure the Android build is selected in the build settings.
 
 # Release Notes
 See [Release Notes](https://github.com/ARPOISE/ARpoise/blob/master/unity/ReleaseNotes.md).
