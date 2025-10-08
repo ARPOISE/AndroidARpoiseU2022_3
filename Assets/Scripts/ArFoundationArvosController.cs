@@ -506,6 +506,10 @@ public class ArFoundationArvosController : ArBehaviourSlam
         foreach (var image in eventArgs.added.Union(eventArgs.updated))
         {
             var name = image.referenceImage.name;
+            if (string.IsNullOrEmpty(name))
+            {
+                continue;
+            }
             _imageVisualizers.TryGetValue(name, out var visualizer);
             if (image.trackingState == TrackingState.Tracking && visualizer is null)
             {

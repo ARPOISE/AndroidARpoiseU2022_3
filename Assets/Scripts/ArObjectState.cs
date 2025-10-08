@@ -70,6 +70,7 @@ namespace com.arpoise.arpoiseapp
                     allAnimations.AddRange(_whenDeactivatedAnimations);
                     allAnimations.AddRange(_onRandomAnimations);
                     _allAnimations = allAnimations.ToArray();
+                    _animationsWithName = null;
                 }
                 return _allAnimations;
             }

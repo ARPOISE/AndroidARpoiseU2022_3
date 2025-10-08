@@ -122,6 +122,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 }
             }
         }
+        _animations = null;
         _atomArObjects = null;
         _atoms = null;
     }
