@@ -603,7 +603,7 @@ namespace com.arpoise.arpoiseapp
                         }
                         arObjectState.AddOnRandomAnimation(
                             new ArAnimation(
-                                arObjectId, animationWrapper, objectToAdd, poiAnimation, ArEventType.OnFocus, false, this,
+                                arObjectId, animationWrapper, objectToAdd, poiAnimation, ArEventType.OnRandom, false, this,
                                 poi?.ArLayer?.AudioRolloffMode,
                                 poi?.ArLayer?.AudioSpatialBlend,
                                 poi?.ArLayer?.AudioSpatialize,

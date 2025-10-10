@@ -69,7 +69,8 @@ namespace com.arpoise.arpoiseapp
         OnClick = 6,
         OnFollow = 7,
         WhenActivated = 8,
-        WhenDeactivated = 9
+        WhenDeactivated = 9,
+        OnRandom = 10
     }
 
     public class ArAnimation
