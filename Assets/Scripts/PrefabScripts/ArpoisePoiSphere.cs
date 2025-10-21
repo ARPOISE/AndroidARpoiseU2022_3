@@ -69,71 +69,63 @@ public class ArpoisePoiSphere : ArpoisePoiStructure
     {
         if (gameObject.activeSelf)
         {
-            var doFade = false;
             if (ArObjects is null)
             {
                 SeedRandom(GetInstanceID());
                 ArObjects = new List<ArObject>();
-                doFade = true;
-            }
 
-            if (Pois.Count > 0)
-            {
-                var offset = new Vector3(OffsetX, OffsetY, OffsetZ);
-                while (ArObjects.Count < MaxNofObjects)
+                if (Pois.Count > 0)
                 {
-                    var poi = Pois[Random.Next(Pois.Count)];
-                    var poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
-                    var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
-                    if (arObjectState is null || poiObject is null)
+                    var offset = new Vector3(OffsetX, OffsetY, OffsetZ);
+                    while (ArObjects.Count < MaxNofObjects)
                     {
-                        return;
-                    }
+                        var poi = Pois[Random.Next(Pois.Count)];
+                        var poiObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == poi);
+                        var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
+                        if (arObjectState is null || poiObject is null)
+                        {
+                            return;
+                        }
 
-                    Vector3 position = new Vector3(
-                    UnityEngine.Random.Range(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f + OffsetX,
-                    UnityEngine.Random.Range(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f + OffsetY,
-                    UnityEngine.Random.Range(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f + OffsetZ
-                    );
-
-                    if (Vector3.Distance(offset, position) > AreaSize / 2)
-                    {
-                        continue;
-                    }
-
-                    var result = ArBehaviour.CreateArObject(
-                        arObjectState,
-                        poiObject.gameObject,
-                        null,
-                        transform,
-                        poiObject.poi,
-                        ArBehaviourArObject.ArObjectId,
-                        out var rainObject,
-                        out var arObject
+                        Vector3 position = new Vector3(
+                        UnityEngine.Random.Range(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f + OffsetX,
+                        UnityEngine.Random.Range(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f + OffsetY,
+                        UnityEngine.Random.Range(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f + OffsetZ
                         );
 
-                    if (rainObject != null)
-                    {
-                        if (!rainObject.activeSelf)
+                        if (Vector3.Distance(offset, position) > AreaSize / 2)
                         {
-                            rainObject.SetActive(true);
+                            continue;
                         }
-                        rainObject.transform.localPosition = position;
+
+                        var result = ArBehaviour.CreateArObject(
+                            arObjectState,
+                            poiObject.gameObject,
+                            null,
+                            transform,
+                            poiObject.poi,
+                            ArBehaviourArObject.ArObjectId,
+                            out var sphereObject,
+                            out var arObject
+                            );
+
+                        if (sphereObject != null)
+                        {
+                            if (!sphereObject.activeSelf)
+                            {
+                                sphereObject.SetActive(true);
+                            }
+                            sphereObject.transform.localPosition = position;
+                        }
+                        if (arObject != null)
+                        {
+                            Add(arObject);
+                        }
                     }
-                    if (arObject != null)
-                    {
-                        Add(arObject);
-                    }
-                }
-                if (doFade)
-                {
                     Fade(); // Set the initial fade value
                 }
             }
         }
-        else
-        {
-            base.Update();
-        }
+        base.Update();
     }
 }

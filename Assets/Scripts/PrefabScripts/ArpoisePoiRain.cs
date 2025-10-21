@@ -158,9 +158,7 @@ public class ArpoisePoiRain : ArpoisePoiStructure
                 }
             }
         }
-        else
-        {
-            base.Update();
-        }
+
+        base.Update();
     }
 }

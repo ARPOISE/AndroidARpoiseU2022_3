@@ -564,6 +564,7 @@ namespace com.arpoise.arpoiseapp
                         message = message.Replace("{N}", string.Empty + arObjectState.Count);
                         //message = message.Replace("{O}", string.Empty + arObjectState.CountArObjects());
                         message = message.Replace("{A}", string.Empty + arObjectState.NumberOfAnimations);
+                        message = message.Replace("{a}", string.Empty + arObjectState.NumberOfAnimationsWithName);
                         //message = message.Replace("{AA}", string.Empty + arObjectState.NumberOfActiveAnimations);
                         message = message.Replace("{T}", string.Empty + TriggerObjects.Values.Count(x => x.isActive));
                         //message = message.Replace("{I}", string.Empty + TriggerImages.Count);

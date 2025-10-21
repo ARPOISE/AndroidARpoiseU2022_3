@@ -159,6 +159,14 @@ namespace com.arpoise.arpoiseapp
                 return _nextActivation.Value;
             }
         }
+        public DateTime? ResetNextActivation
+        {
+            set
+            {
+                _nextActivation = null;
+            }
+        }
+            
 
         public bool IsToBeDestroyed { get; private set; }
         public bool IsToBeDuplicated { get; set; }

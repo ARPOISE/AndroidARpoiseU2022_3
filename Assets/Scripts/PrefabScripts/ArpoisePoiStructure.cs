@@ -43,6 +43,7 @@ public class ArpoisePoiStructure : MonoBehaviour
     protected List<string> Pois = new();
     #endregion
 
+    protected readonly List<ArObject> ArObjectsToFade = new();
     protected List<ArObject> ArObjects = null;
     protected ArObject ArObject = null;
 
@@ -75,12 +76,27 @@ public class ArpoisePoiStructure : MonoBehaviour
     }
     protected virtual void Update()
     {
-        if (!gameObject.activeSelf)
+        SetActive(gameObject.activeSelf, ArObjects);
+
+        if (_fadeValue.HasValue && (DateTime.Now - _lastFadeTime).TotalMilliseconds > 100)
         {
-            if (ArObjects != null)
+            DoFade(_fadeValue.Value);
+            _fadeValue = null;
+            _lastFadeTime = DateTime.Now;
+        }
+    }
+
+    protected void SetActive(bool activeSelf, List<ArObject> arObjects)
+    {
+        var firstObject = arObjects != null && arObjects.Count > 0 ? arObjects[0]?.WrapperObject : null;
+        if (firstObject != null && firstObject.activeSelf != activeSelf)
+        {
+            foreach (var arObject in arObjects)
             {
-                ArBehaviour?.ArObjectState?.DestroyArObjects(ArObjects);
-                ArObjects = null;
+                if (arObject.WrapperObject != null && arObject.WrapperObject.activeSelf != activeSelf)
+                {
+                    arObject.WrapperObject.SetActive(activeSelf);
+                }
             }
         }
     }
@@ -90,6 +106,10 @@ public class ArpoisePoiStructure : MonoBehaviour
         if (arObject != null && ArObjects != null)
         {
             ArObjects.Add(arObject);
+        }
+        if (arObject != null && ArObjectsToFade != null)
+        {
+            ArObjectsToFade.Add(arObject);
         }
     }
 
@@ -109,11 +129,19 @@ public class ArpoisePoiStructure : MonoBehaviour
         return materials;
     }
 
+    private float? _fadeValue;
+    private DateTime _lastFadeTime = DateTime.MinValue;
     private bool _doFade = false;
     public void Fade(float value)
     {
         _doFade = true;
-        foreach (var arObject in ArObjects ?? Enumerable.Empty<ArObject>())
+        DoFade(value);
+    }
+
+    private void DoFade(float value)
+    {
+        _doFade = true;
+        foreach (var arObject in ArObjectsToFade ?? Enumerable.Empty<ArObject>())
         {
             foreach (var objectToFade in arObject.GameObjects ?? Enumerable.Empty<GameObject>())
             {
@@ -135,7 +163,7 @@ public class ArpoisePoiStructure : MonoBehaviour
             var fadeValue = materialsToFade.FirstOrDefault()?.color.a ?? -1f;
             if (fadeValue >= 0f)
             {
-                Fade(fadeValue);
+                DoFade(fadeValue);
             }
         }
     }

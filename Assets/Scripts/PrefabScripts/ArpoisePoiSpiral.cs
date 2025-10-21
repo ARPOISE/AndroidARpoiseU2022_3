@@ -230,7 +230,8 @@ public class ArpoisePoiSpiral : ArpoisePoiStructure
                     }
                     else
                     {
-                        points = Disk(MaxNofObjects, 0.5f * Diameter * Mathf.Sqrt(MaxNofObjects));
+                        var center = new Vector2(Center.x, Center.y);
+                        points = Disk(MaxNofObjects, 0.5f * Diameter * Mathf.Sqrt(MaxNofObjects), center);
                     }
 
                     for (int i = 0; i < MaxNofObjects; i++)
@@ -273,9 +274,6 @@ public class ArpoisePoiSpiral : ArpoisePoiStructure
                 Fade(); // Set the initial fade value
             }
         }
-        else
-        {
-            base.Update();
-        }
+        base.Update();
     }
 }

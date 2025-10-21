@@ -113,11 +113,9 @@ public class ArpoisePoiCrystal : ArpoisePoiStructure
                         }
                     }
                 }
+                Fade(); // Set the initial fade value
             }
         }
-        else
-        {
-            base.Update();
-        }
+        base.Update();
     }
 }

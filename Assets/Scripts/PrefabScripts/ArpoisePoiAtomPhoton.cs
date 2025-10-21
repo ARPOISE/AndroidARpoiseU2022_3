@@ -42,23 +42,23 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
 
     public float Speed = 1.0f; // meters per second
     public int WaitBeforePhoton = 5000; // milliseconds
-    public int RydbergDuration = 10000; // milliseconds
-    public int WaitAfterRydberg = 5000; // milliseconds
+    public int ExcitedDuration = 10000; // milliseconds
+    public int WaitAfterExcited = 5000; // milliseconds
 
     public string Photon = string.Empty;
-    public string RydbergAtom = string.Empty;
+    public string ExcitedAtom = string.Empty;
     #endregion
 
     private GameObject _atom;
-    private ArObject _atomArObject;
+    private readonly List<ArObject> _atomArObjects = new();
 
-    private List<string> _photonNames = new();
+    private readonly List<string> _photonNames = new();
     private GameObject _photon;
-    private ArObject _photonArObject;
+    private readonly List<ArObject> _photonArObjects = new();
 
-    private List<string> _rydbergAtomNames = new();
-    private GameObject _rydbergAtom;
-    private ArObject _rydbergAtomArObject;
+    private readonly List<string> _excitedAtomNames = new();
+    private GameObject _excitedAtom;
+    private readonly List<ArObject> _excitedAtomArObjects = new();
 
     public override void SetParameter(bool setValue, string label, string value)
     {
@@ -82,21 +82,21 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
         {
             WaitBeforePhoton = ParameterHelper.SetParameter(setValue, value, WaitBeforePhoton).Value;
         }
-        else if (label.Equals(nameof(RydbergDuration)))
+        else if (label.Equals(nameof(ExcitedDuration)))
         {
-            RydbergDuration = ParameterHelper.SetParameter(setValue, value, RydbergDuration).Value;
+            ExcitedDuration = ParameterHelper.SetParameter(setValue, value, ExcitedDuration).Value;
         }
-        else if (label.Equals(nameof(WaitAfterRydberg)))
+        else if (label.Equals(nameof(WaitAfterExcited)))
         {
-            WaitAfterRydberg = ParameterHelper.SetParameter(setValue, value, WaitAfterRydberg).Value;
+            WaitAfterExcited = ParameterHelper.SetParameter(setValue, value, WaitAfterExcited).Value;
         }
         else if (label.Equals(nameof(Photon)))
         {
             ParameterHelper.SetParameter(setValue, value, _photonNames);
         }
-        else if (label.Equals(nameof(RydbergAtom)))
+        else if (label.Equals(nameof(ExcitedAtom)))
         {
-            ParameterHelper.SetParameter(setValue, value, _rydbergAtomNames);
+            ParameterHelper.SetParameter(setValue, value, _excitedAtomNames);
         }
         else
         {
@@ -104,23 +104,9 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
         }
     }
 
-    public void DestroyAtom()
-    {
-        if (_atomArObject != null)
-        {
-            var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
-            if (arObjectState is not null)
-            {
-                arObjectState.DestroyArObject(_atomArObject);
-            }
-        }
-        _atomArObject = null;
-        _atom = null;
-    }
-
     private List<ArObject> CreateAtom()
     {
-        var arObjects = new List<ArObject>();
+        ArObjects = new List<ArObject>();
 
         if (Pois.Count > 0)
         {
@@ -129,18 +115,18 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
             var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
             if (arObjectState is null || poiObject is null)
             {
-                return arObjects;
+                return ArObjects;
             }
 
             var result = ArBehaviour.CreateArObject(
                 arObjectState,
                 poiObject.gameObject,
-                ArObject,
-                ArObject.GameObjects.First().transform,
+                null,
+                transform,
                 poiObject.poi,
                 ArBehaviourArObject.ArObjectId,
                 out _atom,
-                out _atomArObject
+                out var atomArObject
                 );
 
             if (_atom != null)
@@ -150,37 +136,24 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
                     _atom.SetActive(true);
                 }
             }
-            var newAtomTransform = _atomArObject?.GameObjects?.FirstOrDefault()?.transform;
+            var newAtomTransform = _atom?.transform;
             if (newAtomTransform != null)
             {
                 newAtomTransform.localPosition = Vector3.zero;
             }
-            if (_atomArObject != null)
+            if (atomArObject != null)
             {
-                Add(_atomArObject);
-            }
-            Fade();
-        }
-        return arObjects;
-    }
-
-    private void DestroyPhoton()
-    {
-        if (_photonArObject != null)
-        {
-            var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
-            if (arObjectState is not null)
-            {
-                arObjectState.DestroyArObject(_photonArObject);
+                Add(atomArObject);
+                _atomArObjects.Clear();
+                _atomArObjects.Add(atomArObject);
             }
         }
-        _photonArObject = null;
-        _photon = null;
+        return ArObjects;
     }
 
     private void CreatePhoton()
     {
-        if (Pois.Count > 0)
+        if (_photonNames.Count > 0)
         {
             var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
             if (arObjectState is null)
@@ -188,20 +161,20 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
                 return;
             }
 
-            var atomTransform = _atomArObject?.GameObjects?.FirstOrDefault()?.transform;
-            var photon = _photonNames[Random.Next(_photonNames.Count)];
-            var photonObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == photon);
+            var atomTransform = _atom?.transform;
+            var photonName = _photonNames[Random.Next(_photonNames.Count)];
+            var photonObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == photonName);
             if (photonObject is not null && atomTransform != null)
             {
                 var result = ArBehaviour.CreateArObject(
                     arObjectState,
                     photonObject.gameObject,
-                    ArObject,
+                    null,
                     atomTransform,
                     photonObject.poi,
                     ArBehaviourArObject.ArObjectId,
                     out _photon,
-                    out _photonArObject
+                    out var photonArObject
                     );
 
                 if (_photon != null)
@@ -211,59 +184,47 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
                         _photon.SetActive(true);
                     }
                 }
-                if (PhotonStartPosition != Vector3.zero)
+                //CreatePhotonPosition();
+                if (photonArObject != null)
                 {
-                    var photonTransform = _photonArObject?.GameObjects?.FirstOrDefault()?.transform;
-                    if (photonTransform != null)
-                    {
-                        photonTransform.localPosition = PhotonStartPosition;
-                    }
-                }
-                else
-                {
-                    var photonTransform = _photonArObject?.GameObjects?.FirstOrDefault()?.transform;
-                    if (photonTransform != null)
-                    {
-                        var x = UnityEngine.Random.Range(PhotonInnerRange.x, PhotonOuterRange.x);
-                        var y = UnityEngine.Random.Range(PhotonInnerRange.y, PhotonOuterRange.y);
-                        var z = UnityEngine.Random.Range(PhotonInnerRange.z, PhotonOuterRange.z);
-                        var signX = UnityEngine.Random.value > 0.5f ? 1 : -1;
-                        var signY = UnityEngine.Random.value > 0.5f ? 1 : -1;
-                        var signZ = UnityEngine.Random.value > 0.5f ? 1 : -1;
-                        var position = new Vector3(
-                            atomTransform.localPosition.x + signX * x,
-                            atomTransform.localPosition.y + signY * y,
-                            atomTransform.localPosition.z + signZ * z
-                            );
-                        photonTransform.localPosition = position;
-                    }
-                }
-                if (_photonArObject != null)
-                {
-                    Add(_photonArObject);
+                    ArObjectsToFade.Add(photonArObject);
+                    _photonArObjects.Clear();
+                    _photonArObjects.Add(photonArObject);
                 }
             }
-            Fade();
         }
     }
 
-    private void DestroyRydbergAtom()
+    private void CreatePhotonPosition()
     {
-        if (_rydbergAtomArObject != null)
+        if (PhotonStartPosition != Vector3.zero)
         {
-            var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
-            if (arObjectState is not null)
+            var photonTransform = _photon?.transform;
+            if (photonTransform != null)
             {
-                arObjectState.DestroyArObject(_rydbergAtomArObject);
+                photonTransform.localPosition = PhotonStartPosition;
             }
         }
-        _rydbergAtomArObject = null;
-        _rydbergAtom = null;
+        else
+        {
+            var photonTransform = _photon?.transform;
+            if (photonTransform != null)
+            {
+                var x = UnityEngine.Random.Range(PhotonInnerRange.x, PhotonOuterRange.x);
+                var y = UnityEngine.Random.Range(PhotonInnerRange.y, PhotonOuterRange.y);
+                var z = UnityEngine.Random.Range(PhotonInnerRange.z, PhotonOuterRange.z);
+                var signX = UnityEngine.Random.value > 0.5f ? 1 : -1;
+                var signY = UnityEngine.Random.value > 0.5f ? 1 : -1;
+                var signZ = UnityEngine.Random.value > 0.5f ? 1 : -1;
+                var position = new Vector3(signX * x, signY * y, signZ * z);
+                photonTransform.localPosition = position;
+            }
+        }
     }
 
-    private void CreateRydbergAtom()
+    private void CreateExcitedAtom()
     {
-        if (Pois.Count > 0)
+        if (_excitedAtomNames.Count > 0)
         {
             var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
             if (arObjectState is null)
@@ -271,48 +232,48 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
                 return;
             }
 
-            var atomTransform = _atomArObject?.GameObjects?.FirstOrDefault()?.transform;
-            var rydbergAtom = _rydbergAtomNames[Random.Next(_rydbergAtomNames.Count)];
-            var rydbergAtomObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == rydbergAtom);
-            if (rydbergAtomObject is not null && atomTransform != null)
+            var atomTransform = _atom?.transform;
+            var atomName = _excitedAtomNames[Random.Next(_excitedAtomNames.Count)];
+            var excitedAtomObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == atomName);
+            if (excitedAtomObject is not null && atomTransform != null)
             {
                 var result = ArBehaviour.CreateArObject(
                     arObjectState,
-                    rydbergAtomObject.gameObject,
-                    ArObject,
+                    excitedAtomObject.gameObject,
+                    null,
                     atomTransform,
-                    rydbergAtomObject.poi,
+                    excitedAtomObject.poi,
                     ArBehaviourArObject.ArObjectId,
-                    out _rydbergAtom,
-                    out _rydbergAtomArObject
+                    out _excitedAtom,
+                    out var excitedAtomArObject
                     );
 
-                if (_rydbergAtom != null)
+                if (_excitedAtom != null)
                 {
-                    if (!_rydbergAtom.activeSelf)
+                    if (!_excitedAtom.activeSelf)
                     {
-                        _rydbergAtom.SetActive(true);
+                        _excitedAtom.SetActive(true);
                     }
                 }
-                if (_rydbergAtomArObject != null)
+                if (excitedAtomArObject != null)
                 {
-                    Add(_rydbergAtomArObject);
+                    ArObjectsToFade.Add(excitedAtomArObject);
+                    _excitedAtomArObjects.Clear();
+                    _excitedAtomArObjects.Add(excitedAtomArObject);
                 }
             }
-            Fade();
         }
     }
 
     private long? _lastTicks = null;
     private float? _lastDistanceToAtom = null;
-    private Vector3 _forward;
 
     private enum AtomPhotonState
     {
         WaitBeforePhoton,
         ShowPhoton,
-        ShowRydbergAtom,
-        WaitAfterRydbergAtom
+        ShowExcitedAtom,
+        WaitAfterExcitedAtom
     }
 
     private DateTime? _nextStateChange = null;
@@ -336,16 +297,17 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
 
         if (!gameObject.activeSelf)
         {
-            DestroyRydbergAtom();
-            DestroyPhoton();
-            DestroyAtom();
+            SetActive(false, _atomArObjects);
+            SetActive(false, _photonArObjects);
+            SetActive(false, _excitedAtomArObjects);
+
             _lastTicks = null;
             _lastDistanceToAtom = null;
             State = AtomPhotonState.WaitBeforePhoton;
             return;
         }
 
-        if (ArObjects is null)
+        if (_atomArObjects is null || _atomArObjects.Count == 0)
         {
             SeedRandom(GetInstanceID());
             UnityEngine.Random.InitState(Random.Next(int.MaxValue));
@@ -355,51 +317,53 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
         switch (State)
         {
             case AtomPhotonState.WaitBeforePhoton:
+                if (_atomArObjects is null || _atomArObjects.Count == 0)
+                {
+                    ArObjects = CreateAtom();
+                }
                 if (_nextStateChange is null)
                 {
-                    _nextStateChange = DateTime.Now.AddMilliseconds(WaitBeforePhoton * .5f + Random.Next(WaitBeforePhoton));
+                    _nextStateChange = DateTime.Now.AddMilliseconds(WaitBeforePhoton);
                 }
                 else if (DateTime.Now >= _nextStateChange.Value)
                 {
                     State = AtomPhotonState.ShowPhoton;
+                    _lastTicks = null;
+                    _lastDistanceToAtom = null;
+                    CreatePhotonPosition();
                 }
                 break;
 
             case AtomPhotonState.ShowPhoton:
-                if (_photonArObject is null)
+                if (_photonArObjects is null || _photonArObjects.Count == 0)
                 {
                     CreatePhoton();
-                    _lastTicks = null;
-                    _lastDistanceToAtom = null;
+                    CreatePhotonPosition();
                 }
+                SetActive(gameObject.activeSelf, _photonArObjects);
 
-                var atomTransform = _atomArObject?.GameObjects?.FirstOrDefault()?.transform;
-                var photonTransform = _photonArObject?.GameObjects?.FirstOrDefault()?.transform;
+                var atomTransform = _atom?.transform;
+                var photonTransform = _photon?.transform;
                 if (atomTransform != null && photonTransform != null)
                 {
                     if (_lastTicks is null)
                     {
-                        photonTransform.LookAt(atomTransform);
                         _lastTicks = DateTime.Now.Ticks;
-                        _forward = photonTransform.forward;
                     }
                     else
                     {
+                        photonTransform.LookAt(atomTransform);
                         var deltaTime = (DateTime.Now.Ticks - _lastTicks.Value) / (float)TimeSpan.TicksPerSecond;
                         _lastTicks = DateTime.Now.Ticks;
-                        var distance = Speed * deltaTime;
-
-                        if (photonTransform != null)
-                        {
-                            photonTransform.localPosition += distance * _forward;
-                        }
+ 
+                        photonTransform.localPosition += Speed * deltaTime * photonTransform.forward;
                     }
                 }
                 var distanceToAtom = Vector3.Distance(atomTransform.position, photonTransform.position);
                 if (distanceToAtom < 0.001 || (_lastDistanceToAtom.HasValue && _lastDistanceToAtom.Value < distanceToAtom))
                 {
-                    DestroyPhoton();
-                    State = AtomPhotonState.ShowRydbergAtom;
+                    SetActive(false, _photonArObjects);
+                    State = AtomPhotonState.ShowExcitedAtom;
                 }
                 else
                 {
@@ -407,26 +371,27 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
                 }
                 break;
 
-            case AtomPhotonState.ShowRydbergAtom:
-                if (_rydbergAtomArObject is null)
+            case AtomPhotonState.ShowExcitedAtom:
+                if (_excitedAtomArObjects is null || _excitedAtomArObjects.Count == 0)
                 {
-                    CreateRydbergAtom();
+                    CreateExcitedAtom();
                 }
+                SetActive(gameObject.activeSelf, _excitedAtomArObjects);
                 if (_nextStateChange is null)
                 {
-                    _nextStateChange = DateTime.Now.AddMilliseconds(RydbergDuration * .5f + Random.Next(RydbergDuration));
+                    _nextStateChange = DateTime.Now.AddMilliseconds(ExcitedDuration);
                 }
                 else if (DateTime.Now >= _nextStateChange.Value)
                 {
-                    DestroyRydbergAtom();
-                    State = AtomPhotonState.WaitAfterRydbergAtom;
+                    SetActive(false, _excitedAtomArObjects);
+                    State = AtomPhotonState.WaitAfterExcitedAtom;
                 }
                 break;
 
-            case AtomPhotonState.WaitAfterRydbergAtom:
+            case AtomPhotonState.WaitAfterExcitedAtom:
                 if (_nextStateChange is null)
                 {
-                    _nextStateChange = DateTime.Now.AddMilliseconds(WaitAfterRydberg * .5f + Random.Next(WaitAfterRydberg));
+                    _nextStateChange = DateTime.Now.AddMilliseconds(WaitAfterExcited);
                 }
                 else if (DateTime.Now >= _nextStateChange.Value)
                 {

@@ -277,6 +277,8 @@ namespace com.arpoise.arpoiseapp
 
         public int NumberOfActiveAnimations => AllAnimations.Where(x => x.IsActive).Count();
 
+        public int NumberOfAnimationsWithName => AnimationsWithName.Length;
+
         public bool RemoteActivate(string animationName, long startTicks, long nowTicks)
         {
             bool rc = false;
@@ -435,9 +437,16 @@ namespace com.arpoise.arpoiseapp
             {
                 foreach (var arAnimation in _onRandomAnimations)
                 {
-                    if (!arAnimation.IsActive && nowTicks > arAnimation.NextActivation.Ticks)
+                    if (arAnimation.AnimatedObject.activeSelf)
                     {
-                        arAnimation.Activate(startTicks, nowTicks);
+                        if (!arAnimation.IsActive && nowTicks > arAnimation.NextActivation.Ticks)
+                        {
+                            arAnimation.Activate(startTicks, nowTicks);
+                        }
+                    }
+                    else
+                    {
+                        arAnimation.ResetNextActivation = null;
                     }
                 }
             }
