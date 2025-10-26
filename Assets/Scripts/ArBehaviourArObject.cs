@@ -225,11 +225,11 @@ namespace com.arpoise.arpoiseapp
         // There are a number of scripts used by prefabs that the app has compiled in, load them
         private ArpoisePoiStructure GetPrefabScriptComponents(GameObject objectToAdd, Poi poi)
         {
-            ArpoisePoiStructure result = null;
+            ArpoisePoiStructure arpoisePoiStructure = null;
             var objectName = objectToAdd.name;
             if (objectName == null)
             {
-                return result;
+                return arpoisePoiStructure;
             }
             if ("EvolutionOfFish" == objectName)
             {
@@ -329,102 +329,59 @@ namespace com.arpoise.arpoiseapp
                     }
                 }
             }
-            var title = poi?.title ?? string.Empty;
+            var title = poi?.title?.Trim() ?? string.Empty;
             if (title.Contains("ArpoisePoi"))
             {
                 if (title.Contains(nameof(ArpoisePoiCrystal)))
                 {
                     objectToAdd.AddComponent<ArpoisePoiCrystal>();
-                    var arpoisePoiCrystal = result = objectToAdd.GetComponent<ArpoisePoiCrystal>();
-                    if (arpoisePoiCrystal != null)
-                    {
-                        arpoisePoiCrystal.ArBehaviour = this;
-                        foreach (var action in poi.actions)
-                        {
-                            arpoisePoiCrystal.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
-                        }
-                    }
+                    arpoisePoiStructure = objectToAdd.GetComponent<ArpoisePoiCrystal>();
                 }
                 else if (title.Contains(nameof(ArpoisePoiRain)))
                 {
                     objectToAdd.AddComponent<ArpoisePoiRain>();
-                    var arpoisePoiRain = result = objectToAdd.GetComponent<ArpoisePoiRain>();
-                    if (arpoisePoiRain != null)
-                    {
-                        arpoisePoiRain.ArBehaviour = this;
-                        foreach (var action in poi.actions)
-                        {
-                            arpoisePoiRain.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
-                        }
-                    }
+                    arpoisePoiStructure = objectToAdd.GetComponent<ArpoisePoiRain>();
                 }
                 else if (title.Contains(nameof(ArpoisePoiSphere)))
                 {
                     objectToAdd.AddComponent<ArpoisePoiSphere>();
-                    var arpoisePoiSphere = result = objectToAdd.GetComponent<ArpoisePoiSphere>();
-                    if (arpoisePoiSphere != null)
-                    {
-                        arpoisePoiSphere.ArBehaviour = this;
-                        foreach (var action in poi.actions)
-                        {
-                            arpoisePoiSphere.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
-                        }
-                    }
+                    arpoisePoiStructure = objectToAdd.GetComponent<ArpoisePoiSphere>();
                 }
                 else if (title.Contains(nameof(ArpoisePoiGrid)))
                 {
                     objectToAdd.AddComponent<ArpoisePoiGrid>();
-                    var arpoisePoiGrid = result = objectToAdd.GetComponent<ArpoisePoiGrid>();
-                    if (arpoisePoiGrid != null)
-                    {
-                        arpoisePoiGrid.ArBehaviour = this;
-                        foreach (var action in poi.actions)
-                        {
-                            arpoisePoiGrid.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
-                        }
-                    }
+                    arpoisePoiStructure = objectToAdd.GetComponent<ArpoisePoiGrid>();
                 }
                 else if (title.Contains(nameof(ArpoisePoiBeam)))
                 {
                     objectToAdd.AddComponent<ArpoisePoiBeam>();
-                    var arpoisePoiBeam = result = objectToAdd.GetComponent<ArpoisePoiBeam>();
-                    if (arpoisePoiBeam != null)
-                    {
-                        arpoisePoiBeam.ArBehaviour = this;
-                        foreach (var action in poi.actions)
-                        {
-                            arpoisePoiBeam.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
-                        }
-                    }
+                    arpoisePoiStructure = objectToAdd.GetComponent<ArpoisePoiBeam>();
                 }
                 else if (title.Contains(nameof(ArpoisePoiSpiral)))
                 {
                     objectToAdd.AddComponent<ArpoisePoiSpiral>();
-                    var arpoisePoiSpiral = result = objectToAdd.GetComponent<ArpoisePoiSpiral>();
-                    if (arpoisePoiSpiral != null)
-                    {
-                        arpoisePoiSpiral.ArBehaviour = this;
-                        foreach (var action in poi.actions)
-                        {
-                            arpoisePoiSpiral.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
-                        }
-                    }
+                    arpoisePoiStructure = objectToAdd.GetComponent<ArpoisePoiSpiral>();
                 }
-                else if (title.Contains(nameof(ArpoisePoiAtomPhoton)))
+                else if (title.Contains(nameof(ArpoisePoiAtomSuperpos)))
                 {
-                    objectToAdd.AddComponent<ArpoisePoiAtomPhoton>();
-                    var arpoisePoiAtomPhoton = result = objectToAdd.GetComponent<ArpoisePoiAtomPhoton>();
-                    if (arpoisePoiAtomPhoton != null)
+                    objectToAdd.AddComponent<ArpoisePoiAtomSuperpos>();
+                    arpoisePoiStructure = objectToAdd.GetComponent<ArpoisePoiAtomSuperpos>();
+                }
+                else if (title.Contains(nameof(ArpoisePoiAtomEntangled)))
+                {
+                    objectToAdd.AddComponent<ArpoisePoiAtomEntangled>();
+                    arpoisePoiStructure = objectToAdd.GetComponent<ArpoisePoiAtomEntangled>();
+                }
+                if (arpoisePoiStructure != null)
+                {
+                    arpoisePoiStructure.ArBehaviour = this;
+                    foreach (var action in poi.actions)
                     {
-                        arpoisePoiAtomPhoton.ArBehaviour = this;
-                        foreach (var action in poi.actions)
-                        {
-                            arpoisePoiAtomPhoton.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
-                        }
+                        arpoisePoiStructure.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
                     }
                 }
             }
-            return result;
+            return arpoisePoiStructure;
         }
 
         // Create ar object for a poi and link it
@@ -1290,40 +1247,53 @@ namespace com.arpoise.arpoiseapp
         {
             foreach (var crystalObject in CrystalObjects)
             {
-                var arpoisePoiCrystal = crystalObject.gameObject.GetComponent<ArpoisePoiCrystal>();
-                if (arpoisePoiCrystal != null)
+                ArpoisePoiStructure arpoisePoiStructure = crystalObject.gameObject.GetComponent<ArpoisePoiCrystal>();
+                if (arpoisePoiStructure != null)
                 {
-                    arpoisePoiCrystal.CallUpdate();
+                    arpoisePoiStructure.CallUpdate();
+                    break;
                 }
-                var arpoisePoiRain = crystalObject.gameObject.GetComponent<ArpoisePoiRain>();
-                if (arpoisePoiRain != null)
+                arpoisePoiStructure = crystalObject.gameObject.GetComponent<ArpoisePoiRain>();
+                if (arpoisePoiStructure != null)
                 {
-                    arpoisePoiRain.CallUpdate();
+                    arpoisePoiStructure.CallUpdate();
+                    break;
                 }
-                var arpoisePoiSphere = crystalObject.gameObject.GetComponent<ArpoisePoiSphere>();
-                if (arpoisePoiSphere != null)
+                arpoisePoiStructure = crystalObject.gameObject.GetComponent<ArpoisePoiSphere>();
+                if (arpoisePoiStructure != null)
                 {
-                    arpoisePoiSphere.CallUpdate();
+                    arpoisePoiStructure.CallUpdate();
+                    break;
                 }
-                var arpoisePoiGrid = crystalObject.gameObject.GetComponent<ArpoisePoiGrid>();
-                if (arpoisePoiGrid != null)
+                arpoisePoiStructure = crystalObject.gameObject.GetComponent<ArpoisePoiGrid>();
+                if (arpoisePoiStructure != null)
                 {
-                    arpoisePoiGrid.CallUpdate();
+                    arpoisePoiStructure.CallUpdate();
+                    break;
                 }
-                var arpoisePoiBeam = crystalObject.gameObject.GetComponent<ArpoisePoiBeam>();
-                if (arpoisePoiBeam != null)
+                arpoisePoiStructure = crystalObject.gameObject.GetComponent<ArpoisePoiBeam>();
+                if (arpoisePoiStructure != null)
                 {
-                    arpoisePoiBeam.CallUpdate();
+                    arpoisePoiStructure.CallUpdate();
+                    break;
                 }
-                var arpoisePoiSpiral = crystalObject.gameObject.GetComponent<ArpoisePoiSpiral>();
-                if (arpoisePoiSpiral != null)
+                arpoisePoiStructure = crystalObject.gameObject.GetComponent<ArpoisePoiSpiral>();
+                if (arpoisePoiStructure != null)
                 {
-                    arpoisePoiSpiral.CallUpdate();
+                    arpoisePoiStructure.CallUpdate();
+                    break;
                 }
-                var arpoisePoiAtomPhoton = crystalObject.gameObject.GetComponent<ArpoisePoiAtomPhoton>();
-                if (arpoisePoiAtomPhoton != null)
+                arpoisePoiStructure = crystalObject.gameObject.GetComponent<ArpoisePoiAtomSuperpos>();
+                if (arpoisePoiStructure != null)
                 {
-                    arpoisePoiAtomPhoton.CallUpdate();
+                    arpoisePoiStructure.CallUpdate();
+                    break;
+                }
+                arpoisePoiStructure = crystalObject.gameObject.GetComponent<ArpoisePoiAtomEntangled>();
+                if (arpoisePoiStructure != null)
+                {
+                    arpoisePoiStructure.CallUpdate();
+                    break;
                 }
             }
             base.Update();

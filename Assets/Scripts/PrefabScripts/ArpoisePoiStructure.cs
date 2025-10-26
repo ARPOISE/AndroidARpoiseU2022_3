@@ -125,6 +125,13 @@ public class ArpoisePoiStructure : MonoBehaviour
                     materials.Add(renderer.material);
                 }
             }
+            foreach (var renderer in objectToFade.GetComponentsInChildren<SkinnedMeshRenderer>())
+            {
+                if (renderer != null && renderer.material != null)
+                {
+                    materials.Add(renderer.material);
+                }
+            }
         }
         return materials;
     }

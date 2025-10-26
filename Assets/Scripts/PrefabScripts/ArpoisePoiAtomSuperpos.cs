@@ -1,5 +1,5 @@
 /*
-ArpoisePoiAtomPhoton.cs - A script handling an 'atom - photon' for ARpoise.
+ArpoisePoiAtomSuperpos.cs - A script handling an 'atom - superposition' for ARpoise.
 
 Copyright (C) 2025, Tamiko Thiel and Peter Graf - All Rights Reserved
 
@@ -30,12 +30,11 @@ ARpoise, see www.ARpoise.com/
 using com.arpoise.arpoiseapp;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
-public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
+public class ArpoisePoiAtomSuperpos : ArpoisePoiStructure
 {
-    #region AtomPhoton parameters
+    #region AtomSuperpos parameters
     public Vector3 PhotonOuterRange = new Vector3(12, 12, 12);
     public Vector3 PhotonInnerRange = new Vector3(2, 2, 2);
     public Vector3 PhotonStartPosition = Vector3.zero;
@@ -268,7 +267,7 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
     private long? _lastTicks = null;
     private float? _lastDistanceToAtom = null;
 
-    private enum AtomPhotonState
+    private enum AtomSuperposState
     {
         WaitBeforePhoton,
         ShowPhoton,
@@ -277,8 +276,8 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
     }
 
     private DateTime? _nextStateChange = null;
-    private AtomPhotonState _state = AtomPhotonState.WaitBeforePhoton;
-    private AtomPhotonState State
+    private AtomSuperposState _state = AtomSuperposState.WaitBeforePhoton;
+    private AtomSuperposState State
     {
         get => _state;
         set
@@ -303,7 +302,7 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
 
             _lastTicks = null;
             _lastDistanceToAtom = null;
-            State = AtomPhotonState.WaitBeforePhoton;
+            State = AtomSuperposState.WaitBeforePhoton;
             return;
         }
 
@@ -312,11 +311,12 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
             SeedRandom(GetInstanceID());
             UnityEngine.Random.InitState(Random.Next(int.MaxValue));
             ArObjects = CreateAtom();
+            Fade(); // Set the initial fade value
         }
 
         switch (State)
         {
-            case AtomPhotonState.WaitBeforePhoton:
+            case AtomSuperposState.WaitBeforePhoton:
                 if (_atomArObjects is null || _atomArObjects.Count == 0)
                 {
                     ArObjects = CreateAtom();
@@ -327,14 +327,14 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
                 }
                 else if (DateTime.Now >= _nextStateChange.Value)
                 {
-                    State = AtomPhotonState.ShowPhoton;
+                    State = AtomSuperposState.ShowPhoton;
                     _lastTicks = null;
                     _lastDistanceToAtom = null;
                     CreatePhotonPosition();
                 }
                 break;
 
-            case AtomPhotonState.ShowPhoton:
+            case AtomSuperposState.ShowPhoton:
                 if (_photonArObjects is null || _photonArObjects.Count == 0)
                 {
                     CreatePhoton();
@@ -363,7 +363,7 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
                 if (distanceToAtom < 0.001 || (_lastDistanceToAtom.HasValue && _lastDistanceToAtom.Value < distanceToAtom))
                 {
                     SetActive(false, _photonArObjects);
-                    State = AtomPhotonState.ShowExcitedAtom;
+                    State = AtomSuperposState.ShowExcitedAtom;
                 }
                 else
                 {
@@ -371,7 +371,7 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
                 }
                 break;
 
-            case AtomPhotonState.ShowExcitedAtom:
+            case AtomSuperposState.ShowExcitedAtom:
                 if (_excitedAtomArObjects is null || _excitedAtomArObjects.Count == 0)
                 {
                     CreateExcitedAtom();
@@ -384,18 +384,18 @@ public class ArpoisePoiAtomPhoton : ArpoisePoiStructure
                 else if (DateTime.Now >= _nextStateChange.Value)
                 {
                     SetActive(false, _excitedAtomArObjects);
-                    State = AtomPhotonState.WaitAfterExcitedAtom;
+                    State = AtomSuperposState.WaitAfterExcitedAtom;
                 }
                 break;
 
-            case AtomPhotonState.WaitAfterExcitedAtom:
+            case AtomSuperposState.WaitAfterExcitedAtom:
                 if (_nextStateChange is null)
                 {
                     _nextStateChange = DateTime.Now.AddMilliseconds(WaitAfterExcited);
                 }
                 else if (DateTime.Now >= _nextStateChange.Value)
                 {
-                    State = AtomPhotonState.WaitBeforePhoton;
+                    State = AtomSuperposState.WaitBeforePhoton;
                 }
                 break;
         }

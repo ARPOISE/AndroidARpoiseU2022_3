@@ -513,41 +513,29 @@ namespace com.arpoise.arpoiseapp
             if (gameObject.activeSelf != active)
             {
                 gameObject.SetActive(active);
-                var arpoisePoiCrystal = gameObject.GetComponent<ArpoisePoiCrystal>();
-                if (arpoisePoiCrystal != null)
-                {
-                    arpoisePoiCrystal.CallUpdate();
-                }
-                var arpoisePoiRain = gameObject.GetComponent<ArpoisePoiRain>();
-                if (arpoisePoiRain != null)
-                {
-                    arpoisePoiRain.CallUpdate();
-                }
-                var arpoisePoiSphere = gameObject.GetComponent<ArpoisePoiSphere>();
-                if (arpoisePoiSphere != null)
-                {
-                    arpoisePoiSphere.CallUpdate();
-                }
-                var arpoisePoiGrid = gameObject.GetComponent<ArpoisePoiGrid>();
-                if (arpoisePoiGrid != null)
-                {
-                    arpoisePoiGrid.CallUpdate();
-                }
-                var arpoisePoiBeam = gameObject.GetComponent<ArpoisePoiBeam>();
-                if (arpoisePoiBeam != null)
-                {
-                    arpoisePoiBeam.CallUpdate();
-                }
-                var arpoisePoiSpiral = gameObject.GetComponent<ArpoisePoiSpiral>();
-                if (arpoisePoiSpiral != null)
-                {
-                    arpoisePoiSpiral.CallUpdate();
-                }
-                var arpoisePoiAtomPhoton = gameObject.GetComponent<ArpoisePoiAtomPhoton>();
-                if (arpoisePoiAtomPhoton != null)
-                {
-                    arpoisePoiAtomPhoton.CallUpdate();
-                }
+                ArpoisePoiStructure arpoisePoiStructure = gameObject.GetComponent<ArpoisePoiCrystal>();
+                arpoisePoiStructure?.CallUpdate();
+
+                arpoisePoiStructure = gameObject.GetComponent<ArpoisePoiRain>();
+                arpoisePoiStructure?.CallUpdate();
+
+                arpoisePoiStructure = gameObject.GetComponent<ArpoisePoiSphere>();
+                arpoisePoiStructure?.CallUpdate();
+
+                arpoisePoiStructure = gameObject.GetComponent<ArpoisePoiGrid>();
+                arpoisePoiStructure?.CallUpdate();
+
+                arpoisePoiStructure = gameObject.GetComponent<ArpoisePoiBeam>();
+                arpoisePoiStructure?.CallUpdate();
+
+                arpoisePoiStructure = gameObject.GetComponent<ArpoisePoiSpiral>();
+                arpoisePoiStructure?.CallUpdate();
+
+                arpoisePoiStructure = gameObject.GetComponent<ArpoisePoiAtomSuperpos>();
+                arpoisePoiStructure?.CallUpdate();
+
+                arpoisePoiStructure = gameObject.GetComponent<ArpoisePoiAtomEntangled>();
+                arpoisePoiStructure?.CallUpdate();
             }
         }
 
@@ -744,41 +732,30 @@ namespace com.arpoise.arpoiseapp
                 }
                 material.color = new Color(color.r, color.g, color.b, value);
             }
-            var arpoisePoiCrystal = AnimatedObject.GetComponent<ArpoisePoiCrystal>();
-            if (arpoisePoiCrystal != null)
-            {
-                arpoisePoiCrystal.Fade(value);
-            }
-            var arpoisePoiRain = AnimatedObject.GetComponent<ArpoisePoiRain>();
-            if (arpoisePoiRain != null)
-            {
-                arpoisePoiRain.Fade(value);
-            }
-            var arpoisePoiSphere = AnimatedObject.GetComponent<ArpoisePoiSphere>();
-            if (arpoisePoiSphere != null)
-            {
-                arpoisePoiSphere.Fade(value);
-            }
-            var arpoisePoiGrid = AnimatedObject.GetComponent<ArpoisePoiGrid>();
-            if (arpoisePoiGrid != null)
-            {
-                arpoisePoiGrid.Fade(value);
-            }
-            var arpoisePoiBeam = AnimatedObject.GetComponent<ArpoisePoiBeam>();
-            if (arpoisePoiBeam != null)
-            {
-                arpoisePoiBeam.Fade(value);
-            }
-            var arpoisePoiSpiral = AnimatedObject.GetComponent<ArpoisePoiSpiral>();
-            if (arpoisePoiSpiral != null)
-            {
-                arpoisePoiSpiral.Fade(value);
-            }
-            var arpoisePoiAtomPhoton = AnimatedObject.GetComponent<ArpoisePoiAtomPhoton>();
-            if (arpoisePoiAtomPhoton != null)
-            {
-                arpoisePoiAtomPhoton.Fade(value);
-            }
+            ArpoisePoiStructure arpoisePoiStructure = AnimatedObject.GetComponent<ArpoisePoiCrystal>();
+            arpoisePoiStructure?.Fade(value);
+
+            arpoisePoiStructure = AnimatedObject.GetComponent<ArpoisePoiRain>();
+            arpoisePoiStructure?.Fade(value);
+
+            arpoisePoiStructure = AnimatedObject.GetComponent<ArpoisePoiSphere>();
+            arpoisePoiStructure?.Fade(value);
+
+            arpoisePoiStructure = AnimatedObject.GetComponent<ArpoisePoiGrid>();
+            arpoisePoiStructure?.Fade(value);
+
+            arpoisePoiStructure = AnimatedObject.GetComponent<ArpoisePoiBeam>();
+            arpoisePoiStructure?.Fade(value);
+
+            arpoisePoiStructure = AnimatedObject.GetComponent<ArpoisePoiSpiral>();
+            arpoisePoiStructure?.Fade(value);
+
+            arpoisePoiStructure = AnimatedObject.GetComponent<ArpoisePoiAtomSuperpos>();
+            arpoisePoiStructure?.Fade(value);
+
+            arpoisePoiStructure = AnimatedObject.GetComponent<ArpoisePoiAtomEntangled>();
+            arpoisePoiStructure?.Fade(value);
+
         }
 
         private void Buzz(float value)
@@ -839,6 +816,13 @@ namespace com.arpoise.arpoiseapp
             if (objectToFade != null)
             {
                 foreach (var renderer in objectToFade.GetComponentsInChildren<MeshRenderer>())
+                {
+                    if (renderer != null && renderer.material != null)
+                    {
+                        materials.Add(renderer.material);
+                    }
+                }
+                foreach (var renderer in objectToFade.GetComponentsInChildren<SkinnedMeshRenderer>())
                 {
                     if (renderer != null && renderer.material != null)
                     {

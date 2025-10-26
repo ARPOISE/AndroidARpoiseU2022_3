@@ -281,7 +281,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
         }
     }
 
-    private enum AtomPhotonState
+    private enum AtomGridState
     {
         WaitBeforePhotons,
         ShowPhotons,
@@ -290,8 +290,8 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
     }
 
     private DateTime? _nextStateChange = null;
-    private AtomPhotonState _state = AtomPhotonState.WaitBeforePhotons;
-    private AtomPhotonState State
+    private AtomGridState _state = AtomGridState.WaitBeforePhotons;
+    private AtomGridState State
     {
         get => _state;
         set
@@ -318,7 +318,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
             }
             SetActive(false, _photonArObjects);
             _lastTicks = null;
-            State = AtomPhotonState.WaitBeforePhotons;
+            State = AtomGridState.WaitBeforePhotons;
             return;
         }
 
@@ -331,7 +331,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
         float? lerpFactor = null;
         switch (State)
         {
-            case AtomPhotonState.WaitBeforePhotons:
+            case AtomGridState.WaitBeforePhotons:
                 if (_atomArObjects is null || _atomArObjects.Count == 0)
                 {
                     ArObjects = CreateAtoms();
@@ -347,12 +347,12 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 }
                 else if (DateTime.Now >= _nextStateChange.Value)
                 {
-                    State = AtomPhotonState.ShowPhotons;
+                    State = AtomGridState.ShowPhotons;
                     _lastTicks = null;
                 }
                 break;
 
-            case AtomPhotonState.ShowPhotons:
+            case AtomGridState.ShowPhotons:
                 if (_photonArObjects is null || _photonArObjects.Count == 0)
                 {
                     CreatePhotons();
@@ -365,12 +365,12 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 }
                 else if (DateTime.Now >= _nextStateChange.Value)
                 {
-                    State = AtomPhotonState.CoolAtoms;
+                    State = AtomGridState.CoolAtoms;
                     _coolAtomsStartTicks = null;
                 }
                 break;
 
-            case AtomPhotonState.CoolAtoms:
+            case AtomGridState.CoolAtoms:
                 if (_coolAtomsStartTicks is null)
                 {
                     _coolAtomsStartTicks = DateTime.Now.Ticks;
@@ -393,18 +393,18 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 }
                 else if (DateTime.Now >= _nextStateChange.Value)
                 {
-                    State = AtomPhotonState.WaitAfterCooledAtoms;
+                    State = AtomGridState.WaitAfterCooledAtoms;
                 }
                 break;
 
-            case AtomPhotonState.WaitAfterCooledAtoms:
+            case AtomGridState.WaitAfterCooledAtoms:
                 if (_nextStateChange is null)
                 {
                     _nextStateChange = DateTime.Now.AddMilliseconds(WaitAfterCooledAtoms);
                 }
                 else if (DateTime.Now >= _nextStateChange.Value)
                 {
-                    State = AtomPhotonState.WaitBeforePhotons;
+                    State = AtomGridState.WaitBeforePhotons;
                 }
                 break;
         }
@@ -451,7 +451,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
             }
         }
 
-        if (AtomPhotonState.WaitBeforePhotons != State)
+        if (AtomGridState.WaitBeforePhotons != State)
         {
             if (_lastTicks is null)
             {
