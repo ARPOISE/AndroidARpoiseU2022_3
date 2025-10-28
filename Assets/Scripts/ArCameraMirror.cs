@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 
+// PG: 251027, This mirros the game play, but not the camera background.
+// Attach this script to the Main Camera, and assign the AR Camera to the "cameraToMirror"
 public class CameraMirror : MonoBehaviour
 {
     [SerializeField]
