@@ -183,7 +183,6 @@ public class ArpoisePoiAtomSuperpos : ArpoisePoiStructure
                         _photon.SetActive(true);
                     }
                 }
-                //CreatePhotonPosition();
                 if (photonArObject != null)
                 {
                     ArObjectsToFade.Add(photonArObject);
@@ -355,7 +354,7 @@ public class ArpoisePoiAtomSuperpos : ArpoisePoiStructure
                         photonTransform.LookAt(atomTransform);
                         var deltaTime = (DateTime.Now.Ticks - _lastTicks.Value) / (float)TimeSpan.TicksPerSecond;
                         _lastTicks = DateTime.Now.Ticks;
- 
+
                         photonTransform.localPosition += Speed * deltaTime * photonTransform.forward;
                     }
                 }

@@ -31,6 +31,7 @@ using com.arpoise.arpoiseapp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class ArpoisePoiGrid : ArpoisePoiStructure
@@ -38,24 +39,41 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
     #region Grid parameters
     public float PhotonStartPos = -8;
     public float PhotonMaxPos = 8;
+    public float Sweep = 0f;
     public float Speed = 1.0f; // meters per second
     public int WaitBeforePhotons = 10000; // milliseconds
     public int ShowPhotons = 5000;
-    public int CoolAtoms = 10000;
-    public int WaitAfterCooledAtoms = 10000;
+    public int TrapAtoms = 10000;
+    public int TweezeAtoms = 10000;
+    public int WaitAfterTweezedAtoms = 10000;
     public int AreaSize = 6; // The dimensions of the area the grid happens in
     public int AreaHeight = 3;
-
+    public int Beams = 3;
+    public float AnimationSmoothFactor = 1;
     public string Photon = string.Empty;
+    public string Tweezer = string.Empty;
     #endregion
 
     private readonly List<GameObject> _atoms = new();
     private readonly List<ArObject> _atomArObjects = new();
 
     private readonly List<string> _photonNames = new();
-    private readonly List<GameObject> _zDirectionBeamsPhotons = new();
+    private readonly List<string> _tweezerNames = new();
     private readonly List<GameObject> _xDirectionBeamsPhotons = new();
+    private readonly List<GameObject> _yDirectionBeamsPhotons = new();
+    private readonly List<GameObject> _zDirectionBeamsPhotons = new();
+    private readonly List<GameObject> _xDirectionBeamsPhotonsR = new();
+    private readonly List<GameObject> _yDirectionBeamsPhotonsR = new();
+    private readonly List<GameObject> _zDirectionBeamsPhotonsR = new();
     private readonly List<ArObject> _photonArObjects = new();
+    private readonly List<GameObject> _tweezers = new();
+    private readonly List<ArObject> _tweezerArObjects = new();
+
+    private float _sweepDirectionXZ = 1;
+    private float _sweepDirectionXY = -1;
+    private float _sweepDirectionYX = 1;
+    private float _sweepDirectionYZ = -1;
+    private float _sweepDirectionZX = 1;
 
     public override void SetParameter(bool setValue, string label, string value)
     {
@@ -71,6 +89,18 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
         else if (label.Equals(nameof(Speed)))
         {
             Speed = ParameterHelper.SetParameter(setValue, value, Speed).Value;
+        }
+        else if (label.Equals(nameof(Sweep)))
+        {
+            Sweep = ParameterHelper.SetParameter(setValue, value, Sweep).Value;
+        }
+        else if (label.Equals(nameof(Beams)))
+        {
+            Beams = ParameterHelper.SetParameter(setValue, value, Beams).Value;
+        }
+        else if (label.Equals(nameof(AnimationSmoothFactor)))
+        {
+            AnimationSmoothFactor = ParameterHelper.SetParameter(setValue, value, AnimationSmoothFactor).Value;
         }
         else if (label.Equals(nameof(PhotonStartPos)))
         {
@@ -88,17 +118,25 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
         {
             ShowPhotons = ParameterHelper.SetParameter(setValue, value, ShowPhotons).Value;
         }
-        else if (label.Equals(nameof(CoolAtoms)))
+        else if (label.Equals(nameof(TrapAtoms)))
         {
-            CoolAtoms = ParameterHelper.SetParameter(setValue, value, CoolAtoms).Value;
+            TrapAtoms = ParameterHelper.SetParameter(setValue, value, TrapAtoms).Value;
         }
-        else if (label.Equals(nameof(WaitAfterCooledAtoms)))
+        else if (label.Equals(nameof(TweezeAtoms)))
         {
-            WaitAfterCooledAtoms = ParameterHelper.SetParameter(setValue, value, WaitAfterCooledAtoms).Value;
+            TweezeAtoms = ParameterHelper.SetParameter(setValue, value, TweezeAtoms).Value;
+        }
+        else if (label.Equals(nameof(WaitAfterTweezedAtoms)))
+        {
+            WaitAfterTweezedAtoms = ParameterHelper.SetParameter(setValue, value, WaitAfterTweezedAtoms).Value;
         }
         else if (label.Equals(nameof(Photon)))
         {
             ParameterHelper.SetParameter(setValue, value, _photonNames);
+        }
+        else if (label.Equals(nameof(Tweezer)))
+        {
+            ParameterHelper.SetParameter(setValue, value, _tweezerNames);
         }
         else
         {
@@ -107,6 +145,8 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
     }
 
     private List<ArAnimation> _animations = null;
+    private List<ArAnimation> _animationsToSmooth = new();
+    private List<ArAnimation> _animationsToExcite = new();
     private Dictionary<ArAnimation, DateTime> _animationStartTimes = new Dictionary<ArAnimation, DateTime>();
 
     private readonly List<Vector3> _atomPositions = new();
@@ -156,7 +196,6 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 }
             }
             Fade(); // Set the initial fade value
-            _animations = null;
         }
         return ArObjects;
     }
@@ -175,22 +214,72 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
         }
     }
 
+    private List<ArObject> CreateTweezers()
+    {
+        _tweezerArObjects.Clear();
+
+        if (_tweezerNames.Count > 0)
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                var tweezer = _tweezerNames[i % _tweezerNames.Count];
+                var tweezerObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == tweezer);
+                var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
+                if (arObjectState is null || tweezerObject is null)
+                {
+                    return ArObjects;
+                }
+
+                var result = ArBehaviour.CreateArObject(
+                    arObjectState,
+                    tweezerObject.gameObject,
+                    null,
+                    transform,
+                    tweezerObject.poi,
+                    ArBehaviourArObject.ArObjectId,
+                    out var gridObject,
+                    out var gridArObject
+                    );
+
+                if (gridObject != null)
+                {
+                    if (!gridObject.activeSelf)
+                    {
+                        gridObject.SetActive(true);
+                    }
+                }
+                if (gridArObject != null)
+                {
+                    Add(gridArObject);
+                    _tweezerArObjects.Add(gridArObject);
+                }
+                if (gridObject != null)
+                {
+                    _tweezers.Add(gridObject);
+                }
+                Fade(); // Set the initial fade value
+            }
+        }
+        return _tweezerArObjects;
+    }
+
     private void CreatePhotons()
     {
+        var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
+        if (arObjectState is null)
+        {
+            return;
+        }
+
         if (_photonNames.Count > 0)
         {
-            var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
-            if (arObjectState is null)
-            {
-                return;
-            }
-
             var photon = _photonNames[0];
             var photonObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == photon);
 
             if (photonObject is not null)
             {
-                for (int x = -1; x < 2; x++)
+                var halfBeams = Beams / 2;
+                for (int x = -halfBeams; x <= halfBeams; x++)
                 {
                     for (int i = 0; i < 10000; i++)
                     {
@@ -231,13 +320,16 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                     }
                 }
             }
-
-            photon = _photonNames[1 % _photonNames.Count];
-            photonObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == photon);
+        }
+        if (_photonNames.Count > 1)
+        {
+            var photon = _photonNames[1];
+            var photonObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == photon);
 
             if (photonObject is not null)
             {
-                for (int z = -1; z < 2; z++)
+                var halfBeams = Beams / 2;
+                for (int z = -halfBeams; z <= halfBeams; z++)
                 {
                     for (int i = 0; i < 10000; i++)
                     {
@@ -279,14 +371,216 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 }
             }
         }
+        if (_photonNames.Count > 2)
+        {
+            var photon = _photonNames[2];
+            var photonObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == photon);
+
+            if (photonObject is not null)
+            {
+                var halfBeams = Beams / 2;
+                for (int x = -halfBeams; x <= halfBeams; x++)
+                {
+                    for (int i = 0; i < 10000; i++)
+                    {
+                        var positionY = PhotonMaxPos - 1f * i;
+                        if (positionY <= PhotonStartPos)
+                        {
+                            break;
+                        }
+                        var result = ArBehaviour.CreateArObject(
+                            arObjectState,
+                            photonObject.gameObject,
+                            null,
+                            transform,
+                            photonObject.poi,
+                            ArBehaviourArObject.ArObjectId,
+                            out var newPhotonObject,
+                            out var newPhotonArObject);
+
+                        if (newPhotonObject != null)
+                        {
+                            if (!newPhotonObject.activeSelf)
+                            {
+                                newPhotonObject.SetActive(true);
+                            }
+                            var position = new Vector3(x, positionY, 0);
+                            newPhotonObject.transform.localPosition = position;
+                            newPhotonObject.transform.localEulerAngles = new Vector3(0, 0, 1);
+                        }
+                        if (newPhotonArObject != null)
+                        {
+                            ArObjectsToFade.Add(newPhotonArObject);
+                            _photonArObjects.Add(newPhotonArObject);
+                        }
+                        if (newPhotonObject != null)
+                        {
+                            _yDirectionBeamsPhotons.Add(newPhotonObject);
+                        }
+                    }
+                }
+            }
+        }
+        if (_photonNames.Count > 3)
+        {
+            var photon = _photonNames[3];
+            var photonObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == photon);
+
+            if (photonObject is not null)
+            {
+                var halfBeams = Beams / 2;
+                for (int x = -halfBeams; x <= halfBeams; x++)
+                {
+                    for (int i = 0; i < 10000; i++)
+                    {
+                        var positionZ = PhotonMaxPos - 1f * i;
+                        if (positionZ <= PhotonStartPos)
+                        {
+                            break;
+                        }
+                        var result = ArBehaviour.CreateArObject(
+                            arObjectState,
+                            photonObject.gameObject,
+                            null,
+                            transform,
+                            photonObject.poi,
+                            ArBehaviourArObject.ArObjectId,
+                            out var newPhotonObject,
+                            out var newPhotonArObject);
+
+                        if (newPhotonObject != null)
+                        {
+                            if (!newPhotonObject.activeSelf)
+                            {
+                                newPhotonObject.SetActive(true);
+                            }
+                            var position = new Vector3(x, -1, positionZ);
+                            newPhotonObject.transform.localPosition = position;
+                            newPhotonObject.transform.localEulerAngles = new Vector3(0, 0, 1);
+                        }
+                        if (newPhotonArObject != null)
+                        {
+                            ArObjectsToFade.Add(newPhotonArObject);
+                            _photonArObjects.Add(newPhotonArObject);
+                        }
+                        if (newPhotonObject != null)
+                        {
+                            _zDirectionBeamsPhotonsR.Add(newPhotonObject);
+                        }
+                    }
+                }
+            }
+        }
+        if (_photonNames.Count > 4)
+        {
+            var photon = _photonNames[4];
+            var photonObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == photon);
+
+            if (photonObject is not null)
+            {
+                var halfBeams = Beams / 2;
+                for (int z = -halfBeams; z <= halfBeams; z++)
+                {
+                    for (int i = 0; i < 10000; i++)
+                    {
+                        var positionX = PhotonMaxPos - 1f * i;
+                        if (positionX <= PhotonStartPos)
+                        {
+                            break;
+                        }
+                        var result = ArBehaviour.CreateArObject(
+                            arObjectState,
+                            photonObject.gameObject,
+                            null,
+                            transform,
+                            photonObject.poi,
+                            ArBehaviourArObject.ArObjectId,
+                            out var newPhotonObject,
+                            out var newPhotonArObject);
+
+                        if (newPhotonObject != null)
+                        {
+                            if (!newPhotonObject.activeSelf)
+                            {
+                                newPhotonObject.SetActive(true);
+                            }
+                            var position = new Vector3(positionX, -1, z);
+                            newPhotonObject.transform.localPosition = position;
+                            newPhotonObject.transform.localEulerAngles = new Vector3(0, 0, 1);
+                        }
+                        if (newPhotonArObject != null)
+                        {
+                            ArObjectsToFade.Add(newPhotonArObject);
+                            _photonArObjects.Add(newPhotonArObject);
+                        }
+                        if (newPhotonObject != null)
+                        {
+                            _xDirectionBeamsPhotonsR.Add(newPhotonObject);
+                        }
+                    }
+                }
+            }
+        }
+        if (_photonNames.Count > 5)
+        {
+            var photon = _photonNames[5];
+            var photonObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == photon);
+
+            if (photonObject is not null)
+            {
+                var halfBeams = Beams / 2;
+                for (int x = -halfBeams; x <= halfBeams; x++)
+                {
+                    for (int i = 0; i < 10000; i++)
+                    {
+                        var positionY = PhotonStartPos + 1f * i;
+                        if (positionY > PhotonMaxPos)
+                        {
+                            break;
+                        }
+                        var result = ArBehaviour.CreateArObject(
+                            arObjectState,
+                            photonObject.gameObject,
+                            null,
+                            transform,
+                            photonObject.poi,
+                            ArBehaviourArObject.ArObjectId,
+                            out var newPhotonObject,
+                            out var newPhotonArObject);
+
+                        if (newPhotonObject != null)
+                        {
+                            if (!newPhotonObject.activeSelf)
+                            {
+                                newPhotonObject.SetActive(true);
+                            }
+                            var position = new Vector3(x, positionY, 0);
+                            newPhotonObject.transform.localPosition = position;
+                            newPhotonObject.transform.localEulerAngles = new Vector3(0, 0, 1);
+                        }
+                        if (newPhotonArObject != null)
+                        {
+                            ArObjectsToFade.Add(newPhotonArObject);
+                            _photonArObjects.Add(newPhotonArObject);
+                        }
+                        if (newPhotonObject != null)
+                        {
+                            _yDirectionBeamsPhotonsR.Add(newPhotonObject);
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
     private enum AtomGridState
     {
         WaitBeforePhotons,
         ShowPhotons,
-        CoolAtoms,
-        WaitAfterCooledAtoms
+        TrapAtoms,
+        TweezAtoms,
+        WaitAfterTweezedAtoms
     }
 
     private DateTime? _nextStateChange = null;
@@ -304,43 +598,69 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
         }
     }
 
+    private int _tweezerIndex = -1;
+    private int _tweezerIndex2 = -1;
     private long? _lastTicks = null;
-    private long? _coolAtomsStartTicks = null;
+    private long? _trapAtomsStartTicks = null;
+    private long? _tweezAtomsStartTicks = null;
+    private DateTime? _animationSmoothTime = null;
     protected override void Update()
     {
         base.Update();
 
         if (!gameObject.activeSelf)
         {
-            if(_atomPositions.Count > 0)
+            if (_atomPositions.Count > 0)
             {
                 _atomPositions.Clear();
             }
             SetActive(false, _photonArObjects);
             _lastTicks = null;
             State = AtomGridState.WaitBeforePhotons;
+            if (_animationStartTimes.Count > 0)
+            {
+                _animationStartTimes.Clear();
+            }
+            _tweezerIndex = _tweezerIndex2 = -1;
+            _animationSmoothTime = null;
             return;
         }
 
-        if (_atomArObjects is null || _atomArObjects.Count == 0)
+        if (_atomArObjects.Count == 0)
         {
             SeedRandom(GetInstanceID());
             ArObjects = CreateAtoms();
         }
 
         float? lerpFactor = null;
+
         switch (State)
         {
             case AtomGridState.WaitBeforePhotons:
-                if (_atomArObjects is null || _atomArObjects.Count == 0)
-                {
-                    ArObjects = CreateAtoms();
-                }
                 if (_atomPositions.Count == 0)
                 {
                     CreateAtomPositions();
                 }
+                if (_animationsToExcite.Count > 0)
+                {
+                    if (AnimationSmoothFactor != 1 && AnimationSmoothFactor != 0)
+                    {
+                        foreach (var animation in _animationsToExcite)
+                        {
+                            animation.To /= AnimationSmoothFactor;
+                        }
+                    }
+                    _animationsToExcite.Clear();
+                }
                 SetActive(false, _photonArObjects);
+                if (_tweezers.Count > 0)
+                {
+                    _tweezers[0].SetActive(false);
+                }
+                if (_tweezers.Count > 1)
+                {
+                    _tweezers[1].SetActive(false);
+                }
                 if (_nextStateChange is null)
                 {
                     _nextStateChange = DateTime.Now.AddMilliseconds(WaitBeforePhotons);
@@ -349,6 +669,12 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 {
                     State = AtomGridState.ShowPhotons;
                     _lastTicks = null;
+                    if (_animations is not null && AnimationSmoothFactor != 1)
+                    {
+                        _animationSmoothTime = DateTime.Now.AddMilliseconds(1000);
+                        _animationsToSmooth.Clear();
+                        _animationsToSmooth.AddRange(_animations);
+                    }
                 }
                 break;
 
@@ -365,42 +691,144 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 }
                 else if (DateTime.Now >= _nextStateChange.Value)
                 {
-                    State = AtomGridState.CoolAtoms;
-                    _coolAtomsStartTicks = null;
+                    State = AtomGridState.TrapAtoms;
+                    _trapAtomsStartTicks = null;
+                    _tweezerIndex = _tweezerIndex2 = -1;
                 }
                 break;
 
-            case AtomGridState.CoolAtoms:
-                if (_coolAtomsStartTicks is null)
+            case AtomGridState.TrapAtoms:
                 {
-                    _coolAtomsStartTicks = DateTime.Now.Ticks;
-                }
-
-                int i = 0;
-                var duration = DateTime.Now.Ticks - _coolAtomsStartTicks;
-                lerpFactor = (int)((1000 * duration) / TimeSpan.TicksPerSecond) / (CoolAtoms * .5f);
-
-                for (int x = -1; x < 2; x++)
-                {
-                    for (int z = -1; z < 2; z++, i++)
+                    if (_trapAtomsStartTicks is null)
                     {
-                        _atoms[i % _atoms.Count].transform.localPosition = Vector3.Lerp(_atomPositions[i % _atomPositions.Count], new Vector3(x, -1, z), lerpFactor.Value);
+                        _trapAtomsStartTicks = DateTime.Now.Ticks;
+                    }
+
+                    int i = 0;
+                    var duration = DateTime.Now.Ticks - _trapAtomsStartTicks;
+                    lerpFactor = (int)((1000 * duration) / TimeSpan.TicksPerSecond) / (TrapAtoms * .5f);
+
+                    if (_tweezerNames.Count > 0 && _tweezerIndex == -1)
+                    {
+                        var maxDistance = -1f;
+                        for (int x = -1; x < 2; x++)
+                        {
+                            for (int z = -1; z < 2; z++, i++)
+                            {
+                                var distance = Vector3.Distance(_atomPositions[i % _atomPositions.Count], new Vector3(x, -1, z));
+                                if (distance > maxDistance)
+                                {
+                                    maxDistance = distance;
+                                    _tweezerIndex = i % _atomPositions.Count;
+                                }
+                            }
+                        }
+                        i = 0;
+                        maxDistance = -1f;
+                        for (int x = -1; x < 2; x++)
+                        {
+                            for (int z = -1; z < 2; z++, i++)
+                            {
+                                var distance = Vector3.Distance(_atomPositions[i % _atomPositions.Count], new Vector3(x, -1, z));
+                                if (distance > maxDistance && _tweezerIndex != i % _atomPositions.Count)
+                                {
+                                    maxDistance = distance;
+                                    _tweezerIndex2 = i % _atomPositions.Count;
+                                }
+                            }
+                        }
+                    }
+
+                    i = 0;
+                    for (int x = -1; x < 2; x++)
+                    {
+                        for (int z = -1; z < 2; z++, i++)
+                        {
+                            if (i != _tweezerIndex && i != _tweezerIndex2)
+                            {
+                                _atoms[i % _atoms.Count].transform.localPosition = Vector3.Lerp(_atomPositions[i % _atomPositions.Count], new Vector3(x, -1, z), lerpFactor.Value);
+                            }
+                        }
+                    }
+
+                    if (_nextStateChange is null)
+                    {
+                        _nextStateChange = DateTime.Now.AddMilliseconds(TrapAtoms);
+                    }
+                    else if (DateTime.Now >= _nextStateChange.Value)
+                    {
+                        if (_tweezerIndex >= 0)
+                        {
+                            State = AtomGridState.TweezAtoms;
+                            _tweezAtomsStartTicks = null;
+                        }
+                        else
+                        {
+                            State = AtomGridState.WaitAfterTweezedAtoms;
+                        }
                     }
                 }
-                if (_nextStateChange is null)
+                break;
+
+            case AtomGridState.TweezAtoms:
                 {
-                    _nextStateChange = DateTime.Now.AddMilliseconds(CoolAtoms);
-                }
-                else if (DateTime.Now >= _nextStateChange.Value)
-                {
-                    State = AtomGridState.WaitAfterCooledAtoms;
+                    if (_tweezAtomsStartTicks is null)
+                    {
+                        _tweezAtomsStartTicks = DateTime.Now.Ticks;
+                    }
+
+                    int i = 0;
+                    var duration = DateTime.Now.Ticks - _tweezAtomsStartTicks;
+                    lerpFactor = (int)((1000 * duration) / TimeSpan.TicksPerSecond) / (TweezeAtoms * .5f);
+
+                    for (int x = -1; _tweezerIndex >= 0 && x < 2; x++)
+                    {
+                        for (int z = -1; z < 2; z++, i++)
+                        {
+                            if (i == _tweezerIndex)
+                            {
+                                if (_tweezers.Count == 0)
+                                {
+                                    CreateTweezers();
+                                }
+                                _tweezers[0].transform.localPosition = _atoms[i % _atoms.Count].transform.localPosition = Vector3.Lerp(_atomPositions[i % _atomPositions.Count], new Vector3(x, -1, z), lerpFactor.Value);
+                                _tweezers[0].SetActive(true);
+                            }
+                            if (i == _tweezerIndex2)
+                            {
+                                if (_tweezers.Count == 0)
+                                {
+                                    CreateTweezers();
+                                }
+                                _tweezers[1].transform.localPosition = _atoms[i % _atoms.Count].transform.localPosition = Vector3.Lerp(_atomPositions[i % _atomPositions.Count], new Vector3(x, -1, z), lerpFactor.Value);
+                                _tweezers[1].SetActive(true);
+                            }
+                        }
+                    }
+
+                    if (_nextStateChange is null)
+                    {
+                        _nextStateChange = DateTime.Now.AddMilliseconds(TweezeAtoms);
+                    }
+                    else if (DateTime.Now >= _nextStateChange.Value)
+                    {
+                        State = AtomGridState.WaitAfterTweezedAtoms;
+                        if (_tweezers.Count > 0)
+                        {
+                            _tweezers[0].SetActive(false);
+                        }
+                        if (_tweezers.Count > 1)
+                        {
+                            _tweezers[1].SetActive(false);
+                        }
+                    }
                 }
                 break;
 
-            case AtomGridState.WaitAfterCooledAtoms:
+            case AtomGridState.WaitAfterTweezedAtoms:
                 if (_nextStateChange is null)
                 {
-                    _nextStateChange = DateTime.Now.AddMilliseconds(WaitAfterCooledAtoms);
+                    _nextStateChange = DateTime.Now.AddMilliseconds(WaitAfterTweezedAtoms);
                 }
                 else if (DateTime.Now >= _nextStateChange.Value)
                 {
@@ -422,6 +850,21 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
 
         if (_animations is not null)
         {
+            if (_animationSmoothTime.HasValue && DateTime.Now >= _animationSmoothTime.Value && AnimationSmoothFactor != 1)
+            {
+                var animation = _animationsToSmooth.FirstOrDefault();
+                if (animation is null)
+                {
+                    _animationSmoothTime = null;
+                }
+                else
+                {
+                    _animationSmoothTime = DateTime.Now.AddMilliseconds(750);
+                    animation.To *= AnimationSmoothFactor;
+                    _animationsToExcite.Add(animation);
+                    _animationsToSmooth.Remove(animation);
+                }
+            }
             foreach (var animation in _animations)
             {
                 if (!animation.IsActive)
@@ -432,20 +875,13 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                         if (DateTime.Now > startTime)
                         {
                             _animationStartTimes.Remove(animation);
-                            if (lerpFactor is not null)
-                            {
-                                if (lerpFactor.Value > 1)
-                                {
-                                    lerpFactor = 1;
-                                }
-                                animation.SetTo(Mathf.Lerp(1, 0.1f, lerpFactor.Value));
-                            }
                             animation.Activate(ArBehaviour.StartTicks, DateTime.Now.Ticks);
+                            _animationStartTimes[animation] = animation.NextActivation.AddMilliseconds(Random.Next(100));
                         }
                     }
                     else
                     {
-                        _animationStartTimes[animation] = animation.NextActivation;
+                        _animationStartTimes[animation] = animation.NextActivation.AddMilliseconds(Random.Next(100));
                     }
                 }
             }
@@ -457,39 +893,164 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
             {
                 _lastTicks = DateTime.Now.Ticks;
             }
+            var halfAreaSize = AreaSize / 2.0f;
             var now = DateTime.Now.Ticks;
             var deltaTime = (now - _lastTicks.Value) / (float)TimeSpan.TicksPerSecond;
             _lastTicks = now;
             var distance = Speed * deltaTime;
+            var sweepDistance = Sweep * deltaTime;
 
-            if (_zDirectionBeamsPhotons is not null)
-            {
-                foreach (var photon in _zDirectionBeamsPhotons)
-                {
-                    var positionZ = photon.transform.localPosition.z + distance;
-                    if (Math.Abs(positionZ) > PhotonMaxPos)
-                    {
-                        photon.transform.localPosition = new Vector3(photon.transform.localPosition.x, photon.transform.localPosition.y, PhotonStartPos + (Math.Abs(positionZ) - PhotonMaxPos));
-                    }
-                    else
-                    {
-                        photon.transform.localPosition = new Vector3(photon.transform.localPosition.x, photon.transform.localPosition.y, positionZ);
-                    }
-                }
-            }
-
-            if (_xDirectionBeamsPhotons is not null)
+            if (_xDirectionBeamsPhotons?.Count > 0)
             {
                 foreach (var photon in _xDirectionBeamsPhotons)
                 {
+                    var positionY = photon.transform.localPosition.y + sweepDistance * _sweepDirectionYX * 0.4f;
+                    if (positionY > halfAreaSize || positionY < -halfAreaSize)
+                    {
+                        _sweepDirectionYX *= -1;
+                    }
+                    var positionZ = photon.transform.localPosition.z + sweepDistance * _sweepDirectionZX * 0.2f;
+                    if (positionZ > halfAreaSize || positionZ < -halfAreaSize)
+                    {
+                        _sweepDirectionZX *= -1;
+                    }
                     var positionX = photon.transform.localPosition.x + distance;
                     if (Math.Abs(positionX) > PhotonMaxPos)
                     {
-                        photon.transform.localPosition = new Vector3(PhotonStartPos + (Math.Abs(positionX) - PhotonMaxPos), photon.transform.localPosition.y, photon.transform.localPosition.z);
+                        photon.transform.localPosition = new Vector3(PhotonStartPos + (Math.Abs(positionX) - PhotonMaxPos), positionY, positionZ);
                     }
                     else
                     {
-                        photon.transform.localPosition = new Vector3(positionX, photon.transform.localPosition.y, photon.transform.localPosition.z);
+                        photon.transform.localPosition = new Vector3(positionX, positionY, positionZ);
+                    }
+                }
+            }
+            if (_xDirectionBeamsPhotonsR?.Count > 0)
+            {
+                foreach (var photon in _xDirectionBeamsPhotonsR)
+                {
+                    var positionY = photon.transform.localPosition.y + sweepDistance * _sweepDirectionYX * 0.4f;
+                    if (positionY > halfAreaSize || positionY < -halfAreaSize)
+                    {
+                        _sweepDirectionYX *= -1;
+                    }
+                    var positionZ = photon.transform.localPosition.z + sweepDistance * _sweepDirectionZX * 0.2f;
+                    if (positionZ > halfAreaSize || positionZ < -halfAreaSize)
+                    {
+                        _sweepDirectionZX *= -1;
+                    }
+                    var positionX = photon.transform.localPosition.x - distance;
+                    if (positionX <= PhotonStartPos)
+                    {
+                        photon.transform.localPosition = new Vector3(PhotonMaxPos - (Math.Abs(positionX) - Math.Abs(PhotonStartPos)), positionY, positionZ);
+                    }
+                    else
+                    {
+                        photon.transform.localPosition = new Vector3(positionX, positionY, positionZ);
+                    }
+                }
+            }
+            if (_yDirectionBeamsPhotons?.Count > 0)
+            {
+                foreach (var photon in _yDirectionBeamsPhotons)
+                {
+                    var positionX = photon.transform.localPosition.x + sweepDistance * _sweepDirectionXY * 0.3f;
+                    if (positionX > halfAreaSize || positionX < -halfAreaSize)
+                    {
+                        _sweepDirectionXY *= -1;
+                    }
+                    //var positionZ = photon.transform.localPosition.z + sweepDistance * _sweepDirectionZY * 0.9f;
+                    //if (positionZ > halfAreaSize || positionZ < -halfAreaSize)
+                    //{
+                    //    _sweepDirectionZY *= -1;
+                    //}
+                    var positionY = photon.transform.localPosition.y - distance;
+                    if (positionY <= PhotonStartPos)
+                    {
+                        photon.transform.localPosition = new Vector3(positionX, PhotonMaxPos - (Math.Abs(positionY) - Math.Abs(PhotonStartPos)), photon.transform.localPosition.z);
+                    }
+                    else
+                    {
+                        photon.transform.localPosition = new Vector3(positionX, positionY, photon.transform.localPosition.z);
+                    }
+                }
+            }
+            if (_yDirectionBeamsPhotonsR?.Count > 0)
+            {
+                foreach (var photon in _yDirectionBeamsPhotonsR)
+                {
+                    var positionX = photon.transform.localPosition.x + sweepDistance * _sweepDirectionXY * 0.3f;
+                    if (positionX > halfAreaSize || positionX < -halfAreaSize)
+                    {
+                        _sweepDirectionXY *= -1;
+                    }
+                    //var positionZ = photon.transform.localPosition.z + sweepDistance * _sweepDirectionZY * 0.9f;
+                    //if (positionZ > halfAreaSize || positionZ < -halfAreaSize)
+                    //{
+                    //    _sweepDirectionZY *= -1;
+                    //}
+                    var positionY = photon.transform.localPosition.y + distance;
+                    if (positionY > PhotonMaxPos)
+                    {
+                        photon.transform.localPosition = new Vector3(positionX, PhotonStartPos + (Math.Abs(positionY) - PhotonMaxPos), photon.transform.localPosition.z);
+                    }
+                    else
+                    {
+                        photon.transform.localPosition = new Vector3(positionX, positionY, photon.transform.localPosition.z);
+                    }
+                }
+            }
+            if (_zDirectionBeamsPhotons?.Count > 0)
+            {
+                foreach (var photon in _zDirectionBeamsPhotons)
+                {
+                    var positionX = photon.transform.localPosition.x + sweepDistance * _sweepDirectionXZ * 0.2f;
+                    if (positionX > halfAreaSize || positionX < -halfAreaSize)
+                    {
+                        _sweepDirectionXZ *= -1;
+                    }
+
+                    var positionY = photon.transform.localPosition.y + sweepDistance * _sweepDirectionYZ * 0.4f;
+                    if (positionY > halfAreaSize || positionY < -halfAreaSize)
+                    {
+                        _sweepDirectionYZ *= -1;
+                    }
+
+                    var positionZ = photon.transform.localPosition.z + distance;
+                    if (positionZ > PhotonMaxPos)
+                    {
+                        photon.transform.localPosition = new Vector3(positionX, positionY, PhotonStartPos + (Math.Abs(positionZ) - PhotonMaxPos));
+                    }
+                    else
+                    {
+                        photon.transform.localPosition = new Vector3(positionX, positionY, positionZ);
+                    }
+                }
+            }
+            if (_zDirectionBeamsPhotonsR?.Count > 0)
+            {
+                foreach (var photon in _zDirectionBeamsPhotonsR)
+                {
+                    var positionX = photon.transform.localPosition.x + sweepDistance * _sweepDirectionXZ * 0.2f;
+                    if (positionX > halfAreaSize || positionX < -halfAreaSize)
+                    {
+                        _sweepDirectionXZ *= -1;
+                    }
+
+                    var positionY = photon.transform.localPosition.y + sweepDistance * _sweepDirectionYZ * 0.4f;
+                    if (positionY > halfAreaSize || positionY < -halfAreaSize)
+                    {
+                        _sweepDirectionYZ *= -1;
+                    }
+
+                    var positionZ = photon.transform.localPosition.z - distance;
+                    if (positionZ <= PhotonStartPos)
+                    {
+                        photon.transform.localPosition = new Vector3(positionX, positionY, PhotonMaxPos - (Math.Abs(positionZ) - Math.Abs(PhotonStartPos)));
+                    }
+                    else
+                    {
+                        photon.transform.localPosition = new Vector3(positionX, positionY, positionZ);
                     }
                 }
             }

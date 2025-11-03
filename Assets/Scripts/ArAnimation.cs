@@ -123,9 +123,10 @@ namespace com.arpoise.arpoiseapp
         private List<Material> _materialsToFade = null;
         private AudioSource _audioSource = null;
 
-        public void SetTo(float to)
+        public float To
         {
-            _to = to;
+            get { return _to; }
+            set { _to = value; }
         }
 
         private static readonly System.Random _random = new System.Random((int)DateTime.Now.Ticks);
