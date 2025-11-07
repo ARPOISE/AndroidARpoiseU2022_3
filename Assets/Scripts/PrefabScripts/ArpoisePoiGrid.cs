@@ -39,6 +39,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
     #region Grid parameters
     public float PhotonStartPos = -8;
     public float PhotonMaxPos = 8;
+    public float PhotonHeightPos = -0.5f;
     public float Sweep = 0f;
     public float Speed = 1.0f; // meters per second
     public int WaitBeforePhotons = 10000; // milliseconds
@@ -109,6 +110,10 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
         else if (label.Equals(nameof(PhotonMaxPos)))
         {
             PhotonMaxPos = ParameterHelper.SetParameter(setValue, value, PhotonMaxPos).Value;
+        }
+        else if (label.Equals(nameof(PhotonHeightPos)))
+        {
+            PhotonHeightPos = ParameterHelper.SetParameter(setValue, value, PhotonHeightPos).Value;
         }
         else if (label.Equals(nameof(WaitBeforePhotons)))
         {
@@ -304,7 +309,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                             {
                                 newPhotonObject.SetActive(true);
                             }
-                            var position = new Vector3(x, -1, positionZ);
+                            var position = new Vector3(x, PhotonHeightPos, positionZ);
                             newPhotonObject.transform.localPosition = position;
                             newPhotonObject.transform.localEulerAngles = new Vector3(0, 0, 1);
                         }
@@ -354,7 +359,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                             {
                                 newPhotonObject.SetActive(true);
                             }
-                            var position = new Vector3(positionX, -1, z);
+                            var position = new Vector3(positionX, PhotonHeightPos, z);
                             newPhotonObject.transform.localPosition = position;
                             newPhotonObject.transform.localEulerAngles = new Vector3(0, 0, 1);
                         }
@@ -454,7 +459,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                             {
                                 newPhotonObject.SetActive(true);
                             }
-                            var position = new Vector3(x, -1, positionZ);
+                            var position = new Vector3(x, PhotonHeightPos, positionZ);
                             newPhotonObject.transform.localPosition = position;
                             newPhotonObject.transform.localEulerAngles = new Vector3(0, 0, 1);
                         }
@@ -504,7 +509,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                             {
                                 newPhotonObject.SetActive(true);
                             }
-                            var position = new Vector3(positionX, -1, z);
+                            var position = new Vector3(positionX, PhotonHeightPos, z);
                             newPhotonObject.transform.localPosition = position;
                             newPhotonObject.transform.localEulerAngles = new Vector3(0, 0, 1);
                         }
@@ -715,7 +720,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                         {
                             for (int z = -1; z < 2; z++, i++)
                             {
-                                var distance = Vector3.Distance(_atomPositions[i % _atomPositions.Count], new Vector3(x, -1, z));
+                                var distance = Vector3.Distance(_atomPositions[i % _atomPositions.Count], new Vector3(x, PhotonHeightPos, z));
                                 if (distance > maxDistance)
                                 {
                                     maxDistance = distance;
@@ -729,7 +734,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                         {
                             for (int z = -1; z < 2; z++, i++)
                             {
-                                var distance = Vector3.Distance(_atomPositions[i % _atomPositions.Count], new Vector3(x, -1, z));
+                                var distance = Vector3.Distance(_atomPositions[i % _atomPositions.Count], new Vector3(x, PhotonHeightPos, z));
                                 if (distance > maxDistance && _tweezerIndex != i % _atomPositions.Count)
                                 {
                                     maxDistance = distance;
@@ -746,7 +751,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                         {
                             if (i != _tweezerIndex && i != _tweezerIndex2)
                             {
-                                _atoms[i % _atoms.Count].transform.localPosition = Vector3.Lerp(_atomPositions[i % _atomPositions.Count], new Vector3(x, -1, z), lerpFactor.Value);
+                                _atoms[i % _atoms.Count].transform.localPosition = Vector3.Lerp(_atomPositions[i % _atomPositions.Count], new Vector3(x, PhotonHeightPos, z), lerpFactor.Value);
                             }
                         }
                     }
@@ -791,7 +796,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                                 {
                                     CreateTweezers();
                                 }
-                                _tweezers[0].transform.localPosition = _atoms[i % _atoms.Count].transform.localPosition = Vector3.Lerp(_atomPositions[i % _atomPositions.Count], new Vector3(x, -1, z), lerpFactor.Value);
+                                _tweezers[0].transform.localPosition = _atoms[i % _atoms.Count].transform.localPosition = Vector3.Lerp(_atomPositions[i % _atomPositions.Count], new Vector3(x, PhotonHeightPos, z), lerpFactor.Value);
                                 _tweezers[0].SetActive(true);
                             }
                             if (i == _tweezerIndex2)
@@ -800,7 +805,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                                 {
                                     CreateTweezers();
                                 }
-                                _tweezers[1].transform.localPosition = _atoms[i % _atoms.Count].transform.localPosition = Vector3.Lerp(_atomPositions[i % _atomPositions.Count], new Vector3(x, -1, z), lerpFactor.Value);
+                                _tweezers[1].transform.localPosition = _atoms[i % _atoms.Count].transform.localPosition = Vector3.Lerp(_atomPositions[i % _atomPositions.Count], new Vector3(x, PhotonHeightPos, z), lerpFactor.Value);
                                 _tweezers[1].SetActive(true);
                             }
                         }
@@ -837,7 +842,12 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 break;
         }
 
+        HandleAnimations();
+        MovePhotons();
+    }
 
+    private void HandleAnimations()
+    {
         if (_animations is null)
         {
             _animations = new List<ArAnimation>();
@@ -859,6 +869,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 }
                 else
                 {
+                    animation = _animationsToSmooth[Random.Next(_animationsToSmooth.Count)];
                     _animationSmoothTime = DateTime.Now.AddMilliseconds(750);
                     animation.To *= AnimationSmoothFactor;
                     _animationsToExcite.Add(animation);
@@ -886,7 +897,10 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 }
             }
         }
+    }
 
+    private void MovePhotons()
+    {
         if (AtomGridState.WaitBeforePhotons != State)
         {
             if (_lastTicks is null)
