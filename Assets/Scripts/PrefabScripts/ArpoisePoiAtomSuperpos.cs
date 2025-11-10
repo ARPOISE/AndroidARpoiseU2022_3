@@ -305,7 +305,7 @@ public class ArpoisePoiAtomSuperpos : ArpoisePoiStructure
             return;
         }
 
-        if (_atomArObjects is null || _atomArObjects.Count == 0)
+        if (_atomArObjects.Count == 0)
         {
             SeedRandom(GetInstanceID());
             UnityEngine.Random.InitState(Random.Next(int.MaxValue));
@@ -316,7 +316,7 @@ public class ArpoisePoiAtomSuperpos : ArpoisePoiStructure
         switch (State)
         {
             case AtomSuperposState.WaitBeforePhoton:
-                if (_atomArObjects is null || _atomArObjects.Count == 0)
+                if (_atomArObjects.Count == 0)
                 {
                     ArObjects = CreateAtom();
                 }
@@ -334,7 +334,7 @@ public class ArpoisePoiAtomSuperpos : ArpoisePoiStructure
                 break;
 
             case AtomSuperposState.ShowPhoton:
-                if (_photonArObjects is null || _photonArObjects.Count == 0)
+                if (_photonArObjects.Count == 0)
                 {
                     CreatePhoton();
                     CreatePhotonPosition();

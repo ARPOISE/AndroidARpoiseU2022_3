@@ -149,10 +149,8 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
         }
     }
 
-    private List<ArAnimation> _animations = null;
-    private List<ArAnimation> _animationsToSmooth = new();
-    private List<ArAnimation> _animationsToExcite = new();
-    private Dictionary<ArAnimation, DateTime> _animationStartTimes = new Dictionary<ArAnimation, DateTime>();
+    private readonly List<ArAnimation> _animationsToSmooth = new();
+    private readonly Dictionary<ArAnimation, float> _animationsToExcite = new();
 
     private readonly List<Vector3> _atomPositions = new();
 
@@ -185,6 +183,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
 
                 if (gridObject != null)
                 {
+                    _atoms.Add(gridObject);
                     if (!gridObject.activeSelf)
                     {
                         gridObject.SetActive(true);
@@ -194,10 +193,6 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 {
                     Add(gridArObject);
                     _atomArObjects.Add(gridArObject);
-                }
-                if (gridObject != null)
-                {
-                    _atoms.Add(gridObject);
                 }
             }
             Fade(); // Set the initial fade value
@@ -248,6 +243,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
 
                 if (gridObject != null)
                 {
+                    _tweezers.Add(gridObject);
                     if (!gridObject.activeSelf)
                     {
                         gridObject.SetActive(true);
@@ -257,10 +253,6 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 {
                     Add(gridArObject);
                     _tweezerArObjects.Add(gridArObject);
-                }
-                if (gridObject != null)
-                {
-                    _tweezers.Add(gridObject);
                 }
                 Fade(); // Set the initial fade value
             }
@@ -584,7 +576,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
         WaitBeforePhotons,
         ShowPhotons,
         TrapAtoms,
-        TweezAtoms,
+        TweezeAtoms,
         WaitAfterTweezedAtoms
     }
 
@@ -607,8 +599,9 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
     private int _tweezerIndex2 = -1;
     private long? _lastTicks = null;
     private long? _trapAtomsStartTicks = null;
-    private long? _tweezAtomsStartTicks = null;
+    private long? _tweezeAtomsStartTicks = null;
     private DateTime? _animationSmoothTime = null;
+
     protected override void Update()
     {
         base.Update();
@@ -621,13 +614,10 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
             }
             SetActive(false, _photonArObjects);
             _lastTicks = null;
-            State = AtomGridState.WaitBeforePhotons;
-            if (_animationStartTimes.Count > 0)
-            {
-                _animationStartTimes.Clear();
-            }
+            ResetAnimations();
             _tweezerIndex = _tweezerIndex2 = -1;
             _animationSmoothTime = null;
+            State = AtomGridState.WaitBeforePhotons;
             return;
         }
 
@@ -637,68 +627,68 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
             ArObjects = CreateAtoms();
         }
 
-        float? lerpFactor = null;
+        if (_atomPositions.Count == 0)
+        {
+            CreateAtomPositions();
+        }
 
         switch (State)
         {
             case AtomGridState.WaitBeforePhotons:
-                if (_atomPositions.Count == 0)
                 {
-                    CreateAtomPositions();
-                }
-                if (_animationsToExcite.Count > 0)
-                {
-                    if (AnimationSmoothFactor != 1 && AnimationSmoothFactor != 0)
+                    if (_animationsToExcite.Count > 0)
                     {
-                        foreach (var animation in _animationsToExcite)
+                        foreach (var pair in _animationsToExcite)
                         {
-                            animation.To /= AnimationSmoothFactor;
+                            pair.Key.To = pair.Value;
                         }
+                        _animationsToExcite.Clear();
                     }
-                    _animationsToExcite.Clear();
-                }
-                SetActive(false, _photonArObjects);
-                if (_tweezers.Count > 0)
-                {
-                    _tweezers[0].SetActive(false);
-                }
-                if (_tweezers.Count > 1)
-                {
-                    _tweezers[1].SetActive(false);
-                }
-                if (_nextStateChange is null)
-                {
-                    _nextStateChange = DateTime.Now.AddMilliseconds(WaitBeforePhotons);
-                }
-                else if (DateTime.Now >= _nextStateChange.Value)
-                {
-                    State = AtomGridState.ShowPhotons;
-                    _lastTicks = null;
-                    if (_animations is not null && AnimationSmoothFactor != 1)
+                    SetActive(false, _photonArObjects);
+                    if (_tweezers.Count > 0)
                     {
-                        _animationSmoothTime = DateTime.Now.AddMilliseconds(1000);
-                        _animationsToSmooth.Clear();
-                        _animationsToSmooth.AddRange(_animations);
+                        _tweezers[0].SetActive(false);
+                    }
+                    if (_tweezers.Count > 1)
+                    {
+                        _tweezers[1].SetActive(false);
+                    }
+                    if (_nextStateChange is null)
+                    {
+                        _nextStateChange = DateTime.Now.AddMilliseconds(WaitBeforePhotons);
+                    }
+                    else if (DateTime.Now >= _nextStateChange.Value)
+                    {
+                        State = AtomGridState.ShowPhotons;
+                        _lastTicks = null;
+                        if (Animations is not null && AnimationSmoothFactor != 1)
+                        {
+                            _animationSmoothTime = DateTime.Now.AddMilliseconds(1000);
+                            _animationsToSmooth.Clear();
+                            _animationsToSmooth.AddRange(Animations);
+                        }
                     }
                 }
                 break;
 
             case AtomGridState.ShowPhotons:
-                if (_photonArObjects is null || _photonArObjects.Count == 0)
                 {
-                    CreatePhotons();
-                }
-                SetActive(gameObject.activeSelf, _photonArObjects);
+                    if (_photonArObjects is null || _photonArObjects.Count == 0)
+                    {
+                        CreatePhotons();
+                    }
+                    SetActive(gameObject.activeSelf, _photonArObjects);
 
-                if (_nextStateChange is null)
-                {
-                    _nextStateChange = DateTime.Now.AddMilliseconds(ShowPhotons);
-                }
-                else if (DateTime.Now >= _nextStateChange.Value)
-                {
-                    State = AtomGridState.TrapAtoms;
-                    _trapAtomsStartTicks = null;
-                    _tweezerIndex = _tweezerIndex2 = -1;
+                    if (_nextStateChange is null)
+                    {
+                        _nextStateChange = DateTime.Now.AddMilliseconds(ShowPhotons);
+                    }
+                    else if (DateTime.Now >= _nextStateChange.Value)
+                    {
+                        State = AtomGridState.TrapAtoms;
+                        _trapAtomsStartTicks = null;
+                        _tweezerIndex = _tweezerIndex2 = -1;
+                    }
                 }
                 break;
 
@@ -711,7 +701,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
 
                     int i = 0;
                     var duration = DateTime.Now.Ticks - _trapAtomsStartTicks;
-                    lerpFactor = (int)((1000 * duration) / TimeSpan.TicksPerSecond) / (TrapAtoms * .5f);
+                    var lerpFactor = (int)((1000 * duration) / TimeSpan.TicksPerSecond) / (TrapAtoms * .5f);
 
                     if (_tweezerNames.Count > 0 && _tweezerIndex == -1)
                     {
@@ -751,7 +741,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                         {
                             if (i != _tweezerIndex && i != _tweezerIndex2)
                             {
-                                _atoms[i % _atoms.Count].transform.localPosition = Vector3.Lerp(_atomPositions[i % _atomPositions.Count], new Vector3(x, PhotonHeightPos, z), lerpFactor.Value);
+                                _atoms[i % _atoms.Count].transform.localPosition = Vector3.Lerp(_atomPositions[i % _atomPositions.Count], new Vector3(x, PhotonHeightPos, z), lerpFactor);
                             }
                         }
                     }
@@ -764,8 +754,8 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                     {
                         if (_tweezerIndex >= 0)
                         {
-                            State = AtomGridState.TweezAtoms;
-                            _tweezAtomsStartTicks = null;
+                            State = AtomGridState.TweezeAtoms;
+                            _tweezeAtomsStartTicks = null;
                         }
                         else
                         {
@@ -775,16 +765,16 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 }
                 break;
 
-            case AtomGridState.TweezAtoms:
+            case AtomGridState.TweezeAtoms:
                 {
-                    if (_tweezAtomsStartTicks is null)
+                    if (_tweezeAtomsStartTicks is null)
                     {
-                        _tweezAtomsStartTicks = DateTime.Now.Ticks;
+                        _tweezeAtomsStartTicks = DateTime.Now.Ticks;
                     }
 
                     int i = 0;
-                    var duration = DateTime.Now.Ticks - _tweezAtomsStartTicks;
-                    lerpFactor = (int)((1000 * duration) / TimeSpan.TicksPerSecond) / (TweezeAtoms * .5f);
+                    var duration = DateTime.Now.Ticks - _tweezeAtomsStartTicks;
+                    var lerpFactor = (int)((1000 * duration) / TimeSpan.TicksPerSecond) / (TweezeAtoms * .5f);
 
                     for (int x = -1; _tweezerIndex >= 0 && x < 2; x++)
                     {
@@ -796,7 +786,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                                 {
                                     CreateTweezers();
                                 }
-                                _tweezers[0].transform.localPosition = _atoms[i % _atoms.Count].transform.localPosition = Vector3.Lerp(_atomPositions[i % _atomPositions.Count], new Vector3(x, PhotonHeightPos, z), lerpFactor.Value);
+                                _tweezers[0].transform.localPosition = _atoms[i % _atoms.Count].transform.localPosition = Vector3.Lerp(_atomPositions[i % _atomPositions.Count], new Vector3(x, PhotonHeightPos, z), lerpFactor);
                                 _tweezers[0].SetActive(true);
                             }
                             if (i == _tweezerIndex2)
@@ -805,7 +795,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                                 {
                                     CreateTweezers();
                                 }
-                                _tweezers[1].transform.localPosition = _atoms[i % _atoms.Count].transform.localPosition = Vector3.Lerp(_atomPositions[i % _atomPositions.Count], new Vector3(x, PhotonHeightPos, z), lerpFactor.Value);
+                                _tweezers[1].transform.localPosition = _atoms[i % _atoms.Count].transform.localPosition = Vector3.Lerp(_atomPositions[i % _atomPositions.Count], new Vector3(x, PhotonHeightPos, z), lerpFactor);
                                 _tweezers[1].SetActive(true);
                             }
                         }
@@ -841,24 +831,15 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 }
                 break;
         }
-
         HandleAnimations();
         MovePhotons();
     }
 
-    private void HandleAnimations()
+    protected override void HandleAnimations()
     {
-        if (_animations is null)
-        {
-            _animations = new List<ArAnimation>();
-            var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
-            if (arObjectState is not null)
-            {
-                _animations.AddRange(arObjectState.AnimationsWithName.Where(x => x.Name != null && x.Name.Contains("GridRandomDelay")));
-            }
-        }
+        base.HandleAnimations();
 
-        if (_animations is not null)
+        if (_animationsToSmooth.Count > 0)
         {
             if (_animationSmoothTime.HasValue && DateTime.Now >= _animationSmoothTime.Value && AnimationSmoothFactor != 1)
             {
@@ -870,29 +851,12 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 else
                 {
                     animation = _animationsToSmooth[Random.Next(_animationsToSmooth.Count)];
-                    _animationSmoothTime = DateTime.Now.AddMilliseconds(750);
+                    _animationSmoothTime = DateTime.Now.AddMilliseconds(100);
+                    var to = animation.To;
                     animation.To *= AnimationSmoothFactor;
-                    _animationsToExcite.Add(animation);
-                    _animationsToSmooth.Remove(animation);
-                }
-            }
-            foreach (var animation in _animations)
-            {
-                if (!animation.IsActive)
-                {
-                    if (_animationStartTimes.ContainsKey(animation))
+                    if (!_animationsToExcite.ContainsKey(animation))
                     {
-                        var startTime = _animationStartTimes[animation];
-                        if (DateTime.Now > startTime)
-                        {
-                            _animationStartTimes.Remove(animation);
-                            animation.Activate(ArBehaviour.StartTicks, DateTime.Now.Ticks);
-                            _animationStartTimes[animation] = animation.NextActivation.AddMilliseconds(Random.Next(100));
-                        }
-                    }
-                    else
-                    {
-                        _animationStartTimes[animation] = animation.NextActivation.AddMilliseconds(Random.Next(100));
+                        _animationsToExcite[animation] = to;
                     }
                 }
             }

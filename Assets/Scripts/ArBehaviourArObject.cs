@@ -352,6 +352,11 @@ namespace com.arpoise.arpoiseapp
                     objectToAdd.AddComponent<ArpoisePoiGrid>();
                     arpoisePoiStructure = objectToAdd.GetComponent<ArpoisePoiGrid>();
                 }
+                else if (title.Contains(nameof(ArpoisePoiGate)))
+                {
+                    objectToAdd.AddComponent<ArpoisePoiGate>();
+                    arpoisePoiStructure = objectToAdd.GetComponent<ArpoisePoiGate>();
+                }
                 else if (title.Contains(nameof(ArpoisePoiBeam)))
                 {
                     objectToAdd.AddComponent<ArpoisePoiBeam>();
@@ -1266,6 +1271,12 @@ namespace com.arpoise.arpoiseapp
                     break;
                 }
                 arpoisePoiStructure = crystalObject.gameObject.GetComponent<ArpoisePoiGrid>();
+                if (arpoisePoiStructure != null)
+                {
+                    arpoisePoiStructure.CallUpdate();
+                    break;
+                }
+                arpoisePoiStructure = crystalObject.gameObject.GetComponent<ArpoisePoiGate>();
                 if (arpoisePoiStructure != null)
                 {
                     arpoisePoiStructure.CallUpdate();

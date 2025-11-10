@@ -174,4 +174,56 @@ public class ArpoisePoiStructure : MonoBehaviour
             }
         }
     }
+
+    protected List<ArAnimation> Animations = null;
+    protected readonly Dictionary<ArAnimation, DateTime> AnimationStartTimes = new Dictionary<ArAnimation, DateTime>();
+
+    protected void ResetAnimations()
+    {
+        if (Animations is not null)
+        {
+            Animations = null;
+        }
+        if (AnimationStartTimes.Count > 0)
+        {
+            AnimationStartTimes.Clear();
+        }
+    }
+
+    protected virtual void HandleAnimations()
+    {
+        if (Animations is null)
+        {
+            Animations = new List<ArAnimation>();
+            var arObjectState = ArBehaviour != null ? ArBehaviour.ArObjectState : null;
+            if (arObjectState is not null)
+            {
+                Animations.AddRange(arObjectState.AnimationsWithName.Where(x => x.Name != null && x.Name.Contains("GridRandomDelay")));
+            }
+        }
+
+        if (Animations is not null)
+        {
+            foreach (var animation in Animations)
+            {
+                if (!animation.IsActive)
+                {
+                    if (AnimationStartTimes.ContainsKey(animation))
+                    {
+                        var startTime = AnimationStartTimes[animation];
+                        if (DateTime.Now > startTime)
+                        {
+                            AnimationStartTimes.Remove(animation);
+                            animation.Activate(ArBehaviour.StartTicks, DateTime.Now.Ticks);
+                            AnimationStartTimes[animation] = animation.NextActivation.AddMilliseconds(Random.Next(100));
+                        }
+                    }
+                    else
+                    {
+                        AnimationStartTimes[animation] = animation.NextActivation.AddMilliseconds(Random.Next(100));
+                    }
+                }
+            }
+        }
+    }
 }

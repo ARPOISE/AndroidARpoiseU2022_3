@@ -399,7 +399,7 @@ public class ArpoisePoiAtomEntangled : ArpoisePoiStructure
             return;
         }
 
-        if (_atomArObjects is null || _atomArObjects.Count == 0)
+        if (_atomArObjects.Count == 0)
         {
             SeedRandom(GetInstanceID());
             UnityEngine.Random.InitState(Random.Next(int.MaxValue));
@@ -432,7 +432,7 @@ public class ArpoisePoiAtomEntangled : ArpoisePoiStructure
         switch (State)
         {
             case AtomEntangledState.WaitBeforePhoton:
-                if (_atomArObjects is null || _atomArObjects.Count == 0)
+                if (_atomArObjects.Count == 0)
                 {
                     ArObjects = CreateAtom();
                 }
