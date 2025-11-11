@@ -529,9 +529,6 @@ namespace com.arpoise.arpoiseapp
                 arpoisePoiStructure = gameObject.GetComponent<ArpoisePoiGate>();
                 arpoisePoiStructure?.CallUpdate();
 
-                arpoisePoiStructure = gameObject.GetComponent<ArpoisePoiBeam>();
-                arpoisePoiStructure?.CallUpdate();
-
                 arpoisePoiStructure = gameObject.GetComponent<ArpoisePoiSpiral>();
                 arpoisePoiStructure?.CallUpdate();
 
@@ -749,9 +746,6 @@ namespace com.arpoise.arpoiseapp
             arpoisePoiStructure?.Fade(value);
 
             arpoisePoiStructure = AnimatedObject.GetComponent<ArpoisePoiGate>();
-            arpoisePoiStructure?.Fade(value);
-
-            arpoisePoiStructure = AnimatedObject.GetComponent<ArpoisePoiBeam>();
             arpoisePoiStructure?.Fade(value);
 
             arpoisePoiStructure = AnimatedObject.GetComponent<ArpoisePoiSpiral>();
