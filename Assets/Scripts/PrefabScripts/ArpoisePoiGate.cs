@@ -78,6 +78,10 @@ public class ArpoisePoiGate : ArpoisePoiStructure
     private readonly List<string> _readoutResultNames = new();
     private readonly List<GameObject> _readoutResults = new();
     private readonly List<ArObject> _readoutResultArObjects = new();
+    private readonly List<GameObject> _readoutResults0 = new();
+    private readonly List<ArObject> _readoutResult0ArObjects = new();
+    private readonly List<GameObject> _readoutResults1 = new();
+    private readonly List<ArObject> _readoutResult1ArObjects = new();
 
     public override void SetParameter(bool setValue, string label, string value)
     {
@@ -394,6 +398,7 @@ public class ArpoisePoiGate : ArpoisePoiStructure
                     case 0:
                     case 1:
                     case 2:
+                    case 5:
                         atomName = _rydbergAtomNames[0];
                         break;
                     case 3:
@@ -402,10 +407,9 @@ public class ArpoisePoiGate : ArpoisePoiStructure
                         break;
                     case 6:
                     case 7:
-                    case 8:
                         atomName = _rydbergAtomNames[2];
                         break;
-                    case 5:
+                    case 8:
                         atomName = _rydbergAtomNames[3];
                         break;
                 }
@@ -455,20 +459,7 @@ public class ArpoisePoiGate : ArpoisePoiStructure
 
             for (int i = 0; i < _atoms.Count; i++)
             {
-                var atomName = _readoutResultNames[Random.Next(_readoutResultNames.Count)];
-                switch (i)
-                {
-                    case 0:
-                    case 2:
-                    case 4:
-                    case 5:
-                    case 6:
-                        atomName = _readoutResultNames[0];
-                        break;
-                    default:
-                        atomName = _readoutResultNames[1];
-                        break;
-                }
+                var atomName = _readoutResultNames[0];
                 var readoutResultObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == atomName);
                 if (readoutResultObject is not null)
                 {
@@ -485,7 +476,7 @@ public class ArpoisePoiGate : ArpoisePoiStructure
 
                     if (readoutResult != null)
                     {
-                        _readoutResults.Add(readoutResult);
+                        _readoutResults0.Add(readoutResult);
                         if (!readoutResult.activeSelf)
                         {
                             readoutResult.SetActive(false);
@@ -494,12 +485,47 @@ public class ArpoisePoiGate : ArpoisePoiStructure
                     if (readoutResultArObject != null)
                     {
                         ArObjectsToFade.Add(readoutResultArObject);
-                        _readoutResultArObjects.Add(readoutResultArObject);
+                        _readoutResult0ArObjects.Add(readoutResultArObject);
                     }
                 }
             }
-            CreateAtomPositions(_readoutResults);
-            SetActive(false, _readoutResultArObjects);
+            CreateAtomPositions(_readoutResults0);
+            SetActive(false, _readoutResult0ArObjects);
+
+            for (int i = 0; i < _atoms.Count; i++)
+            {
+                var atomName = _readoutResultNames[1];
+                var readoutResultObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == atomName);
+                if (readoutResultObject is not null)
+                {
+                    var result = ArBehaviour.CreateArObject(
+                        arObjectState,
+                        readoutResultObject.gameObject,
+                        null,
+                        transform,
+                        readoutResultObject.poi,
+                        ArBehaviourArObject.ArObjectId,
+                        out var readoutResult,
+                        out var readoutResultArObject
+                        );
+
+                    if (readoutResult != null)
+                    {
+                        _readoutResults1.Add(readoutResult);
+                        if (!readoutResult.activeSelf)
+                        {
+                            readoutResult.SetActive(false);
+                        }
+                    }
+                    if (readoutResultArObject != null)
+                    {
+                        ArObjectsToFade.Add(readoutResultArObject);
+                        _readoutResult1ArObjects.Add(readoutResultArObject);
+                    }
+                }
+            }
+            CreateAtomPositions(_readoutResults1);
+            SetActive(false, _readoutResult1ArObjects);
         }
     }
 
@@ -581,7 +607,13 @@ public class ArpoisePoiGate : ArpoisePoiStructure
             SetActive(false, _readoutPhotonArObjects);
             SetActive(false, _excitedAtomArObjects);
             SetActive(false, _rydbergAtomArObjects);
-            SetActive(false, _readoutResultArObjects);
+            SetActive(false, _readoutResult0ArObjects);
+            SetActive(false, _readoutResult1ArObjects);
+            if (_readoutResultArObjects.Count > 0)
+            {
+                SetActive(false, _readoutResultArObjects);
+                _readoutResultArObjects.Clear();
+            }
             SetActive(false, _atomArObjects);
             foreach (var photon in _excitingPhotons)
             {
@@ -607,9 +639,21 @@ public class ArpoisePoiGate : ArpoisePoiStructure
             {
                 atom.SetActive(false);
             }
-            foreach (var result in _readoutResults)
+            foreach (var result in _readoutResults0)
             {
                 result.SetActive(false);
+            }
+            foreach (var result in _readoutResults1)
+            {
+                result.SetActive(false);
+            }
+            if (_readoutResults.Count > 0)
+            {
+                foreach (var result in _readoutResults)
+                {
+                    result.SetActive(false);
+                }
+                _readoutResults.Clear();
             }
             return;
         }
@@ -753,7 +797,7 @@ public class ArpoisePoiGate : ArpoisePoiStructure
     {
         for (int index = 0; index < _atoms.Count; index++)
         {
-            if (_readoutResults.Count == 0)
+            if (_readoutResults0.Count == 0)
             {
                 CreateReadoutResults();
             }
@@ -885,6 +929,23 @@ public class ArpoisePoiGate : ArpoisePoiStructure
                 SetActive(false, _readoutPhotonArObjects);
                 SetActive(false, _excitedAtomArObjects);
                 SetActive(false, _rydbergAtomArObjects);
+                if (_readoutResultArObjects.Count == 0)
+                {
+                    for (int index = 0; index < _atoms.Count; index++)
+                    {
+                        var randomValue = Random.Next(2);
+                        if (randomValue == 0)
+                        {
+                            _readoutResultArObjects.Add(_readoutResult0ArObjects[index]);
+                            _readoutResults.Add(_readoutResults0[index]);
+                        }
+                        else
+                        {
+                            _readoutResultArObjects.Add(_readoutResult1ArObjects[index]);
+                            _readoutResults.Add(_readoutResults1[index]);
+                        }
+                    }
+                }
                 SetActive(true, _readoutResultArObjects);
                 foreach (var photon in _excitingPhotons)
                 {

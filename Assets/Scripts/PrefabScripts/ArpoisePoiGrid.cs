@@ -268,7 +268,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
             return;
         }
 
-        if (_photonNames.Count > 0)
+        if (_photonNames.Count > 0 && Beams > 0)
         {
             var photon = _photonNames[0];
             var photonObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == photon);
@@ -318,7 +318,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 }
             }
         }
-        if (_photonNames.Count > 1)
+        if (_photonNames.Count > 1 && Beams > 0)
         {
             var photon = _photonNames[1];
             var photonObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == photon);
@@ -368,7 +368,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 }
             }
         }
-        if (_photonNames.Count > 2)
+        if (_photonNames.Count > 2 && Beams > 0)
         {
             var photon = _photonNames[2];
             var photonObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == photon);
@@ -418,7 +418,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 }
             }
         }
-        if (_photonNames.Count > 3)
+        if (_photonNames.Count > 3 && Beams > 0)
         {
             var photon = _photonNames[3];
             var photonObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == photon);
@@ -468,7 +468,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 }
             }
         }
-        if (_photonNames.Count > 4)
+        if (_photonNames.Count > 4 && Beams > 0)
         {
             var photon = _photonNames[4];
             var photonObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == photon);
@@ -518,7 +518,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                 }
             }
         }
-        if (_photonNames.Count > 5)
+        if (_photonNames.Count > 5 && Beams > 0)
         {
             var photon = _photonNames[5];
             var photonObject = ArBehaviour?.AvailableCrystalObjects?.Find(x => x.poi.title == photon);
@@ -673,11 +673,11 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
 
             case AtomGridState.ShowPhotons:
                 {
-                    if (_photonArObjects is null || _photonArObjects.Count == 0)
+                    if (_photonArObjects.Count == 0 && Beams > 0)
                     {
                         CreatePhotons();
                     }
-                    SetActive(gameObject.activeSelf, _photonArObjects);
+                    SetActive(gameObject.activeSelf && Beams > 0, _photonArObjects);
 
                     if (_nextStateChange is null)
                     {
@@ -865,7 +865,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
 
     private void MovePhotons()
     {
-        if (AtomGridState.WaitBeforePhotons != State)
+        if (AtomGridState.WaitBeforePhotons != State && Beams > 0)
         {
             if (_lastTicks is null)
             {
