@@ -66,9 +66,6 @@ namespace com.arpoise.arpoiseapp
         public Vector3 VisualizerPosition = new Vector3(0, 0, 0);
 
         #region Globals
-        public GameObject InfoText = null;
-        public GameObject MenuButton = null;
-        public GameObject HeaderButton = null;
         public GameObject HeaderText = null;
         public GameObject InputPanel = null;
         public GameObject InfoPanel = null;
@@ -94,6 +91,22 @@ namespace com.arpoise.arpoiseapp
                     {
                         MenuButton.SetActive(value);
                         //Debug.Log("MenuButton " + MenuButton.activeSelf);
+                    }
+                }
+            }
+        }
+
+        public bool ScreenshotButtonIsActive
+        {
+            get { return ScreenshotButton != null && ScreenshotButton.activeSelf; }
+            set
+            {
+                if (ScreenshotButton != null)
+                {
+                    if (ScreenshotButton.activeSelf != value)
+                    {
+                        ScreenshotButton.SetActive(value);
+                        //Debug.Log("ScreenshotButton " + ScreenshotButton.activeSelf);
                     }
                 }
             }
@@ -175,23 +188,6 @@ namespace com.arpoise.arpoiseapp
 
         private long _lastButtonSecond = 0;
 
-        public override void SetMenuButtonActive(List<ArLayer> layers)
-        {
-            if (InputPanel != null && !MenuEnabled.HasValue)
-            {
-                var inputPanel = InputPanel.GetComponent<InputPanel>();
-                if (inputPanel != null && inputPanel.IsActivated())
-                {
-                    MenuEnabled = true;
-                }
-                else
-                {
-                    MenuEnabled = !layers.Any(x => !x.showMenuButton);
-                }
-            }
-            MenuButtonIsActive = MenuEnabled.HasValue && MenuEnabled.Value;
-        }
-
         public override void SetHeaderActive(string layerTitle)
         {
             if (HeaderText != null)
@@ -209,6 +205,23 @@ namespace com.arpoise.arpoiseapp
                     HeaderButtonIsActive = _headerButtonActivated;
                 }
             }
+        }
+
+        public override void SetMenuButtonActive(List<ArLayer> layers)
+        {
+            if (InputPanel != null && !MenuEnabled.HasValue)
+            {
+                var inputPanel = InputPanel.GetComponent<InputPanel>();
+                if (inputPanel != null && inputPanel.IsActivated())
+                {
+                    MenuEnabled = true;
+                }
+                else
+                {
+                    MenuEnabled = !layers.Any(x => !x.showMenuButton);
+                }
+            }
+            MenuButtonIsActive = MenuEnabled.HasValue && MenuEnabled.Value;
         }
 
         public override void HandleMenuButtonClick()
@@ -240,8 +253,24 @@ namespace com.arpoise.arpoiseapp
                 InputPanelIsActive = false;
                 HeaderButtonIsActive = false;
                 MenuButtonIsActive = false;
+                ScreenshotButtonIsActive = false;
                 LayerPanelIsActive = true;
             }
+        }
+
+        public override void SetScreenshotButtonActive(List<ArLayer> layers)
+        {
+            if (!ScreenshotButtonEnabled.HasValue)
+            {
+                ScreenshotButtonEnabled = layers.Any(x => x.ShowScreenshotButton > 0);
+            }
+            ScreenshotButtonIsActive = ScreenshotButtonEnabled.HasValue && ScreenshotButtonEnabled.Value;
+        }
+
+        public override void HandleScreenshotButtonClick()
+        {
+            //Debug.Log("ArBehaviourUserInterface.HandleScreenshotButtonClick");
+            TakeScreenshot = true;
         }
 
         public void HandlePanelHeaderButtonClick()
@@ -318,6 +347,15 @@ namespace com.arpoise.arpoiseapp
                 }
             }
 
+            if (ScreenshotButton != null)
+            {
+                var screenshotButton = ScreenshotButton.GetComponent<ScreenshotButton>();
+                if (screenshotButton != null)
+                {
+                    screenshotButton.Setup(this);
+                }
+            }
+
             if (PanelHeaderButton != null)
             {
                 var panelHeaderButton = PanelHeaderButton.GetComponent<PanelHeaderButton>();
@@ -373,6 +411,13 @@ namespace com.arpoise.arpoiseapp
                 menuButtonSetActive.Execute();
             }
 
+            var screenshotButtonSetActive = ScreenshotButtonSetActive;
+            if (screenshotButtonSetActive != null)
+            {
+                ScreenshotButtonSetActive = null;
+                screenshotButtonSetActive.Execute();
+            }
+
             var headerSetActive = HeaderSetActive;
             if (headerSetActive != null)
             {
@@ -385,6 +430,13 @@ namespace com.arpoise.arpoiseapp
             {
                 MenuButtonClick = null;
                 menuButtonClick.Execute();
+            }
+
+            var screenshotButtonClick = ScreenshotButtonClick;
+            if (screenshotButtonClick != null)
+            {
+                ScreenshotButtonClick = null;
+                screenshotButtonClick.Execute();
             }
 
             // Set any error text onto the canvas

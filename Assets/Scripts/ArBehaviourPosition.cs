@@ -71,6 +71,7 @@ namespace com.arpoise.arpoiseapp
         protected int AreaSize = 0;
         protected int AreaWidth = 0;
         protected bool ApplyKalmanFilter = true;
+        protected bool MirrorCameraBackground = false;
         protected double LocationTimestamp = 0;
         protected float LocationHorizontalAccuracy = 0;
         protected float LocationLongitude = 0;
@@ -277,7 +278,7 @@ namespace com.arpoise.arpoiseapp
                     second = DateTime.Now.Ticks / 10000000L;
                     //if (second >= nextMove)
                     //{
-                     //    nextMove = second + 6 + random.Next(0, 6);
+                    //    nextMove = second + 6 + random.Next(0, 6);
                     //    FilteredLatitude = OriginalLatitude + 0.00001f * random.Next(-5, 5);
                     //    FilteredLongitude = OriginalLongitude + 0.00001f * random.Next(-4, 4);
                     //    Debug.Log("UNITY_EDITOR new location, lat " + FilteredLatitude + ", lon " + FilteredLongitude);
@@ -441,7 +442,7 @@ namespace com.arpoise.arpoiseapp
         protected int ApplicationSleepStartMinute = -1;
         protected int ApplicationSleepEndMinute = -1;
         protected bool ApplicationIsSleeping = false;
-        protected int AllowTakeScreenshot = -1;
+        protected int ShowScreenshotButton = -1;
 
         public void EnableOcclusion(ArLayer layer)
         {
@@ -457,7 +458,7 @@ namespace com.arpoise.arpoiseapp
                 }
             }
         }
-#endregion
+        #endregion
 
         #region Misc
         protected virtual IEnumerator GetData()
@@ -555,6 +556,6 @@ namespace com.arpoise.arpoiseapp
                 _variance = (1 - k) * _variance;
             }
         }
-#endregion
+        #endregion
     }
 }

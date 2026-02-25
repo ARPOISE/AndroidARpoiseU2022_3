@@ -628,7 +628,6 @@ namespace com.arpoise.arpoiseapp
         private static readonly HashSet<string> _actionLabels = new HashSet<string>(new string[] // Layer ActionLabel
         {
             nameof(AllowDeferredLoad),
-            nameof(AllowTakeScreenshot),
             nameof(ApplicationSleepInterval),
             nameof(AssetBundleCacheVersion),
             nameof(AudioRolloffMode),
@@ -643,6 +642,7 @@ namespace com.arpoise.arpoiseapp
             nameof(DirectionalLightSWW_IsActive),
             nameof(LightRange),
             nameof(MaximumActiveTriggerObjects),
+            nameof(MirrorCameraBackground),
             nameof(OcclusionEnvironmentDepthMode),
             nameof(OcclusionHumanSegmentationDepthMode),
             nameof(OcclusionHumanSegmentationStencilMode),
@@ -650,6 +650,7 @@ namespace com.arpoise.arpoiseapp
             nameof(PositionUpdateInterval),
             nameof(RemoteServerUrl),
             nameof(SceneUrl),
+            nameof(ShowScreenshotButton),
             nameof(TimeSync)
         });
 
@@ -692,26 +693,50 @@ namespace com.arpoise.arpoiseapp
         #region ActionLabels
 
         [NonSerialized]
-        private int? _allowTakeScreenshot;
-        public int AllowTakeScreenshot // Layer ActionLabel
+        private int? _showScreenshotButton;
+        public int ShowScreenshotButton // Layer ActionLabel
         {
             get
             {
-                if (_allowTakeScreenshot == null)
+                if (_showScreenshotButton == null)
                 {
-                    _allowTakeScreenshot = 0;
-                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(AllowTakeScreenshot).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    _showScreenshotButton = 0;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(ShowScreenshotButton).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
                     if (action != null)
                     {
                         int value;
                         if (int.TryParse(action.activityMessage.Trim(), out value))
                         {
-                            _allowTakeScreenshot = value;
+                            _showScreenshotButton = value;
                         }
                     }
-                    //Console.WriteLine($"----> AllowTakeScreenshot is {_allowTakeScreenshot}");
+                    //Console.WriteLine($"----> ShowScreenshotButton is {_showScreenshotButton}");
                 }
-                return _allowTakeScreenshot.Value;
+                return _showScreenshotButton.Value;
+            }
+        }
+
+        [NonSerialized]
+        private bool? _mirrorCameraBackground;
+        public bool MirrorCameraBackground // Layer ActionLabel
+        {
+            get
+            {
+                if (_mirrorCameraBackground == null)
+                {
+                    _mirrorCameraBackground = false;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(MirrorCameraBackground).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        bool value;
+                        if (bool.TryParse(action.activityMessage.Trim(), out value))
+                        {
+                            _mirrorCameraBackground = value;
+                        }
+                    }
+                    //Console.WriteLine($"----> MirrorCameraBackground is {_mirrorCameraBackground}");
+                }
+                return _mirrorCameraBackground.Value;
             }
         }
 

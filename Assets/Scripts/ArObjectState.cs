@@ -525,11 +525,6 @@ namespace com.arpoise.arpoiseapp
                     }
                 }
             }
-
-            if (!hasHit && Input.GetMouseButtonDown(0))
-            {
-                arBehaviour.TakeScreenshot = true;
-            }
             return hasHit;
         }
 

@@ -36,6 +36,9 @@ using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+#if ARpoiseApp
+using static NativeGallery;
+#endif
 
 namespace com.arpoise.arpoiseapp
 {
@@ -123,22 +126,79 @@ namespace com.arpoise.arpoiseapp
         public volatile bool TakeScreenshot = false;
         protected IEnumerator TakeScreenshotRoutine()
         {
+            var takeScreenshot = false;
+            var activateButtons = false;
+            var infoTextActive = false;
+            var menuButtonActive = false;
+            var headerButtonActive = false;
+            var screenshotButtonActive = false;
+            //Console.WriteLine($"----> TakeScreenshotRoutine, size {ShowScreenshotButton}");
+
             for (; ; )
             {
                 while (!TakeScreenshot)
                 {
+                    takeScreenshot = false;
+                    activateButtons = false;
                     yield return new WaitForSeconds(.01f);
                 }
-                if (AllowTakeScreenshot < 1)
+                if (takeScreenshot == false && activateButtons == false)
                 {
-                    TakeScreenshot = false;
-                    continue;
+                    menuButtonActive = MenuButton.activeSelf;
+                    if (menuButtonActive)
+                    {
+                        MenuButton.SetActive(false);
+                    }
+                    screenshotButtonActive = ScreenshotButton.activeSelf;
+                    if (screenshotButtonActive)
+                    {
+                        ScreenshotButton.SetActive(false);
+                    }
+                    headerButtonActive = HeaderButton.activeSelf;
+                    if (headerButtonActive)
+                    {
+                        HeaderButton.SetActive(false);
+                    }
+                    infoTextActive = InfoText.activeSelf;
+                    if (infoTextActive)
+                    {
+                        InfoText.SetActive(false);
+                    }
+                    takeScreenshot = true;
+                    yield return new WaitForSeconds(.01f);
                 }
-
-                var name = $"Screenshot_{DateTime.Now:yyMMdd_HHmmss_fff}.png";
-                ScreenCapture.CaptureScreenshot(name, AllowTakeScreenshot);
-                //Console.WriteLine($"----> Screenshot, path {Application.persistentDataPath}, name {name}, size {AllowTakeScreenshot}");
-
+                if (ShowScreenshotButton > 0 && takeScreenshot)
+                {
+                    takeScreenshot = false;
+                    var name = $"Screenshot_{DateTime.Now:yyMMdd_HHmmss_fff}.png";
+                    var texture = ScreenCapture.CaptureScreenshotAsTexture(ShowScreenshotButton);
+                    //Console.WriteLine($"----> Screenshot, name {name}, size {ShowScreenshotButton}");
+#if ARpoiseApp
+                    SaveImageToGallery(texture, "ARpoise", name);
+#endif
+                    activateButtons = true;
+                    yield return new WaitForSeconds(.01f);
+                }
+                if (activateButtons)
+                {
+                    activateButtons = false;
+                    if (menuButtonActive)
+                    {
+                        MenuButton.SetActive(true);
+                    }
+                    if (screenshotButtonActive)
+                    {
+                        ScreenshotButton.SetActive(true);
+                    }
+                    if (headerButtonActive)
+                    {
+                        HeaderButton.SetActive(true);
+                    }
+                    if (infoTextActive)
+                    {
+                        InfoText.SetActive(true);
+                    }
+                }
                 TakeScreenshot = false;
             }
         }
@@ -951,7 +1011,7 @@ namespace com.arpoise.arpoiseapp
                         {
                             CrystalObjects.Add(t);
                         }
-                        else if(isSlamUrl)
+                        else if (isSlamUrl)
                         {
                             SlamObjects.Add(t);
                         }
@@ -1051,10 +1111,10 @@ namespace com.arpoise.arpoiseapp
             int areaSize = -1;
             int areaWidth = -1;
             bool applyKalmanFilter = true;
-            int allowTakeScreenshot = -1;
-
+            int showScreenshotButton = -1;
             int applicationSleepStartMinute = -1;
             int applicationSleepEndMinute = -1;
+            bool mirrorCameraBackground = false;
 
             foreach (var layer in layers)
             {
@@ -1101,9 +1161,9 @@ namespace com.arpoise.arpoiseapp
                     {
                         timeSync = layer.TimeSync;
                     }
-                    if (allowTakeScreenshot <= 0)
+                    if (showScreenshotButton <= 0)
                     {
-                        allowTakeScreenshot = layer.AllowTakeScreenshot;
+                        showScreenshotButton = layer.ShowScreenshotButton;
                     }
 
                     var layerApplicationSleepStartMinute = layer.ApplicationSleepStartMinute;
@@ -1115,6 +1175,10 @@ namespace com.arpoise.arpoiseapp
                     if (applicationSleepEndMinute < 0 && layerApplicationSleepEndMinute >= 0)
                     {
                         applicationSleepEndMinute = layerApplicationSleepEndMinute;
+                    }
+                    if (!mirrorCameraBackground && layer.MirrorCameraBackground)
+                    {
+                        mirrorCameraBackground = layer.MirrorCameraBackground;
                     }
                 }
 
@@ -1135,7 +1199,8 @@ namespace com.arpoise.arpoiseapp
             PositionUpdateInterval = positionUpdateInterval;
             AreaSize = areaSize;
             AreaWidth = areaWidth;
-            AllowTakeScreenshot = allowTakeScreenshot;
+            MirrorCameraBackground = mirrorCameraBackground;
+            ShowScreenshotButton = showScreenshotButton;
             TimeSync(timeSync);
             EnableOcclusion(layers.FirstOrDefault());
             ApplicationSleepStartMinute = applicationSleepStartMinute;

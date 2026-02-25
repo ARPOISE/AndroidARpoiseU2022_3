@@ -96,7 +96,7 @@ MonoBehaviour:
   m_Name: XboxOne
   m_EditorClassIdentifier: 
   features:
-  - {fileID: -2750247521520645794}
+  - {fileID: -1621442266236744578}
   m_renderMode: 1
   m_autoColorSubmissionMode: 1
   m_colorSubmissionModes:

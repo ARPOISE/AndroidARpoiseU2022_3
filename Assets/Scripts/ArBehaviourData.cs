@@ -36,6 +36,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
+using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
 namespace com.arpoise.arpoiseapp
@@ -94,6 +95,27 @@ namespace com.arpoise.arpoiseapp
         }
     }
 
+    public class ScreenshotButtonClickActivity : IActivity
+    {
+        public ArBehaviourData ArBehaviour;
+
+        public void Execute()
+        {
+            ArBehaviour.HandleScreenshotButtonClick();
+        }
+    }
+
+    public class ScreenshotButtonSetActiveActivity : IActivity
+    {
+        public ArBehaviourData ArBehaviour;
+        public List<ArLayer> Layers;
+
+        public void Execute()
+        {
+            ArBehaviour.SetScreenshotButtonActive(Layers);
+        }
+    }
+
     public class UploadRequest
     {
         public string url;
@@ -120,10 +142,13 @@ namespace com.arpoise.arpoiseapp
         public bool IsCrystal { get; private set; }
         protected readonly List<ArItem> LayerItemList = new List<ArItem>();
         protected bool IsNewLayer = false;
+        protected HeaderSetActiveActivity HeaderSetActive;
         protected bool? MenuEnabled = null;
         protected MenuButtonSetActiveActivity MenuButtonSetActive;
-        protected HeaderSetActiveActivity HeaderSetActive;
         protected MenuButtonClickActivity MenuButtonClick;
+        protected bool? ScreenshotButtonEnabled = null;
+        protected ScreenshotButtonSetActiveActivity ScreenshotButtonSetActive;
+        protected ScreenshotButtonClickActivity ScreenshotButtonClick;
         #endregion
 
         #region GetData
@@ -157,6 +182,7 @@ namespace com.arpoise.arpoiseapp
             {
                 PauseCheckWebRequestsRoutine = true;
                 MenuEnabled = null;
+                ScreenshotButtonEnabled = null;
                 count++;
 
                 float filteredLatitude = FilteredLatitude;
@@ -169,7 +195,7 @@ namespace com.arpoise.arpoiseapp
                 IsCrystal = IsHumanBody = IsSlam = false;
                 ApplicationSleepStartMinute = -1;
                 ApplicationSleepEndMinute = -1;
-                AllowTakeScreenshot = -1;
+                ShowScreenshotButton = -1;
 
                 #region Download all pages of the layer
 
@@ -284,6 +310,10 @@ namespace com.arpoise.arpoiseapp
 
                 #region Handle the showMenuButton of the layers
                 MenuButtonSetActive = new MenuButtonSetActiveActivity { ArBehaviour = this, Layers = layers.ToList() };
+                #endregion
+
+                #region Handle the showScreenshotButton of the layers
+                ScreenshotButtonSetActive = new ScreenshotButtonSetActiveActivity { ArBehaviour = this, Layers = layers.ToList() };
                 #endregion
 
                 #region Download the asset bundle for icons
@@ -869,6 +899,15 @@ namespace com.arpoise.arpoiseapp
                     existingArObjects = arObjectState.ArObjects.ToList();
                 }
                 arObjectState = CreateArObjectState(existingArObjects, layers);
+                if (ArCamera != null && MirrorCameraBackground)
+                {
+                    var component = ArCamera.GetComponent<ARCameraBackground>();
+                    if (component != null)
+                    {
+                        component.useCustomMaterial = MirrorCameraBackground;
+                        //Console.WriteLine($"----> MirrorCameraBackground is {_mirrorCameraBackground}");
+                    }
+                }
                 setError = false;
 
                 if (ArObjectState == null)
@@ -992,17 +1031,26 @@ namespace com.arpoise.arpoiseapp
         #endregion
 
         #region Misc
-        public virtual void SetMenuButtonActive(List<ArLayer> layers)
+        public virtual void HandleInfoPanelClosed()
         {
         }
 
-        public virtual void HandleInfoPanelClosed()
+        public virtual void SetMenuButtonActive(List<ArLayer> layers)
         {
         }
 
         public virtual void HandleMenuButtonClick()
         {
             //Debug.Log("ArBehaviourData.HandleMenuButtonClick");
+        }
+
+        public virtual void SetScreenshotButtonActive(List<ArLayer> layers)
+        {
+        }
+
+        public virtual void HandleScreenshotButtonClick()
+        {
+            //Debug.Log("ArBehaviourData.HandleScreenshotButtonClick");
         }
 
         public virtual void SetHeaderActive(string layerTitle)
