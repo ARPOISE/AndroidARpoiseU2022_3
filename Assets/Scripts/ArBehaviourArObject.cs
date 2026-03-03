@@ -33,6 +33,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.XR.CoreUtils;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
@@ -122,84 +123,65 @@ namespace com.arpoise.arpoiseapp
             }
         }
 
-        [NonSerialized]
-        public volatile bool TakeScreenshot = false;
         protected IEnumerator TakeScreenshotRoutine()
         {
-            var takeScreenshot = false;
-            var activateButtons = false;
-            var infoTextActive = false;
-            var menuButtonActive = false;
-            var headerButtonActive = false;
-            var screenshotButtonActive = false;
             //Console.WriteLine($"----> TakeScreenshotRoutine, size {ShowScreenshotButton}");
 
-            for (; ; )
+            var menuButtonActive = MenuButton.activeSelf;
+            if (menuButtonActive)
             {
-                while (!TakeScreenshot)
-                {
-                    takeScreenshot = false;
-                    activateButtons = false;
-                    yield return new WaitForSeconds(.01f);
-                }
-                if (takeScreenshot == false && activateButtons == false)
-                {
-                    menuButtonActive = MenuButton.activeSelf;
-                    if (menuButtonActive)
-                    {
-                        MenuButton.SetActive(false);
-                    }
-                    screenshotButtonActive = ScreenshotButton.activeSelf;
-                    if (screenshotButtonActive)
-                    {
-                        ScreenshotButton.SetActive(false);
-                    }
-                    headerButtonActive = HeaderButton.activeSelf;
-                    if (headerButtonActive)
-                    {
-                        HeaderButton.SetActive(false);
-                    }
-                    infoTextActive = InfoText.activeSelf;
-                    if (infoTextActive)
-                    {
-                        InfoText.SetActive(false);
-                    }
-                    takeScreenshot = true;
-                    yield return new WaitForSeconds(.01f);
-                }
-                if (ShowScreenshotButton > 0 && takeScreenshot)
-                {
-                    takeScreenshot = false;
-                    var name = $"Screenshot_{DateTime.Now:yyMMdd_HHmmss_fff}.png";
-                    var texture = ScreenCapture.CaptureScreenshotAsTexture(ShowScreenshotButton);
-                    //Console.WriteLine($"----> Screenshot, name {name}, size {ShowScreenshotButton}");
+                MenuButton.SetActive(false);
+            }
+            var screenshotButtonActive = ScreenshotButton.activeSelf;
+            if (screenshotButtonActive)
+            {
+                ScreenshotButton.SetActive(false);
+            }
+            var headerButtonActive = HeaderButton.activeSelf;
+            if (headerButtonActive)
+            {
+                HeaderButton.SetActive(false);
+            }
+            var infoTextActive = InfoText.activeSelf;
+            if (infoTextActive)
+            {
+                InfoText.SetActive(false);
+            }
+            var audioSource = ScreenshotButton.GetComponent<AudioSource>();
+            if (audioSource != null)
+            {
+                audioSource.mute = false;
+            }
+            yield return new WaitForEndOfFrame();
+
+            if (audioSource != null)
+            {
+                audioSource.Play();
+            }
+
+            var name = $"Screenshot_{DateTime.Now:yyMMdd_HHmmss_fff}.png";
+            var texture = ScreenCapture.CaptureScreenshotAsTexture(ShowScreenshotButton);
+            //Console.WriteLine($"----> Screenshot, name {name}, size {ShowScreenshotButton}");
 #if ARpoiseApp
-                    SaveImageToGallery(texture, "ARpoise", name);
+            SaveImageToGallery(texture, "ARpoise", name);
 #endif
-                    activateButtons = true;
-                    yield return new WaitForSeconds(.01f);
-                }
-                if (activateButtons)
-                {
-                    activateButtons = false;
-                    if (menuButtonActive)
-                    {
-                        MenuButton.SetActive(true);
-                    }
-                    if (screenshotButtonActive)
-                    {
-                        ScreenshotButton.SetActive(true);
-                    }
-                    if (headerButtonActive)
-                    {
-                        HeaderButton.SetActive(true);
-                    }
-                    if (infoTextActive)
-                    {
-                        InfoText.SetActive(true);
-                    }
-                }
-                TakeScreenshot = false;
+            yield return new WaitForEndOfFrame();
+
+            if (menuButtonActive)
+            {
+                MenuButton.SetActive(true);
+            }
+            if (screenshotButtonActive)
+            {
+                ScreenshotButton.SetActive(true);
+            }
+            if (headerButtonActive)
+            {
+                HeaderButton.SetActive(true);
+            }
+            if (infoTextActive)
+            {
+                InfoText.SetActive(true);
             }
         }
 
@@ -1308,6 +1290,7 @@ namespace com.arpoise.arpoiseapp
             }
         }
         private static readonly System.Random _random = new System.Random((int)DateTime.Now.Ticks);
+
         protected override void Update()
         {
             foreach (var crystalObject in CrystalObjects)

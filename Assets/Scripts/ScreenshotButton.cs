@@ -61,7 +61,6 @@ namespace com.arpoise.arpoiseapp
         {
             if (_behaviour != null)
             {
-                //TakeScreenshot();
                 _behaviour.HandleScreenshotButtonClick();
                 //Debug.Log("ScreenshotButton HandleClick.");
             }

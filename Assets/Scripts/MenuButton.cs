@@ -61,32 +61,9 @@ namespace com.arpoise.arpoiseapp
         {
             if (_behaviour != null)
             {
-                //TakeScreenshot();
                 _behaviour.HandleMenuButtonClick();
                 //Debug.Log("MenuButton HandleClick.");
             }
         }
-
-        // This is unused, it was a try to allow to upload a screenshot
-        //
-        //public void TakeScreenshot()
-        //{
-        //    var camera = Camera.main;
-        //    if (camera != null)
-        //    {
-        //        RenderTexture rt = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 24);
-        //        Camera.main.targetTexture = rt;
-        //        Texture2D screenShot = new Texture2D(camera.pixelWidth, camera.pixelHeight, TextureFormat.RGB24, false);
-        //        Camera.main.Render();
-        //        RenderTexture.active = rt;
-        //        screenShot.ReadPixels(new Rect(0, 0, camera.pixelWidth, camera.pixelHeight), 0, 0);
-        //        Camera.main.targetTexture = null;
-        //        RenderTexture.active = null; // JC: added to avoid errors
-        //        Destroy(rt);
-        //        byte[] bytes = screenShot.EncodeToPNG();
-
-        //        _behaviour.RequestUpload("https://www.tamikothiel.com/cgi-bin/LendMeYourFace.cgi", bytes);
-        //    }
-        //}
     }
 }

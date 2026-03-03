@@ -860,6 +860,7 @@ GameObject:
   - component: {fileID: 1307644917}
   - component: {fileID: 1307644916}
   - component: {fileID: 1307644919}
+  - component: {fileID: 1307644920}
   m_Layer: 5
   m_Name: ScreenshotButton
   m_TagString: Untagged
@@ -977,10 +978,106 @@ MonoBehaviour:
   m_GameObject: {fileID: 1307644913}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f781c84852a22b944b41ce577eaa13bf, type: 3}
+  m_Script: {fileID: 11500000, guid: 34352927858c2417ea3d3bfdd0c92b23, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Button: {fileID: 1307644916}
+--- !u!82 &1307644920
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1307644913}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 8300000, guid: 8d514e9f168ed034484e7c8ae1c7b67b, type: 3}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 1
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1453786492
 GameObject:
   m_ObjectHideFlags: 0
@@ -1906,6 +2003,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   StartTicks: 0
   ArCamera: {fileID: 1464537878}
+  InfoText: {fileID: 7609808323551235062}
+  HeaderButton: {fileID: 7462290449588158478}
   MenuButton: {fileID: 3491036700577019378}
   ScreenshotButton: {fileID: 1307644913}
   RecordingFrameRate: 0
@@ -1913,8 +2012,6 @@ MonoBehaviour:
   Wrapper: {fileID: 1570904393}
   ArpoiseDirectoryUrl: www.arpoise.com/cgi-bin/ArpoiseDirectory.cgi
   VisualizerPosition: {x: 0, y: 0, z: 0}
-  InfoText: {fileID: 7609808323551235062}
-  HeaderButton: {fileID: 7462290449588158478}
   HeaderText: {fileID: 7462333081693708132}
   InputPanel: {fileID: 6088806893346615969}
   InfoPanel: {fileID: 0}
