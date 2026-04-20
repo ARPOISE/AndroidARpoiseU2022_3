@@ -222,88 +222,90 @@ namespace com.arpoise.arpoiseapp
                     ;
 
                     url = FixUrl(url);
-                    var request = UnityWebRequest.Get(url);
-                    request.certificateHandler = new ArpoiseCertificateHandler();
-                    request.timeout = 30;
-                    yield return request.SendWebRequest();
+                    using (var request = UnityWebRequest.Get(url))
+                    {
+                        request.certificateHandler = new ArpoiseCertificateHandler();
+                        request.timeout = 30;
+                        yield return request.SendWebRequest();
 
-                    var maxWait = request.timeout * 100;
-                    while (request.result != UnityWebRequest.Result.Success
-                        && request.result != UnityWebRequest.Result.ConnectionError
-                        && request.result != UnityWebRequest.Result.ProtocolError
-                        && request.result != UnityWebRequest.Result.DataProcessingError
-                        && !request.isDone && maxWait > 0)
-                    {
-                        yield return new WaitForSeconds(.01f);
-                        maxWait--;
-                    }
+                        var maxWait = request.timeout * 100;
+                        while (request.result != UnityWebRequest.Result.Success
+                            && request.result != UnityWebRequest.Result.ConnectionError
+                            && request.result != UnityWebRequest.Result.ProtocolError
+                            && request.result != UnityWebRequest.Result.DataProcessingError
+                            && !request.isDone && maxWait > 0)
+                        {
+                            yield return new WaitForSeconds(.01f);
+                            maxWait--;
+                        }
 
-                    if (maxWait < 1)
-                    {
-                        if (setError)
+                        if (maxWait < 1)
                         {
-                            ErrorMessage = $"Layer '{layerName}' download timeout.";
-                            yield break;
-                        }
-                        break;
-                    }
-                    if (request.result == UnityWebRequest.Result.ConnectionError
-                        || request.result == UnityWebRequest.Result.ProtocolError
-                        || request.result == UnityWebRequest.Result.DataProcessingError)
-                    {
-                        if (setError)
-                        {
-                            ErrorMessage = $"Layer '{layerName}' {request.result}, {request.error}";
-                            yield break;
-                        }
-                        break;
-                    }
-
-                    var text = request.downloadHandler.text;
-                    if (string.IsNullOrWhiteSpace(text))
-                    {
-                        if (setError)
-                        {
-                            ErrorMessage = $"Layer '{layerName}', empty text.";
-                            yield break;
-                        }
-                        break;
-                    }
-                    try
-                    {
-                        var layer = ArLayer.Create(text);
-                        if (!string.IsNullOrWhiteSpace(layer.redirectionUrl))
-                        {
-                            uri = layer.redirectionUrl.Trim();
-                        }
-                        if (!string.IsNullOrWhiteSpace(layer.redirectionLayer))
-                        {
-                            layerName = layer.redirectionLayer.Trim();
-                        }
-                        if (!string.IsNullOrWhiteSpace(layer.redirectionUrl) || !string.IsNullOrWhiteSpace(layer.redirectionLayer))
-                        {
-                            layers.Clear();
-                            nextPageKey = string.Empty;
-                            //Debug.Log("Redirected to " + layer.redirectionUrl);
-                            continue;
-                        }
-                        layers.Add(layer);
-                        if (layer.morePages == false || string.IsNullOrWhiteSpace(layer.nextPageKey))
-                        {
-                            LayerWebUrl = uri + "?layerName=" + layerName;
-                            //Debug.Log("Loaded Layer " + layerName);
+                            if (setError)
+                            {
+                                ErrorMessage = $"Layer '{layerName}' download timeout.";
+                                yield break;
+                            }
                             break;
                         }
-                        nextPageKey = layer.nextPageKey;
-                    }
-                    catch (Exception e)
-                    {
-                        if (setError)
+                        if (request.result == UnityWebRequest.Result.ConnectionError
+                            || request.result == UnityWebRequest.Result.ProtocolError
+                            || request.result == UnityWebRequest.Result.DataProcessingError)
                         {
-                            ErrorMessage = "Layer '" + layerName + "' parse error: " + e.Message;
-                            yield break;
+                            if (setError)
+                            {
+                                ErrorMessage = $"Layer '{layerName}' {request.result}, {request.error}";
+                                yield break;
+                            }
+                            break;
                         }
-                        break;
+
+                        var text = request.downloadHandler.text;
+                        if (string.IsNullOrWhiteSpace(text))
+                        {
+                            if (setError)
+                            {
+                                ErrorMessage = $"Layer '{layerName}', empty text.";
+                                yield break;
+                            }
+                            break;
+                        }
+                        try
+                        {
+                            var layer = ArLayer.Create(text);
+                            if (!string.IsNullOrWhiteSpace(layer.redirectionUrl))
+                            {
+                                uri = layer.redirectionUrl.Trim();
+                            }
+                            if (!string.IsNullOrWhiteSpace(layer.redirectionLayer))
+                            {
+                                layerName = layer.redirectionLayer.Trim();
+                            }
+                            if (!string.IsNullOrWhiteSpace(layer.redirectionUrl) || !string.IsNullOrWhiteSpace(layer.redirectionLayer))
+                            {
+                                layers.Clear();
+                                nextPageKey = string.Empty;
+                                //Debug.Log("Redirected to " + layer.redirectionUrl);
+                                continue;
+                            }
+                            layers.Add(layer);
+                            if (layer.morePages == false || string.IsNullOrWhiteSpace(layer.nextPageKey))
+                            {
+                                LayerWebUrl = uri + "?layerName=" + layerName;
+                                //Debug.Log("Loaded Layer " + layerName);
+                                break;
+                            }
+                            nextPageKey = layer.nextPageKey;
+                        }
+                        catch (Exception e)
+                        {
+                            if (setError)
+                            {
+                                ErrorMessage = "Layer '" + layerName + "' parse error: " + e.Message;
+                                yield break;
+                            }
+                            break;
+                        }
                     }
                 }
                 #endregion
@@ -332,54 +334,56 @@ namespace com.arpoise.arpoiseapp
                         continue;
                     }
                     var assetBundleUri = FixUrl(GetAssetBundleUrl(url.Key));
-                    var request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleUri, versionOfTheDay, 0);
-                    request.certificateHandler = new ArpoiseCertificateHandler();
-                    request.timeout = 60;
-                    yield return request.SendWebRequest();
+                    using (var request = UnityWebRequestAssetBundle.GetAssetBundle(assetBundleUri, versionOfTheDay, 0))
+                    {
+                        request.certificateHandler = new ArpoiseCertificateHandler();
+                        request.timeout = 60;
+                        yield return request.SendWebRequest();
 
-                    var maxWait = request.timeout * 100;
-                    while (request.result != UnityWebRequest.Result.Success
-                        && request.result != UnityWebRequest.Result.ConnectionError
-                        && request.result != UnityWebRequest.Result.ProtocolError
-                        && request.result != UnityWebRequest.Result.DataProcessingError
-                        && !request.isDone && maxWait > 0)
-                    {
-                        yield return new WaitForSeconds(.01f);
-                        maxWait--;
-                    }
+                        var maxWait = request.timeout * 100;
+                        while (request.result != UnityWebRequest.Result.Success
+                            && request.result != UnityWebRequest.Result.ConnectionError
+                            && request.result != UnityWebRequest.Result.ProtocolError
+                            && request.result != UnityWebRequest.Result.DataProcessingError
+                            && !request.isDone && maxWait > 0)
+                        {
+                            yield return new WaitForSeconds(.01f);
+                            maxWait--;
+                        }
 
-                    if (maxWait < 1)
-                    {
-                        if (setError)
+                        if (maxWait < 1)
                         {
-                            ErrorMessage = $"Icons '{assetBundleUri}' download timeout.";
-                            yield break;
+                            if (setError)
+                            {
+                                ErrorMessage = $"Icons '{assetBundleUri}' download timeout.";
+                                yield break;
+                            }
+                            continue;
                         }
-                        continue;
-                    }
-                    if (request.result == UnityWebRequest.Result.ConnectionError
-                        || request.result == UnityWebRequest.Result.ProtocolError
-                        || request.result == UnityWebRequest.Result.DataProcessingError)
-                    {
-                        if (setError)
+                        if (request.result == UnityWebRequest.Result.ConnectionError
+                            || request.result == UnityWebRequest.Result.ProtocolError
+                            || request.result == UnityWebRequest.Result.DataProcessingError)
                         {
-                            ErrorMessage = $"Icons '{assetBundleUri}' {request.result}, {request.error}";
-                            yield break;
+                            if (setError)
+                            {
+                                ErrorMessage = $"Icons '{assetBundleUri}' {request.result}, {request.error}";
+                                yield break;
+                            }
+                            break;
                         }
-                        break;
-                    }
 
-                    var assetBundle = DownloadHandlerAssetBundle.GetContent(request);
-                    if (assetBundle == null)
-                    {
-                        if (setError)
+                        var assetBundle = DownloadHandlerAssetBundle.GetContent(request);
+                        if (assetBundle == null)
                         {
-                            ErrorMessage = $"Icons '{assetBundleUri}' is null.";
-                            yield break;
+                            if (setError)
+                            {
+                                ErrorMessage = $"Icons '{assetBundleUri}' is null.";
+                                yield break;
+                            }
+                            continue;
                         }
-                        continue;
+                        ArAssetBundleManager.SetAssetBundle(url.Key, assetBundle);
                     }
-                    ArAssetBundleManager.SetAssetBundle(url.Key, assetBundle);
                 }
                 #endregion
 
@@ -492,92 +496,94 @@ namespace com.arpoise.arpoiseapp
                         ;
 
                         url = FixUrl(url);
-                        var request = UnityWebRequest.Get(url);
-                        request.certificateHandler = new ArpoiseCertificateHandler();
-                        request.timeout = 30;
-                        yield return request.SendWebRequest();
-
-                        var maxWait = request.timeout * 100;
-                        while (request.result != UnityWebRequest.Result.Success
-                            && request.result != UnityWebRequest.Result.ConnectionError
-                            && request.result != UnityWebRequest.Result.ProtocolError
-                            && request.result != UnityWebRequest.Result.DataProcessingError
-                            && !request.isDone && maxWait > 0)
+                        using (var request = UnityWebRequest.Get(url))
                         {
-                            yield return new WaitForSeconds(.01f);
-                            maxWait--;
-                        }
+                            request.certificateHandler = new ArpoiseCertificateHandler();
+                            request.timeout = 30;
+                            yield return request.SendWebRequest();
 
-                        if (maxWait < 1)
-                        {
-                            if (setError)
+                            var maxWait = request.timeout * 100;
+                            while (request.result != UnityWebRequest.Result.Success
+                                && request.result != UnityWebRequest.Result.ConnectionError
+                                && request.result != UnityWebRequest.Result.ProtocolError
+                                && request.result != UnityWebRequest.Result.DataProcessingError
+                                && !request.isDone && maxWait > 0)
                             {
-                                ErrorMessage = $"Layer '{innerLayer}' download timeout.";
-                                yield break;
+                                yield return new WaitForSeconds(.01f);
+                                maxWait--;
                             }
-                            break;
-                        }
-                        if (request.result == UnityWebRequest.Result.ConnectionError
-                            || request.result == UnityWebRequest.Result.ProtocolError
-                            || request.result == UnityWebRequest.Result.DataProcessingError)
-                        {
-                            if (setError)
-                            {
-                                ErrorMessage = $"Layer '{innerLayer}' {request.result}, {request.error}";
-                                yield break;
-                            }
-                            break;
-                        }
 
-                        var text = request.downloadHandler.text;
-                        if (string.IsNullOrWhiteSpace(text))
-                        {
-                            if (setError)
+                            if (maxWait < 1)
                             {
-                                ErrorMessage = $"Layer '{innerLayer}', empty text.";
-                                yield break;
-                            }
-                            break;
-                        }
-
-                        try
-                        {
-                            var layer = ArLayer.Create(text);
-                            if (layer != null)
-                            {
-                                foreach (var hotspot in layer.hotspots.Where(x => !string.IsNullOrWhiteSpace(x.InnerLayerName)))
+                                if (setError)
                                 {
-                                    if (!innerLayers.ContainsKey(hotspot.InnerLayerName))
-                                    {
-                                        innerLayers[hotspot.InnerLayerName] = layer.isDefaultLayer;
-                                    }
+                                    ErrorMessage = $"Layer '{innerLayer}' download timeout.";
+                                    yield break;
                                 }
-                            }
-
-                            List<ArLayer> layersList = null;
-                            if (InnerLayers.TryGetValue(innerLayer, out layersList))
-                            {
-                                layersList.Add(layer);
-                            }
-                            else
-                            {
-                                InnerLayers[innerLayer] = new List<ArLayer> { layer };
-                            }
-
-                            if (layer.morePages == false || string.IsNullOrWhiteSpace(layer.nextPageKey))
-                            {
                                 break;
                             }
-                            nextPageKey = layer.nextPageKey;
-                        }
-                        catch (Exception e)
-                        {
-                            if (setError)
+                            if (request.result == UnityWebRequest.Result.ConnectionError
+                                || request.result == UnityWebRequest.Result.ProtocolError
+                                || request.result == UnityWebRequest.Result.DataProcessingError)
                             {
-                                ErrorMessage = "Layer " + innerLayer + " parse error: " + e.Message;
-                                yield break;
+                                if (setError)
+                                {
+                                    ErrorMessage = $"Layer '{innerLayer}' {request.result}, {request.error}";
+                                    yield break;
+                                }
+                                break;
                             }
-                            break;
+
+                            var text = request.downloadHandler.text;
+                            if (string.IsNullOrWhiteSpace(text))
+                            {
+                                if (setError)
+                                {
+                                    ErrorMessage = $"Layer '{innerLayer}', empty text.";
+                                    yield break;
+                                }
+                                break;
+                            }
+
+                            try
+                            {
+                                var layer = ArLayer.Create(text);
+                                if (layer?.hotspots != null)
+                                {
+                                    foreach (var hotspot in layer.hotspots.Where(x => !string.IsNullOrWhiteSpace(x.InnerLayerName)))
+                                    {
+                                        if (!innerLayers.ContainsKey(hotspot.InnerLayerName))
+                                        {
+                                            innerLayers[hotspot.InnerLayerName] = layer.isDefaultLayer;
+                                        }
+                                    }
+                                }
+
+                                List<ArLayer> layersList = null;
+                                if (InnerLayers.TryGetValue(innerLayer, out layersList))
+                                {
+                                    layersList.Add(layer);
+                                }
+                                else
+                                {
+                                    InnerLayers[innerLayer] = new List<ArLayer> { layer };
+                                }
+
+                                if (layer.morePages == false || string.IsNullOrWhiteSpace(layer.nextPageKey))
+                                {
+                                    break;
+                                }
+                                nextPageKey = layer.nextPageKey;
+                            }
+                            catch (Exception e)
+                            {
+                                if (setError)
+                                {
+                                    ErrorMessage = "Layer " + innerLayer + " parse error: " + e.Message;
+                                    yield break;
+                                }
+                                break;
+                            }
                         }
                     }
                 }
@@ -737,62 +743,65 @@ namespace com.arpoise.arpoiseapp
                         continue;
                     }
                     var triggerImageUri = FixUrl(url);
-                    var request = UnityWebRequestTexture.GetTexture(triggerImageUri);
-                    request.certificateHandler = new ArpoiseCertificateHandler();
-                    request.timeout = 30;
-                    webRequests.Add(new Tuple<string, string, UnityWebRequest>(url, triggerImageUri, request));
-                    yield return request.SendWebRequest();
+                    using (var request = UnityWebRequestTexture.GetTexture(triggerImageUri))
+                    {
+                        request.certificateHandler = new ArpoiseCertificateHandler();
+                        request.timeout = 30;
+                        webRequests.Add(new Tuple<string, string, UnityWebRequest>(url, triggerImageUri, request));
+                        yield return request.SendWebRequest();
+                    }
                 }
 
                 foreach (var tuple in webRequests)
                 {
                     var url = tuple.Item1;
                     var triggerImageUri = tuple.Item2;
-                    var request = tuple.Item3;
-
-                    var maxWait = request.timeout * 100;
-                    while (request.result != UnityWebRequest.Result.Success
-                        && request.result != UnityWebRequest.Result.ConnectionError
-                        && request.result != UnityWebRequest.Result.ProtocolError
-                        && request.result != UnityWebRequest.Result.DataProcessingError
-                        && !request.isDone && maxWait > 0)
+                    using (var request = tuple.Item3)
                     {
-                        yield return new WaitForSeconds(.01f);
-                        maxWait--;
-                    }
-
-                    if (maxWait < 1)
-                    {
-                        if (setError)
+                        var maxWait = request.timeout * 100;
+                        while (request.result != UnityWebRequest.Result.Success
+                            && request.result != UnityWebRequest.Result.ConnectionError
+                            && request.result != UnityWebRequest.Result.ProtocolError
+                            && request.result != UnityWebRequest.Result.DataProcessingError
+                            && !request.isDone && maxWait > 0)
                         {
-                            ErrorMessage = $"Image '{triggerImageUri}' download timeout.";
-                            yield break;
+                            yield return new WaitForSeconds(.01f);
+                            maxWait--;
                         }
-                        continue;
-                    }
-                    if (request.result == UnityWebRequest.Result.ConnectionError
-                        || request.result == UnityWebRequest.Result.ProtocolError
-                        || request.result == UnityWebRequest.Result.DataProcessingError)
-                    {
-                        if (setError)
-                        {
-                            ErrorMessage = $"Image '{triggerImageUri}' {request.result}, {request.error}";
-                            yield break;
-                        }
-                        break;
-                    }
 
-                    var texture = DownloadHandlerTexture.GetContent(request);
-                    if (texture == null)
-                    {
-                        if (setError)
+                        if (maxWait < 1)
                         {
-                            ErrorMessage = $"Image '{triggerImageUri}', empty texture.";
-                            yield break;
+                            if (setError)
+                            {
+                                ErrorMessage = $"Image '{triggerImageUri}' download timeout.";
+                                yield break;
+                            }
+                            continue;
                         }
-                        continue;
+                        if (request.result == UnityWebRequest.Result.ConnectionError
+                            || request.result == UnityWebRequest.Result.ProtocolError
+                            || request.result == UnityWebRequest.Result.DataProcessingError)
+                        {
+                            if (setError)
+                            {
+                                ErrorMessage = $"Image '{triggerImageUri}' {request.result}, {request.error}";
+                                yield break;
+                            }
+                            break;
+                        }
+
+                        var texture = DownloadHandlerTexture.GetContent(request);
+                        if (texture == null)
+                        {
+                            if (setError)
+                            {
+                                ErrorMessage = $"Image '{triggerImageUri}', empty texture.";
+                                yield break;
+                            }
+                            continue;
+                        }
+                        TriggerImages[url] = texture;
                     }
-                    TriggerImages[url] = texture;
                 }
                 #endregion
 

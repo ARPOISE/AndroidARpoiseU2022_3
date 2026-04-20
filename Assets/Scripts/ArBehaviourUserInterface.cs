@@ -270,7 +270,7 @@ namespace com.arpoise.arpoiseapp
         public override void HandleScreenshotButtonClick()
         {
             //Debug.Log("ArBehaviourUserInterface.HandleScreenshotButtonClick");
-            StartCoroutine(nameof(TakeScreenshotRoutine));
+            StartCoroutine(nameof(TakeScreenshot));
         }
 
         public void HandlePanelHeaderButtonClick()

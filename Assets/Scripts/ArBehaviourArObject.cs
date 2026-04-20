@@ -33,7 +33,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.XR.CoreUtils;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
@@ -123,9 +122,9 @@ namespace com.arpoise.arpoiseapp
             }
         }
 
-        protected IEnumerator TakeScreenshotRoutine()
+        protected IEnumerator TakeScreenshot()
         {
-            //Console.WriteLine($"----> TakeScreenshotRoutine, size {ShowScreenshotButton}");
+            //Console.WriteLine($"----> TakeScreenshot, size {ShowScreenshotButton}");
 
             var menuButtonActive = MenuButton.activeSelf;
             if (menuButtonActive)
@@ -165,6 +164,7 @@ namespace com.arpoise.arpoiseapp
 #if ARpoiseApp
             SaveImageToGallery(texture, "ARpoise", name);
 #endif
+            Destroy(texture);
             yield return new WaitForEndOfFrame();
 
             if (menuButtonActive)
@@ -440,6 +440,7 @@ namespace com.arpoise.arpoiseapp
         {
             createdObject = null;
             arObject = null;
+            var name = objectToAdd?.name;
 
             // Create a copy of the object
             if (string.IsNullOrWhiteSpace(poi.LindenmayerString))
@@ -455,6 +456,7 @@ namespace com.arpoise.arpoiseapp
                     leafToAdd = ArAssetBundleManager.TryLoadGameObject(poi.BaseUrl, leafPrefab);
                 }
 
+
                 objectToAdd = ArCreature.Create(
                     poi.LindenmayerDerivations,
                     poi.LindenmayerString,
@@ -468,7 +470,7 @@ namespace com.arpoise.arpoiseapp
             }
             if (objectToAdd == null)
             {
-                return $"Instantiate({objectToAdd.name}) failed";
+                return $"Instantiate({name}) failed";
             }
 
             // Load script components that are not in the prefab, but are compiled into the app
@@ -1284,10 +1286,7 @@ namespace com.arpoise.arpoiseapp
         private static long _arObjectId = -1000000000;
         public static long ArObjectId
         {
-            get
-            {
-                return _arObjectId--;
-            }
+            get { return _arObjectId--; }
         }
         private static readonly System.Random _random = new System.Random((int)DateTime.Now.Ticks);
 
@@ -1299,49 +1298,49 @@ namespace com.arpoise.arpoiseapp
                 if (arpoisePoiStructure != null)
                 {
                     arpoisePoiStructure.CallUpdate();
-                    break;
+                    continue;
                 }
                 arpoisePoiStructure = crystalObject.gameObject.GetComponent<ArpoisePoiRain>();
                 if (arpoisePoiStructure != null)
                 {
                     arpoisePoiStructure.CallUpdate();
-                    break;
+                    continue;
                 }
                 arpoisePoiStructure = crystalObject.gameObject.GetComponent<ArpoisePoiSphere>();
                 if (arpoisePoiStructure != null)
                 {
                     arpoisePoiStructure.CallUpdate();
-                    break;
+                    continue;
                 }
                 arpoisePoiStructure = crystalObject.gameObject.GetComponent<ArpoisePoiGrid>();
                 if (arpoisePoiStructure != null)
                 {
                     arpoisePoiStructure.CallUpdate();
-                    break;
+                    continue;
                 }
                 arpoisePoiStructure = crystalObject.gameObject.GetComponent<ArpoisePoiGate>();
                 if (arpoisePoiStructure != null)
                 {
                     arpoisePoiStructure.CallUpdate();
-                    break;
+                    continue;
                 }
                 arpoisePoiStructure = crystalObject.gameObject.GetComponent<ArpoisePoiSpiral>();
                 if (arpoisePoiStructure != null)
                 {
                     arpoisePoiStructure.CallUpdate();
-                    break;
+                    continue;
                 }
                 arpoisePoiStructure = crystalObject.gameObject.GetComponent<ArpoisePoiAtomSuperpos>();
                 if (arpoisePoiStructure != null)
                 {
                     arpoisePoiStructure.CallUpdate();
-                    break;
+                    continue;
                 }
                 arpoisePoiStructure = crystalObject.gameObject.GetComponent<ArpoisePoiAtomEntangled>();
                 if (arpoisePoiStructure != null)
                 {
                     arpoisePoiStructure.CallUpdate();
-                    break;
+                    continue;
                 }
             }
             base.Update();

@@ -180,18 +180,20 @@ namespace com.arpoise.arpoiseapp
                     request.ErrorMessage = $"Bundle '{request.AssetBundleUri}' {request.UnityWebRequest.result}, {request.UnityWebRequest.error}";
                     request.UnityWebRequest.Dispose();
                     request.UnityWebRequest = null;
+                    continue;
                 }
-                else
+
+                var assetBundle = DownloadHandlerAssetBundle.GetContent(request.UnityWebRequest);
+                if (assetBundle == null)
                 {
-                    var assetBundle = DownloadHandlerAssetBundle.GetContent(request.UnityWebRequest);
-                    if (assetBundle == null)
-                    {
-                        request.ErrorMessage = $"Bundle '{request.AssetBundleUrl}' is null.";
-                    }
+                    request.ErrorMessage = $"Bundle '{request.AssetBundleUrl}' is null.";
                     request.UnityWebRequest.Dispose();
                     request.UnityWebRequest = null;
-                    SetAssetBundle(request.AssetBundleUrl, assetBundle);
+                    continue;
                 }
+                request.UnityWebRequest.Dispose();
+                request.UnityWebRequest = null;
+                SetAssetBundle(request.AssetBundleUrl, assetBundle);
             }
             return allDone;
         }

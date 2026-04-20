@@ -54,7 +54,7 @@ namespace com.arpoise.arpoiseapp
         public const string OperatingSystem = "Android";
 #endif
 #endif
-        public const int Bundle = 2026022600;
+        public const int Bundle = 2026041100;
         public const string ArvosApplicationName = "Arvos";
         public const string ArpoiseApplicationName = "Arpoise";
 #if AndroidArvosU2022_3 || iOsArvosU2022_3
@@ -143,7 +143,7 @@ namespace com.arpoise.arpoiseapp
                     if (_nRead > length + 2)
                     {
                         byte[] newBuffer = new byte[32 * 1024];
-                        Array.Copy(_readBuffer, length + 2, newBuffer, 0, _nRead - length + 2);
+                        Array.Copy(_readBuffer, length + 2, newBuffer, 0, _nRead - (length + 2));
                         _nRead -= length + 2;
                         _readBuffer = newBuffer;
                     }
@@ -263,6 +263,7 @@ namespace com.arpoise.arpoiseapp
                 //UnityEngine.Debug.Log($"> netStream.Write: size {bytes.Length}");
                 netStream.Write(bytes, 0, bytes.Length);
                 //UnityEngine.Debug.Log($"< netStream.Write: offset {0}, size {bytes.Length}");
+                _lastSendTime = DateTime.Now;
             }
             catch (Exception e)
             {
@@ -274,9 +275,9 @@ namespace com.arpoise.arpoiseapp
                 //UnityEngine.Debug.Log($"tcpClient.Close");
                 tcpClient?.Close();
                 tcpClient = null;
+                return false;
             }
 
-            _lastSendTime = DateTime.Now;
             return true;
         }
 
@@ -389,9 +390,9 @@ namespace com.arpoise.arpoiseapp
                     {
                         return;
                     }
+                    _reconnected = true;
                     return;
                 }
-                _reconnected = true;
             }
             if (_tcpClient != null && _netStream != null && _connectionId != null && (DateTime.Now - _lastSendTime).TotalSeconds > 12)
             {
@@ -418,7 +419,7 @@ namespace com.arpoise.arpoiseapp
             {
                 if (string.IsNullOrWhiteSpace(message))
                 {
-                    return;
+                    continue;
                 }
                 var parts = message.Split('\0');
                 if (parts == null || parts.Length < 1)
@@ -750,51 +751,38 @@ namespace com.arpoise.arpoiseapp
             }
 
             _packetId = 0;
-            if (_packetId < 1)
-            {
-                var sb = new StringBuilder();
-                sb.Append("RQ");
-                sb.Append('\0');
-                sb.Append("" + _packetId++);
-                sb.Append('\0');
-                sb.Append("0");
-                sb.Append('\0');
-                sb.Append("ENTER");
-                sb.Append('\0');
-                sb.Append("NNM");
-                sb.Append('\0');
-                sb.Append(_name);
-                sb.Append('\0');
-                sb.Append("SCU");
-                sb.Append('\0');
-                sb.Append(_sceneUrl);
-                sb.Append('\0');
-                sb.Append("SCN");
-                sb.Append('\0');
-                sb.Append(_sceneName);
-                sb.Append('\0');
 
-                Send(ref _tcpClient, ref _netStream, sb.ToString());
-            }
+            var sb = new StringBuilder();
+            sb.Append("RQ");
+            sb.Append('\0');
+            sb.Append("" + _packetId++);
+            sb.Append('\0');
+            sb.Append("0");
+            sb.Append('\0');
+            sb.Append("ENTER");
+            sb.Append('\0');
+            sb.Append("NNM");
+            sb.Append('\0');
+            sb.Append(_name);
+            sb.Append('\0');
+            sb.Append("SCU");
+            sb.Append('\0');
+            sb.Append(_sceneUrl);
+            sb.Append('\0');
+            sb.Append("SCN");
+            sb.Append('\0');
+            sb.Append(_sceneName);
+            sb.Append('\0');
+
+            Send(ref _tcpClient, ref _netStream, sb.ToString());
+
             return true;
         }
-        private readonly List<string> _messages = new List<string>();
+        private readonly Queue<string> _messages = new Queue<string>();
 
-        private void AddMessage(string message)
-        {
-            _messages.Add(message);
-        }
+        private void AddMessage(string message) => _messages.Enqueue(message);
 
-        private string GetMessage()
-        {
-            if (_messages.Any())
-            {
-                var result = _messages[0];
-                _messages.RemoveAt(0);
-                return result;
-            }
-            return null;
-        }
+        private string GetMessage() => _messages.Count > 0 ? _messages.Dequeue() : null;
 
         private const string _b64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
         public static byte ToBase64(int i)

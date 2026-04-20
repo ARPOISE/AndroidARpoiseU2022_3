@@ -269,13 +269,14 @@ namespace com.arpoise.arpoiseapp
 
                 Debug.Log("UNITY_EDITOR fixed location, lat " + OriginalLatitude + ", lon " + OriginalLongitude);
 
-                var second = DateTime.Now.Ticks / 10000000L;
+                //var second = DateTime.Now.Ticks / 10000000L;
                 //var random = new System.Random((int)second);
                 //var nextMove = second + 90000 + random.Next(0, 6);
 
-                while (second > 0 || second <= 0)
+                //while (second > 0 || second <= 0)
+                for(; ; )
                 {
-                    second = DateTime.Now.Ticks / 10000000L;
+                    //second = DateTime.Now.Ticks / 10000000L;
                     //if (second >= nextMove)
                     //{
                     //    nextMove = second + 6 + random.Next(0, 6);
@@ -448,7 +449,7 @@ namespace com.arpoise.arpoiseapp
         {
             if (layer is not null)
             {
-                var occlusionManager = ArCamera.GetComponent<AROcclusionManager>();
+                var occlusionManager = ArCamera?.GetComponent<AROcclusionManager>();
                 if (occlusionManager is not null)
                 {
                     occlusionManager.requestedEnvironmentDepthMode = layer.OcclusionEnvironmentDepthMode;

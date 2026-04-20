@@ -206,8 +206,8 @@ namespace com.arpoise.arpoiseapp
             }
             if (poiAnimation != null)
             {
-                Name = poiAnimation.name?.Trim();
-                _isTimeSync = Name.Contains(nameof(_behaviour.TimeSync));
+                Name = poiAnimation.name?.Trim() ?? string.Empty;
+                _isTimeSync = Name?.Contains(nameof(_behaviour.TimeSync)) ?? false;
                 FollowedBy = !string.IsNullOrWhiteSpace(poiAnimation.followedBy)
                     ? poiAnimation.followedBy.Split(',').Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToArray()
                     : FollowedBy;
@@ -283,7 +283,7 @@ namespace com.arpoise.arpoiseapp
                 return;
             }
 
-            _durationStretchFactor = _behaviour.DurationStretchFactor;
+            _durationStretchFactor = _behaviour?.DurationStretchFactor;
             var delayTicks = (long)(_durationStretchFactor.HasValue ? _durationStretchFactor * _delayTicks : _delayTicks);
             if (delayTicks > 0 && startTicks + delayTicks > nowTicks)
             {
@@ -313,7 +313,7 @@ namespace com.arpoise.arpoiseapp
                 animationValue = (nowTicks - _startTicks) / ((float)lengthTicks);
             }
 
-            if (_isTimeSync && JustActivated && _behaviour.DurationStretchFactor.HasValue)
+            if (_isTimeSync && JustActivated && _behaviour != null && _behaviour.DurationStretchFactor.HasValue)
             {
                 _behaviour.TimeSync();
             }
@@ -905,7 +905,6 @@ namespace com.arpoise.arpoiseapp
                         }
                         break;
                 }
-
             }
         }
     }
