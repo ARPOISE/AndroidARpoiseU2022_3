@@ -149,6 +149,10 @@ namespace com.arpoise.arpoiseapp
         protected bool? ScreenshotButtonEnabled = null;
         protected ScreenshotButtonSetActiveActivity ScreenshotButtonSetActive;
         protected ScreenshotButtonClickActivity ScreenshotButtonClick;
+
+        protected string DeeplinkURL = string.Empty;
+        protected string DeeplinkName = string.Empty;
+        protected volatile bool DeeplinkChanged = false;
         #endregion
 
         #region GetData
@@ -201,6 +205,7 @@ namespace com.arpoise.arpoiseapp
 
                 var layerWebUrl = LayerWebUrl;
                 LayerWebUrl = null;
+                DeeplinkChanged = false;
                 for (; ; )
                 {
                     PauseCheckWebRequestsRoutine = true;
@@ -210,6 +215,8 @@ namespace com.arpoise.arpoiseapp
                         + (filteredLatitude != usedLatitude ? "&latOfDevice=" + filteredLatitude.ToString("F6", CultureInfo.InvariantCulture) : string.Empty)
                         + (filteredLongitude != usedLongitude ? "&lonOfDevice=" + filteredLongitude.ToString("F6", CultureInfo.InvariantCulture) : string.Empty)
                         + "&layerName=" + layerName
+                        //+ (!string.IsNullOrWhiteSpace(DeeplinkURL) ? "&deeplinkURL=" + DeeplinkURL : string.Empty)
+                        + (!string.IsNullOrWhiteSpace(DeeplinkName) ? "&deeplinkName=" + DeeplinkName : string.Empty)
                         + (!string.IsNullOrWhiteSpace(nextPageKey) ? "&pageKey=" + nextPageKey : string.Empty)
                         + "&userId=" + SystemInfo.deviceUniqueIdentifier
                         + "&client=" + ApplicationName
@@ -292,6 +299,7 @@ namespace com.arpoise.arpoiseapp
                             if (layer.morePages == false || string.IsNullOrWhiteSpace(layer.nextPageKey))
                             {
                                 LayerWebUrl = uri + "?layerName=" + layerName;
+                                DeeplinkChanged = false;
                                 //Debug.Log("Loaded Layer " + layerName);
                                 break;
                             }
@@ -987,6 +995,18 @@ namespace com.arpoise.arpoiseapp
                             };
                         }
                     }
+                    if (DeeplinkChanged && refreshRequest == null)
+                    {
+                        DeeplinkChanged = false;
+                        startLatitude = UsedLatitude;
+                        startLongitude = UsedLongitude;
+                        refreshRequest = new RefreshRequest
+                        {
+                            url = ArpoiseDirectoryUrl,
+                            layerName = ArpoiseDirectoryLayer
+                        };
+                    }
+
                     if (refreshRequest != null)
                     {
                         //Debug.Log("RefreshRequest " + refreshRequest.layerName + ", " + refreshRequest.url);

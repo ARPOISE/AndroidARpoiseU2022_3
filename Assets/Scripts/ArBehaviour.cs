@@ -35,6 +35,59 @@ namespace com.arpoise.arpoiseapp
 {
     public class ArBehaviour : ArBehaviourUserInterface
     {
+        #region Awake
+
+        public static ArBehaviour Instance { get; private set; }
+
+        public virtual void Awake()
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+                Debug.Log("ArBehaviour Awake() set Instance");
+
+                Application.deepLinkActivated += onDeepLinkActivated;
+                if (!string.IsNullOrEmpty(Application.absoluteURL))
+                {
+                    // Cold start and Application.absoluteURL not null so process Deep Link.
+                    onDeepLinkActivated(Application.absoluteURL);
+                }
+                // Initialize DeepLink Manager global variable.
+                else
+                {
+                    DeeplinkURL = string.Empty;
+                }
+                DontDestroyOnLoad(gameObject);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+        }
+
+        private void onDeepLinkActivated(string url)
+        {
+            // Update DeepLink Manager global variable, so URL can be accessed from anywhere.
+            DeeplinkURL = url;
+            Debug.Log("DeeplinkURL " + DeeplinkURL);
+
+            // Decode the URL to determine action.
+            // In this example, the application expects a link formatted like this:
+            // arpoisedeeplink://arpoise?DeeplinkName
+            var parts = url.Split('?');
+            if (parts.Length > 1 )
+            {
+                DeeplinkName = parts[1].Trim();
+            }
+            else
+            {
+                DeeplinkName = string.Empty;
+            }
+            DeeplinkChanged = true;
+            Debug.Log("DeeplinkName " + DeeplinkName);
+        }
+        #endregion
+
         #region Start
         protected override void Start()
         {
@@ -45,12 +98,6 @@ namespace com.arpoise.arpoiseapp
 #endif
 #if UNITY_EDITOR
             Debug.Log("UNITY_EDITOR Start");
-#endif
-
-#if UNITY_IOS_unused
-            if (dontDestroyOnLoad)
-                DontDestroyOnLoad(this.gameObject);
-            DeepLinkReceiverIsAlive(); // Let the App Controller know it's ok to call URLOpened now.
 #endif
             StartCoroutine(nameof(GetPosition));
             StartCoroutine(nameof(GetData));
@@ -98,26 +145,6 @@ namespace com.arpoise.arpoiseapp
 
             base.Update();
         }
-        #endregion
-
-        #region iOS deep link
-
-#if UNITY_IOS_unused
-        public string LinkUrl;
-
-        [DllImport("__Internal")]
-        private static extern void DeepLinkReceiverIsAlive();
-        [System.Serializable]
-        public class StringEvent : UnityEvent { }
-        public StringEvent urlOpenedEvent;
-        public bool dontDestroyOnLoad = true;
-
-        public void URLOpened(string url)
-        {
-            LinkUrl = url;
-            Debug.Log("Link url" + LinkUrl);
-        }
-#endif
         #endregion
     }
 }

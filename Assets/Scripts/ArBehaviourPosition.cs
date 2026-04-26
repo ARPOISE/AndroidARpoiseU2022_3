@@ -259,9 +259,9 @@ namespace com.arpoise.arpoiseapp
                 FilteredLatitude = OriginalLatitude = 48.158526f;
                 FilteredLongitude = OriginalLongitude = 11.578670f;
 
-                // DC
-                //FilteredLatitude = OriginalLatitude = 38.897801f;
-                //FilteredLongitude = OriginalLongitude = -77.022982f;
+                // Test Russia
+                //FilteredLatitude = OriginalLatitude = 60f;
+                //FilteredLongitude = OriginalLongitude = 178f;
 
                 // Luminescence master
                 //FilteredLatitude = OriginalLatitude = -6.1f;
