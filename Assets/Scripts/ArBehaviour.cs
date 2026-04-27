@@ -46,11 +46,11 @@ namespace com.arpoise.arpoiseapp
                 Instance = this;
                 Debug.Log("ArBehaviour Awake() set Instance");
 
-                Application.deepLinkActivated += onDeepLinkActivated;
+                Application.deepLinkActivated += OnDeepLinkActivated;
                 if (!string.IsNullOrEmpty(Application.absoluteURL))
                 {
                     // Cold start and Application.absoluteURL not null so process Deep Link.
-                    onDeepLinkActivated(Application.absoluteURL);
+                    OnDeepLinkActivated(Application.absoluteURL);
                 }
                 // Initialize DeepLink Manager global variable.
                 else
@@ -65,26 +65,43 @@ namespace com.arpoise.arpoiseapp
             }
         }
 
-        private void onDeepLinkActivated(string url)
+        private void OnDeepLinkActivated(string url)
         {
+            DeeplinkPositionName = string.Empty;
+            DeeplinkLayerName = string.Empty;
+
             // Update DeepLink Manager global variable, so URL can be accessed from anywhere.
             DeeplinkURL = url;
-            Debug.Log("DeeplinkURL " + DeeplinkURL);
+            Debug.Log($"DeeplinkURL '{DeeplinkURL}'");
 
             // Decode the URL to determine action.
-            // In this example, the application expects a link formatted like this:
-            // arpoisedeeplink://arpoise?DeeplinkName
-            var parts = url.Split('?');
-            if (parts.Length > 1 )
+            var parts = url.Split('?', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length > 1)
             {
-                DeeplinkName = parts[1].Trim();
+                var prefix = parts[0].Trim();
+                if (prefix.EndsWith("://DeeplinkPosition"))
+                {
+                    // expecting arpoisedeeplink://DeeplinkPosition?DeeplinkPositionName
+                    var deeplinkPositionName = parts[1].Trim();
+                    if (!string.IsNullOrEmpty(deeplinkPositionName))
+                    {
+                        DeeplinkPositionName = deeplinkPositionName;
+                    }
+                }
+                else if (prefix.EndsWith("://DeeplinkLayer"))
+                {
+                    // expecting arpoisedeeplink://DeeplinkLayer?DeeplinkLayerName
+                    var deeplinkLayerName = parts[1].Trim();
+                    if (!string.IsNullOrEmpty(deeplinkLayerName))
+                    {
+                        DeeplinkLayerName = deeplinkLayerName;
+                    }
+                }
             }
-            else
-            {
-                DeeplinkName = string.Empty;
-            }
-            DeeplinkChanged = true;
-            Debug.Log("DeeplinkName " + DeeplinkName);
+
+            Debug.Log($"DeeplinkPosition '{DeeplinkPositionName}'");
+            Debug.Log($"DeeplinkLayer '{DeeplinkLayerName}'");
+            DeeplinkValueChanged = true;
         }
         #endregion
 

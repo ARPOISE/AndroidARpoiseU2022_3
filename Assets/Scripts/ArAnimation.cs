@@ -470,6 +470,7 @@ namespace com.arpoise.arpoiseapp
                 var url = name.Substring(_openUrl.Length);
                 if (!string.IsNullOrWhiteSpace(url))
                 {
+                    Debug.Log("Application.OpenURL " + url);
                     Application.OpenURL(url);
                     return true;
                 }

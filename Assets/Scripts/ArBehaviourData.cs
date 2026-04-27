@@ -151,8 +151,9 @@ namespace com.arpoise.arpoiseapp
         protected ScreenshotButtonClickActivity ScreenshotButtonClick;
 
         protected string DeeplinkURL = string.Empty;
-        protected string DeeplinkName = string.Empty;
-        protected volatile bool DeeplinkChanged = false;
+        protected string DeeplinkPositionName = string.Empty;
+        protected string DeeplinkLayerName = string.Empty;
+        protected volatile bool DeeplinkValueChanged = false;
         #endregion
 
         #region GetData
@@ -205,7 +206,13 @@ namespace com.arpoise.arpoiseapp
 
                 var layerWebUrl = LayerWebUrl;
                 LayerWebUrl = null;
-                DeeplinkChanged = false;
+                DeeplinkValueChanged = false;
+
+                if (!string.IsNullOrWhiteSpace(DeeplinkLayerName))
+                {
+                    layerName = DeeplinkLayerName;
+                    DeeplinkLayerName = string.Empty;
+                }
                 for (; ; )
                 {
                     PauseCheckWebRequestsRoutine = true;
@@ -215,8 +222,7 @@ namespace com.arpoise.arpoiseapp
                         + (filteredLatitude != usedLatitude ? "&latOfDevice=" + filteredLatitude.ToString("F6", CultureInfo.InvariantCulture) : string.Empty)
                         + (filteredLongitude != usedLongitude ? "&lonOfDevice=" + filteredLongitude.ToString("F6", CultureInfo.InvariantCulture) : string.Empty)
                         + "&layerName=" + layerName
-                        //+ (!string.IsNullOrWhiteSpace(DeeplinkURL) ? "&deeplinkURL=" + DeeplinkURL : string.Empty)
-                        + (!string.IsNullOrWhiteSpace(DeeplinkName) ? "&deeplinkName=" + DeeplinkName : string.Empty)
+                        + (!string.IsNullOrWhiteSpace(DeeplinkPositionName) ? "&deeplinkName=" + DeeplinkPositionName : string.Empty)
                         + (!string.IsNullOrWhiteSpace(nextPageKey) ? "&pageKey=" + nextPageKey : string.Empty)
                         + "&userId=" + SystemInfo.deviceUniqueIdentifier
                         + "&client=" + ApplicationName
@@ -299,7 +305,7 @@ namespace com.arpoise.arpoiseapp
                             if (layer.morePages == false || string.IsNullOrWhiteSpace(layer.nextPageKey))
                             {
                                 LayerWebUrl = uri + "?layerName=" + layerName;
-                                DeeplinkChanged = false;
+                                DeeplinkValueChanged = false;
                                 //Debug.Log("Loaded Layer " + layerName);
                                 break;
                             }
@@ -995,16 +1001,27 @@ namespace com.arpoise.arpoiseapp
                             };
                         }
                     }
-                    if (DeeplinkChanged && refreshRequest == null)
+                    if (refreshRequest == null && DeeplinkValueChanged)
                     {
-                        DeeplinkChanged = false;
+                        DeeplinkValueChanged = false;
                         startLatitude = UsedLatitude;
                         startLongitude = UsedLongitude;
-                        refreshRequest = new RefreshRequest
+                        if (!string.IsNullOrWhiteSpace(DeeplinkPositionName))
                         {
-                            url = ArpoiseDirectoryUrl,
-                            layerName = ArpoiseDirectoryLayer
-                        };
+                            refreshRequest = new RefreshRequest
+                            {
+                                url = ArpoiseDirectoryUrl,
+                                layerName = ArpoiseDirectoryLayer
+                            };
+                        }
+                        else if (!string.IsNullOrWhiteSpace(DeeplinkLayerName))
+                        {
+                            DeeplinkPositionName = string.Empty;
+                            refreshRequest = new RefreshRequest
+                            {
+                                layerName = DeeplinkLayerName
+                            };
+                        }
                     }
 
                     if (refreshRequest != null)
