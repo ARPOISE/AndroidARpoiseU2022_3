@@ -149,7 +149,7 @@ public class ArFoundationArvosController : ArBehaviourSlam
             }
         }
 
-        if (!IsHumanBody)
+        if (!IsHumanBody && ArHumanBodyManager != null)
         {
             if (ArHumanBodyManager.enabled != IsHumanBody)
             {
