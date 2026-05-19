@@ -128,6 +128,7 @@ namespace com.arpoise.arpoiseapp
         public const string ArpoiseDirectoryLayer = "Arpoise-Directory";
         public const string ArvosDirectoryLayer = "AR-vos-Directory";
         public const string TT_ArpoiseDirectoryUrl = "www.tamikothiel.com/cs-bin/ArpoiseDirectory.cgi";
+        public const string UG_ArpoiseDirectoryUrl = "www.mission-base.de/cgi-bin/UgDynamicPois-rel";
 
         #endregion
 
@@ -164,6 +165,10 @@ namespace com.arpoise.arpoiseapp
             string layerName = ArpoiseDirectoryLayer;
 #if TT_AR_U2022_3
             ArpoiseDirectoryUrl = TT_ArpoiseDirectoryUrl;
+#endif
+#if UG2022_3App
+            ArpoiseDirectoryUrl = UG_ArpoiseDirectoryUrl;
+            layerName = "rel-unexpectedgrowth";
 #endif
             string uri = ArpoiseDirectoryUrl;
 
@@ -202,6 +207,10 @@ namespace com.arpoise.arpoiseapp
                 ApplicationSleepEndMinute = -1;
                 ShowScreenshotButton = -1;
 
+                var radius = 1500;
+#if UG2022_3App
+                radius = 3500;
+#endif
                 #region Download all pages of the layer
 
                 var layerWebUrl = LayerWebUrl;
@@ -216,7 +225,7 @@ namespace com.arpoise.arpoiseapp
                 for (; ; )
                 {
                     PauseCheckWebRequestsRoutine = true;
-                    var url = uri + "?lang=en&version=1&radius=1500&accuracy=100"
+                    var url = uri + $"?lang=en&version=1&radius={radius}&accuracy=100"
                         + "&lat=" + usedLatitude.ToString("F6", CultureInfo.InvariantCulture)
                         + "&lon=" + usedLongitude.ToString("F6", CultureInfo.InvariantCulture)
                         + (filteredLatitude != usedLatitude ? "&latOfDevice=" + filteredLatitude.ToString("F6", CultureInfo.InvariantCulture) : string.Empty)
@@ -232,6 +241,9 @@ namespace com.arpoise.arpoiseapp
 #endif
                         + "&os=" + OperatingSystem
                         + "&count=" + count
+#if UG2022_3App
+                        + "&build=rel"
+#endif
                     ;
 
                     url = FixUrl(url);
@@ -336,6 +348,9 @@ namespace com.arpoise.arpoiseapp
                 var assetBundleUrls = new Dictionary<string, int>();
                 var iconAssetBundleUrl = "www.arpoise.com/AB/U2022arpoiseicons.ace";
                 assetBundleUrls[iconAssetBundleUrl] = -1;
+#if UG2022_3App
+                assetBundleUrls[UG_AssetBundleUrl] = -1;
+#endif
                 uint versionOfTheDay = 0;
                 if (int.TryParse(DateTime.Today.ToString("yyMMdd"), out var value))
                 {
@@ -496,7 +511,7 @@ namespace com.arpoise.arpoiseapp
                     nextPageKey = string.Empty;
                     for (; ; )
                     {
-                        var url = uri + "?lang=en&version=1&radius=1500&accuracy=100&innerLayer=true"
+                        var url = uri + $"?lang=en&version=1&radius={radius}&accuracy=100&innerLayer=true"
                         + "&lat=" + latitude.ToString("F6", CultureInfo.InvariantCulture)
                         + "&lon=" + longitude.ToString("F6", CultureInfo.InvariantCulture)
                         + ((filteredLatitude != latitude) ? "&latOfDevice=" + filteredLatitude.ToString("F6", CultureInfo.InvariantCulture) : string.Empty)
@@ -716,7 +731,6 @@ namespace com.arpoise.arpoiseapp
                     }
                 }
 
-                var webRequests = new List<Tuple<string, string, UnityWebRequest>>();
 
                 if (triggerImageUrls.Any(x => IsSlamUrl(x)))
                 {
@@ -750,6 +764,8 @@ namespace com.arpoise.arpoiseapp
                 {
                     CrystalObjects.Clear();
                 }
+                var webRequests = new List<Tuple<string, string, UnityWebRequest>>();
+
                 foreach (var url in triggerImageUrls.Where(x => !IsCrystalUrl(x)))
                 {
                     if (TriggerImages.ContainsKey(url))
@@ -757,13 +773,11 @@ namespace com.arpoise.arpoiseapp
                         continue;
                     }
                     var triggerImageUri = FixUrl(url);
-                    using (var request = UnityWebRequestTexture.GetTexture(triggerImageUri))
-                    {
-                        request.certificateHandler = new ArpoiseCertificateHandler();
-                        request.timeout = 30;
-                        webRequests.Add(new Tuple<string, string, UnityWebRequest>(url, triggerImageUri, request));
-                        yield return request.SendWebRequest();
-                    }
+                    var request = UnityWebRequestTexture.GetTexture(triggerImageUri);
+                    request.certificateHandler = new ArpoiseCertificateHandler();
+                    request.timeout = 30;
+                    webRequests.Add(new Tuple<string, string, UnityWebRequest>(url, triggerImageUri, request));
+                    yield return request.SendWebRequest();
                 }
 
                 foreach (var tuple in webRequests)
@@ -817,6 +831,7 @@ namespace com.arpoise.arpoiseapp
                         TriggerImages[url] = texture;
                     }
                 }
+                webRequests.Clear();
                 #endregion
 
                 #region Activate the header

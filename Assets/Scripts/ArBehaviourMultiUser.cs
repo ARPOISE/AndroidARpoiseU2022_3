@@ -54,13 +54,18 @@ namespace com.arpoise.arpoiseapp
         public const string OperatingSystem = "Android";
 #endif
 #endif
-        public const int Bundle = 2026042700;
+        public const int Bundle = 2026051701;
         public const string ArvosApplicationName = "Arvos";
         public const string ArpoiseApplicationName = "Arpoise";
+        public const string UgApplicationName = "UnexpectedGrowth";
 #if AndroidArvosU2022_3 || iOsArvosU2022_3
         protected readonly string ApplicationName = ArvosApplicationName;
 #else
+#if UG2022_3App
+        protected readonly string ApplicationName = UgApplicationName;
+#else
         protected readonly string ApplicationName = ArpoiseApplicationName;
+#endif
 #endif
         public long StartTicks = 0;
         public GameObject ArCamera = null;

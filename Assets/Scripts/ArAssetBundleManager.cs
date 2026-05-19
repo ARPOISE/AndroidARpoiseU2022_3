@@ -133,6 +133,7 @@ namespace com.arpoise.arpoiseapp
 
         public List<ArWebRequestAssetBundle> CreateWebRequests(Dictionary<string, int> assetBundleUrls)
         {
+            _webRequests.Clear();
             foreach (var url in assetBundleUrls)
             {
                 if (ExistsAssetBundle(url.Key))

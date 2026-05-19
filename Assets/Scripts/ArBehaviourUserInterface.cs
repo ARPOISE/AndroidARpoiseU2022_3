@@ -218,7 +218,11 @@ namespace com.arpoise.arpoiseapp
                 }
                 else
                 {
+#if UG2022_3App
+                    MenuEnabled = layers.Any(x => x.showMenuButton);
+#else
                     MenuEnabled = !layers.Any(x => !x.showMenuButton);
+#endif
                 }
             }
             MenuButtonIsActive = MenuEnabled.HasValue && MenuEnabled.Value;
@@ -331,7 +335,7 @@ namespace com.arpoise.arpoiseapp
                 RefreshRequest = refreshRequest;
             }
         }
-        #endregion
+#endregion
 
         #region Start
         protected override void Start()

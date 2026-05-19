@@ -565,7 +565,11 @@ namespace com.arpoise.arpoiseapp
         public int visibilityRange = 1500;
         public bool applyKalmanFilter = true;
         public bool isDefaultLayer = false;
+#if UG2022_3App
+        public bool showMenuButton = false;
+#else
         public bool showMenuButton = true;
+#endif
 
         public PoiAction[] actions = Array.Empty<PoiAction>();
 

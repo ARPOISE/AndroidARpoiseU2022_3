@@ -39,6 +39,13 @@ using UnityEngine.XR.ARSubsystems;
 #if ARpoiseApp
 using static NativeGallery;
 #endif
+#if TT_AR_U2022_3
+using static NativeGallery;
+#endif
+#if UG2022_3App
+using static NativeGallery;
+#endif
+
 
 namespace com.arpoise.arpoiseapp
 {
@@ -69,6 +76,7 @@ namespace com.arpoise.arpoiseapp
         public readonly Dictionary<int, TriggerObject> TriggerObjects = new Dictionary<int, TriggerObject>();
         public GameObject Wrapper = null;
         public void RequestRefresh(RefreshRequest refreshRequest) { RefreshRequest = refreshRequest; }
+        public const string UG_AssetBundleUrl = "www.tamikothiel.com/unexpectedgrowth/AssetBundles/rel-unexpectedgrowth.ace";
         #endregion
 
         #region Protecteds
@@ -164,6 +172,13 @@ namespace com.arpoise.arpoiseapp
 #if ARpoiseApp
             SaveImageToGallery(texture, "ARpoise", name);
 #endif
+#if TT_AR_U2022_3
+            SaveImageToGallery(texture, "TamikoThiel", name);
+#endif
+#if UG2022_3App
+            SaveImageToGallery(texture, "UnexpectedGrowth", name);
+#endif
+
             Destroy(texture);
             yield return new WaitForEndOfFrame();
 
@@ -919,7 +934,11 @@ namespace com.arpoise.arpoiseapp
             string assetBundleUrl = poi.BaseUrl;
             if (string.IsNullOrWhiteSpace(assetBundleUrl))
             {
+#if UG2022_3App
+                assetBundleUrl = UG_AssetBundleUrl;
+#else
                 return $"Poi with id {poi.id}, empty asset bundle url";
+#endif
             }
 
             //AssetBundle assetBundle = null;
