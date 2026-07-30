@@ -667,10 +667,6 @@ namespace com.arpoise.arpoiseapp
                 if (!_showInfo.HasValue)
                 {
                     _showInfo = (actions?.FirstOrDefault(x => !_actionLabels.Contains(x.label?.Trim()) && x.showActivity)) != null;
-                    if (_showInfo == null)
-                    {
-                        _showInfo = false;
-                    }
                 }
                 return _showInfo.Value;
             }

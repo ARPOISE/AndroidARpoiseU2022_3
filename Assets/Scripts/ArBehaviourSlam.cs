@@ -30,20 +30,12 @@ ARpoise, see www.ARpoise.com/
 
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace com.arpoise.arpoiseapp
 {
     public class ArBehaviourSlam : ArBehaviourHumanBody
     {
         public readonly List<TriggerObject> VisualizedSlamObjects = new List<TriggerObject>();
-
-        #region Start
-        protected override void Start()
-        {
-            base.Start();
-        }
-        #endregion
 
         public List<TriggerObject> AvailableSlamObjects
         {
@@ -99,12 +91,5 @@ namespace com.arpoise.arpoiseapp
                 return null;
             }
         }
-
-        #region Update
-        protected override void Update()
-        {
-            base.Update();
-        }
-        #endregion
     }
 }

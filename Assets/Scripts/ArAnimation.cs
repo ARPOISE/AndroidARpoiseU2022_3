@@ -112,6 +112,7 @@ namespace com.arpoise.arpoiseapp
         public GameObject AnimatedObject;
 
         private long _startTicks = 0;
+        private bool _isStopping = false;
         private Vector3 _localEulerAngles;
         private float? _durationStretchFactor;
         private float? _initialA = null;
@@ -139,10 +140,13 @@ namespace com.arpoise.arpoiseapp
                 {
                     _randomDelay = 120000;
                     int index = Name?.IndexOf("_") ?? -1;
-                    var delay = Name?.Substring(index + 1).Trim() ?? string.Empty;
-                    if (!string.IsNullOrWhiteSpace(delay) && int.TryParse(delay, out var value) && value > 0)
+                    if (index >= 0)
                     {
-                        _randomDelay = value;
+                        var delay = Name?.Substring(index + 1).Trim() ?? string.Empty;
+                        if (!string.IsNullOrWhiteSpace(delay) && int.TryParse(delay, out var value) && value > 0)
+                        {
+                            _randomDelay = value;
+                        }
                     }
                 }
                 return _randomDelay;
@@ -406,7 +410,12 @@ namespace com.arpoise.arpoiseapp
 
         public void Stop(long startTicks, long nowTicks)
         {
-            Animate(startTicks, nowTicks);
+            if (!_isStopping)
+            {
+                _isStopping = true;
+                Animate(startTicks, nowTicks);
+                _isStopping = false;
+            }
 
             JustStopped = true;
             IsActive = false;
@@ -614,9 +623,7 @@ namespace com.arpoise.arpoiseapp
                 return false;
             }
             var minute = DateTime.Now.Hour * 60 + DateTime.Now.Minute;
-            var shouldNotBeActive = startMinute < 0 || endMinute < 0
-                   || (startMinute <= endMinute && (minute < startMinute || minute >= endMinute))
-                   || (startMinute > endMinute && (minute < startMinute && minute >= endMinute));
+            var shouldNotBeActive = (startMinute <= endMinute && (minute < startMinute || minute >= endMinute)) || (startMinute > endMinute && (minute < startMinute && minute >= endMinute));
 
             return !shouldNotBeActive;
         }
@@ -757,7 +764,6 @@ namespace com.arpoise.arpoiseapp
 
             arpoisePoiStructure = AnimatedObject.GetComponent<ArpoisePoiAtomEntangled>();
             arpoisePoiStructure?.Fade(value);
-
         }
 
         private void Buzz(float value)

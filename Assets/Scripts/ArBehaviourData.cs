@@ -116,12 +116,6 @@ namespace com.arpoise.arpoiseapp
         }
     }
 
-    public class UploadRequest
-    {
-        public string url;
-        public byte[] data;
-    }
-
     public class ArBehaviourData : ArBehaviourArObject
     {
         #region Constants
@@ -431,7 +425,7 @@ namespace com.arpoise.arpoiseapp
                                 {
                                     spriteObject = ArAssetBundleManager.TryLoadGameObject(iconAssetBundleUrl, spriteName);
                                 }
-                                var sprite = spriteObject != null ? spriteObject.GetComponent<SpriteRenderer>().sprite : (Sprite)null;
+                                var sprite = spriteObject != null ? spriteObject.GetComponent<SpriteRenderer>()?.sprite : null;
 
                                 itemList.Add(new ArItem
                                 {
@@ -502,6 +496,7 @@ namespace com.arpoise.arpoiseapp
                     if (layerName.Equals(innerLayer))
                     {
                         InnerLayers[layerName] = layers;
+                        innerLayers.Remove(innerLayer);
                         continue;
                     }
 
@@ -1135,7 +1130,7 @@ namespace com.arpoise.arpoiseapp
 
         public static string FixUrl(string url)
         {
-            while (url.Contains('\\'))
+            if (url.Contains('\\'))
             {
                 url = url.Replace("\\", string.Empty);
             }

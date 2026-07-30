@@ -49,15 +49,15 @@ public class ArpoiseObjectCrystal : MonoBehaviour
 
     public void SetParameter(bool setValue, string label, string value)
     {
-        if (label.Equals(nameof(LowerLeft)))
+        if (label == nameof(LowerLeft))
         {
             LowerLeft = ParameterHelper.SetParameter(setValue, value, LowerLeft).Value;
         }
-        else if (label.Equals(nameof(UpperRight)))
+        else if (label == nameof(UpperRight))
         {
             UpperRight = ParameterHelper.SetParameter(setValue, value, UpperRight).Value;
         }
-        else if (label.Equals(nameof(Step)))
+        else if (label == nameof(Step))
         {
             Step = ParameterHelper.SetParameter(setValue, value, Step).Value;
         }

@@ -342,6 +342,21 @@ namespace com.arpoise.arpoiseapp
         {
             base.Start();
 
+#if iOsArvosU2022_3
+            if (InfoPanel != null)
+            {
+                var showInfoPanel = PlayerPrefs.GetString(nameof(InfoPanelIsActive));
+                if (!false.ToString().Equals(showInfoPanel))
+                {
+                    var infoPanel = InfoPanel.GetComponent<InfoPanel>();
+                    if (infoPanel != null)
+                    {
+                        infoPanel.Setup(this);
+                        InfoPanel.SetActive(true);
+                    }
+                }
+            }
+#endif
             if (MenuButton != null)
             {
                 var menuButton = MenuButton.GetComponent<MenuButton>();

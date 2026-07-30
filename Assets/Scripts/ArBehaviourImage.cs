@@ -28,7 +28,6 @@ ARpoise, see www.ARpoise.com/
 
 */
 
-using System;
 using UnityEngine;
 
 namespace com.arpoise.arpoiseapp
@@ -39,29 +38,6 @@ namespace com.arpoise.arpoiseapp
 
         public GameObject FitToScanOverlay;
 
-        #endregion
-
-        #region Start
-        protected override void Start()
-        {
-            base.Start();
-
-#if iOsArvosU2022_3
-            if (InfoPanel != null)
-            {
-                var showInfoPanel = PlayerPrefs.GetString(nameof(InfoPanelIsActive));
-                if (!false.ToString().Equals(showInfoPanel))
-                {
-                    var infoPanel = InfoPanel.GetComponent<InfoPanel>();
-                    if (infoPanel != null)
-                    {
-                        infoPanel.Setup(this);
-                        InfoPanel.SetActive(true);
-                    }
-                }
-            }
-#endif
-        }
         #endregion
 
         #region Update

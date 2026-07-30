@@ -258,7 +258,7 @@ namespace com.arpoise.arpoiseapp
 
         private GameObject GetWrapper(Dictionary<string, GameObject> wrappers, PoiAnimation animation)
         {
-            int index = animation.name.IndexOf("/");
+            int index = animation.name?.IndexOf("/") ?? -1;
             if (index >= 0)
             {
                 GameObject wrapper;
@@ -307,7 +307,7 @@ namespace com.arpoise.arpoiseapp
 
                     foreach (var action in poi.actions)
                     {
-                        evolutionOfFish.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                        evolutionOfFish.SetParameter(action.showActivity, action.label?.Trim() ?? string.Empty, action.activityMessage);
                     }
                 }
             }
@@ -318,7 +318,7 @@ namespace com.arpoise.arpoiseapp
                 {
                     foreach (var action in poi.actions)
                     {
-                        arpoiseObjectRain.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                        arpoiseObjectRain.SetParameter(action.showActivity, action.label?.Trim() ?? string.Empty, action.activityMessage);
                     }
                 }
             }
@@ -329,7 +329,7 @@ namespace com.arpoise.arpoiseapp
                 {
                     foreach (var action in poi.actions)
                     {
-                        arpoiseObjectCrystal.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                        arpoiseObjectCrystal.SetParameter(action.showActivity, action.label?.Trim() ?? string.Empty, action.activityMessage);
                     }
                 }
             }
@@ -340,7 +340,7 @@ namespace com.arpoise.arpoiseapp
                 {
                     foreach (var action in poi.actions)
                     {
-                        arpoiseVeraPlastica.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                        arpoiseVeraPlastica.SetParameter(action.showActivity, action.label?.Trim() ?? string.Empty, action.activityMessage);
                     }
                 }
             }
@@ -353,7 +353,7 @@ namespace com.arpoise.arpoiseapp
                     currentBlendShapeLoop.SkinnedMesh = objectToAdd.GetComponent<SkinnedMeshRenderer>().sharedMesh;
                     foreach (var action in poi.actions)
                     {
-                        currentBlendShapeLoop.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                        currentBlendShapeLoop.SetParameter(action.showActivity, action.label?.Trim() ?? string.Empty, action.activityMessage);
                     }
                 }
             }
@@ -368,7 +368,7 @@ namespace com.arpoise.arpoiseapp
                 {
                     foreach (var action in poi.actions)
                     {
-                        currentAnimatedTexture.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                        currentAnimatedTexture.SetParameter(action.showActivity, action.label?.Trim() ?? string.Empty, action.activityMessage);
                     }
                 }
                 for (int i = 0; i < objectToAdd.transform.childCount; i++)
@@ -381,7 +381,7 @@ namespace com.arpoise.arpoiseapp
                         {
                             foreach (var action in poi.actions)
                             {
-                                currentAnimatedTexture.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                                currentAnimatedTexture.SetParameter(action.showActivity, action.label?.Trim() ?? string.Empty, action.activityMessage);
                             }
                         }
                     }
@@ -435,7 +435,7 @@ namespace com.arpoise.arpoiseapp
                     arpoisePoiStructure.ArBehaviour = this;
                     foreach (var action in poi.actions)
                     {
-                        arpoisePoiStructure.SetParameter(action.showActivity, action.label.Trim(), action.activityMessage);
+                        arpoisePoiStructure.SetParameter(action.showActivity, action.label?.Trim() ?? string.Empty, action.activityMessage);
                     }
                 }
             }
@@ -1190,7 +1190,8 @@ namespace com.arpoise.arpoiseapp
                 {
                     continue;
                 }
-                var layerPois = layer.hotspots.Where(x => x.isVisible && !string.IsNullOrWhiteSpace(x.GameObjectName) && (x.ArLayer = layer) == layer);
+                var layerPois = layer.hotspots.Where(x => x.isVisible && !string.IsNullOrWhiteSpace(x.GameObjectName)).ToList();
+                layerPois.ForEach(x => x.ArLayer = layer);
                 var visiblePois = layerPois.Where(x => CalculateDistance(x.Latitude, x.Longitude, UsedLatitude, UsedLongitude) <= (x.visibilityRange > 0 ? Math.Min(layer.visibilityRange, x.visibilityRange) : layer.visibilityRange));
                 pois.AddRange(visiblePois);
             }
@@ -1275,7 +1276,7 @@ namespace com.arpoise.arpoiseapp
                     string baseUrl = poi.BaseUrl;
                     if (!string.IsNullOrWhiteSpace(baseUrl))
                     {
-                        while (baseUrl.Contains('\\'))
+                        if (baseUrl.Contains('\\'))
                         {
                             baseUrl = baseUrl.Replace("\\", string.Empty);
                         }
@@ -1405,13 +1406,13 @@ namespace com.arpoise.arpoiseapp
             var filteredLatitude = UsedLatitude;
             var filteredLongitude = UsedLongitude;
 
-            var absoluteArObjects = ArObjectState.ArObjectsToPlace;
+            var absoluteArObjects = ArObjectState?.ArObjectsToPlace;
             if (absoluteArObjects != null && absoluteArObjects.Any(x => x.WrapperObject.activeSelf))
             {
                 return true;
             }
 
-            var relativeArObjects = ArObjectState.ArObjectsRelative;
+            var relativeArObjects = ArObjectState?.ArObjectsRelative;
             if (relativeArObjects != null)
             {
                 foreach (var arObject in relativeArObjects.Where(x => x.WrapperObject.activeSelf))
