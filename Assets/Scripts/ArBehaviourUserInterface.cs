@@ -391,6 +391,7 @@ namespace com.arpoise.arpoiseapp
 
         #region Update
 
+       
         protected override void Update()
         {
             base.Update();
@@ -638,6 +639,8 @@ namespace com.arpoise.arpoiseapp
 
                         message = message.Replace("{LAT}", UsedLatitude.ToString("F6", CultureInfo.InvariantCulture));
                         message = message.Replace("{LON}", UsedLongitude.ToString("F6", CultureInfo.InvariantCulture));
+
+                        message = message.Replace("{V}", Value.ToString("F2", CultureInfo.InvariantCulture));
 
                         //message = message.Replace("{X1}", (firstArObject != null ? firstArObject.TargetPosition.x : 0).ToString("F1", CultureInfo.InvariantCulture));
                         //message = message.Replace("{Y1}", (firstArObject != null ? firstArObject.TargetPosition.y : 0).ToString("F1", CultureInfo.InvariantCulture));

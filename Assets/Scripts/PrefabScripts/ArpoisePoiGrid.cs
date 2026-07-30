@@ -44,15 +44,19 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
     public float Speed = 1.0f; // meters per second
     public int WaitBeforePhotons = 10000; // milliseconds
     public int ShowPhotons = 5000;
-    public int TrapAtoms = 10000;
-    public int TweezeAtoms = 10000;
-    public int WaitAfterTweezedAtoms = 10000;
+    public int TrapAtoms = 5000;
+    public int WaitAfterTrappedAtoms = 5000;
+    public int TweezeAtoms = 5000;
+    public int WaitAfterTweezedAtoms = 5000;
     public int AreaSize = 6; // The dimensions of the area the grid happens in
     public int AreaHeight = 3;
     public int Beams = 3;
     public float AnimationSmoothFactor = 1;
     public string Photon = string.Empty;
     public string Tweezer = string.Empty;
+    public float AtomOffsetX = 0;
+    public float AtomOffsetY = 0;
+    public float AtomOffsetZ = 0;
     #endregion
 
     private readonly List<GameObject> _atoms = new();
@@ -127,6 +131,10 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
         {
             TrapAtoms = ParameterHelper.SetParameter(setValue, value, TrapAtoms).Value;
         }
+        else if (label.Equals(nameof(WaitAfterTrappedAtoms)))
+        {
+            WaitAfterTrappedAtoms = ParameterHelper.SetParameter(setValue, value, WaitAfterTrappedAtoms).Value;
+        }
         else if (label.Equals(nameof(TweezeAtoms)))
         {
             TweezeAtoms = ParameterHelper.SetParameter(setValue, value, TweezeAtoms).Value;
@@ -142,6 +150,18 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
         else if (label.Equals(nameof(Tweezer)))
         {
             ParameterHelper.SetParameter(setValue, value, _tweezerNames);
+        }
+        else if (label.Equals(nameof(AtomOffsetX)))
+        {
+            AtomOffsetX = ParameterHelper.SetParameter(setValue, value, AtomOffsetX).Value;
+        }
+        else if (label.Equals(nameof(AtomOffsetY)))
+        {
+            AtomOffsetY = ParameterHelper.SetParameter(setValue, value, AtomOffsetY).Value;
+        }
+        else if (label.Equals(nameof(AtomOffsetZ)))
+        {
+            AtomOffsetZ = ParameterHelper.SetParameter(setValue, value, AtomOffsetZ).Value;
         }
         else
         {
@@ -205,9 +225,9 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
         foreach (var atom in _atoms)
         {
             Vector3 position = new Vector3(
-                Random.Next(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f,
-                Random.Next(-1000 * AreaHeight / 2, 1000 * AreaHeight / 2) / 1000.0f,
-                Random.Next(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f);
+                Random.Next(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f + AtomOffsetX,
+                Random.Next(-1000 * AreaHeight / 2, 1000 * AreaHeight / 2) / 1000.0f + AtomOffsetY,
+                Random.Next(-1000 * AreaSize / 2, 1000 * AreaSize / 2) / 1000.0f + AtomOffsetZ);
 
             atom.transform.localPosition = position;
             _atomPositions.Add(position);
@@ -576,6 +596,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
         WaitBeforePhotons,
         ShowPhotons,
         TrapAtoms,
+        WaitAfterTrappedAtoms,
         TweezeAtoms,
         WaitAfterTweezedAtoms
     }
@@ -602,6 +623,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
     private long? _tweezeAtomsStartTicks = null;
     private DateTime? _animationSmoothTime = null;
 
+    private int _iteration = 1;
     protected override void Update()
     {
         base.Update();
@@ -629,6 +651,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
 
         if (_atomPositions.Count == 0)
         {
+            Random = new System.Random(_iteration++);
             CreateAtomPositions();
         }
 
@@ -701,7 +724,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
 
                     int i = 0;
                     var duration = DateTime.Now.Ticks - _trapAtomsStartTicks;
-                    var lerpFactor = (int)((1000 * duration) / TimeSpan.TicksPerSecond) / (TrapAtoms * .5f);
+                    var lerpFactor = (int)(1000 * duration / TimeSpan.TicksPerSecond) / (TrapAtoms * 1f);
 
                     if (_tweezerNames.Count > 0 && _tweezerIndex == -1)
                     {
@@ -752,15 +775,26 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
                     }
                     else if (DateTime.Now >= _nextStateChange.Value)
                     {
-                        if (_tweezerIndex >= 0)
-                        {
-                            State = AtomGridState.TweezeAtoms;
-                            _tweezeAtomsStartTicks = null;
-                        }
-                        else
-                        {
-                            State = AtomGridState.WaitAfterTweezedAtoms;
-                        }
+                        State = AtomGridState.WaitAfterTrappedAtoms;
+                    }
+                }
+                break;
+
+            case AtomGridState.WaitAfterTrappedAtoms:
+                if (_nextStateChange is null)
+                {
+                    _nextStateChange = DateTime.Now.AddMilliseconds(WaitAfterTrappedAtoms);
+                }
+                else if (DateTime.Now >= _nextStateChange.Value)
+                {
+                    if (_tweezerIndex >= 0)
+                    {
+                        State = AtomGridState.TweezeAtoms;
+                        _tweezeAtomsStartTicks = null;
+                    }
+                    else
+                    {
+                        State = AtomGridState.WaitAfterTweezedAtoms;
                     }
                 }
                 break;
@@ -774,7 +808,7 @@ public class ArpoisePoiGrid : ArpoisePoiStructure
 
                     int i = 0;
                     var duration = DateTime.Now.Ticks - _tweezeAtomsStartTicks;
-                    var lerpFactor = (int)((1000 * duration) / TimeSpan.TicksPerSecond) / (TweezeAtoms * .5f);
+                    var lerpFactor = (int)(1000 * duration / TimeSpan.TicksPerSecond) / (TweezeAtoms * 1f);
 
                     for (int x = -1; _tweezerIndex >= 0 && x < 2; x++)
                     {

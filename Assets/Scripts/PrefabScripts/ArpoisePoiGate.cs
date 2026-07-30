@@ -50,6 +50,13 @@ public class ArpoisePoiGate : ArpoisePoiStructure
     public string RydbergAtom = string.Empty;
     public string ReadoutResult = string.Empty;
 
+    public int WaitBeforeExcitingPhotons = 1000;
+    public int WaitBeforeRydbergPhotons = 6000;
+    public int WaitBeforeReadoutPhotons = 28000;
+
+    public int RydbergPhotonDuration = 14000;
+    public int ExcitingPhotonDuration = 24000;
+
     #endregion
 
     private readonly List<GameObject> _atoms = new();
@@ -129,6 +136,26 @@ public class ArpoisePoiGate : ArpoisePoiStructure
         else if (label.Equals(nameof(ReadoutResult)))
         {
             ParameterHelper.SetParameter(setValue, value, _readoutResultNames);
+        }
+        else if (label.Equals(nameof(WaitBeforeRydbergPhotons)))
+        {
+            WaitBeforeRydbergPhotons = ParameterHelper.SetParameter(setValue, value, WaitBeforeRydbergPhotons).Value;
+        }
+        else if (label.Equals(nameof(WaitBeforeExcitingPhotons)))
+        {
+            WaitBeforeExcitingPhotons = ParameterHelper.SetParameter(setValue, value, WaitBeforeExcitingPhotons).Value;
+        }
+        else if (label.Equals(nameof(WaitBeforeReadoutPhotons)))
+        {
+            WaitBeforeReadoutPhotons = ParameterHelper.SetParameter(setValue, value, WaitBeforeReadoutPhotons).Value;
+        }
+        else if (label.Equals(nameof(RydbergPhotonDuration)))
+        {
+            RydbergPhotonDuration = ParameterHelper.SetParameter(setValue, value, RydbergPhotonDuration).Value;
+        }
+        else if (label.Equals(nameof(ExcitingPhotonDuration)))
+        {
+            ExcitingPhotonDuration = ParameterHelper.SetParameter(setValue, value, ExcitingPhotonDuration).Value;
         }
         else
         {
@@ -536,33 +563,7 @@ public class ArpoisePoiGate : ArpoisePoiStructure
         StartReadoutPhotons
     }
 
-    private readonly List<(int second, AtomGateActions action, object parameter)> _actionList = new()
-    {
-        //(1, AtomGateActions.StartReadoutPhotons, null),
-        //(1, AtomGateActions.StartRydbergPhoton, 8),
-        //(1000, AtomGateActions.StartRydbergPhoton, 0),
-        //(6000, AtomGateActions.StartRydbergPhoton, 8),
-        //(9000, AtomGateActions.StartRydbergPhoton, 3),
-        //(13000, AtomGateActions.StartRydbergPhoton, 6),
-        //(19000, AtomGateActions.StartRydbergPhoton, 2),
-        (14, AtomGateActions.StartRydbergPhoton, null),
-        (14, AtomGateActions.StartRydbergPhoton, null),
-        (14, AtomGateActions.StartRydbergPhoton, null),
-        (14, AtomGateActions.StartRydbergPhoton, null),
-
-        (24, AtomGateActions.StartExcitingPhoton, 0),
-        (24, AtomGateActions.StartExcitingPhoton, 1),
-        (24, AtomGateActions.StartExcitingPhoton, 2),
-        (24, AtomGateActions.StartExcitingPhoton, 3),
-        (24, AtomGateActions.StartExcitingPhoton, 4),
-        (24, AtomGateActions.StartExcitingPhoton, 5),
-        (24, AtomGateActions.StartExcitingPhoton, 6),
-        (24, AtomGateActions.StartExcitingPhoton, 7),
-        (24, AtomGateActions.StartExcitingPhoton, 8),
-
-        (28, AtomGateActions.StartReadoutPhotons, null)
-    };
-
+    private List<(int milliseconds, AtomGateActions action, object parameter)> _actionList = null;
     private List<(int millisecond, AtomGateActions action, object parameter)> _todoList = null;
     private DateTime? _startTime = null;
     private bool _showAtoms = false;
@@ -570,6 +571,28 @@ public class ArpoisePoiGate : ArpoisePoiStructure
     {
         base.Update();
 
+        if (_actionList == null)
+        {
+            _actionList = new()
+            {
+                (RydbergPhotonDuration, AtomGateActions.StartRydbergPhoton, null),
+                (RydbergPhotonDuration, AtomGateActions.StartRydbergPhoton, null),
+                (RydbergPhotonDuration, AtomGateActions.StartRydbergPhoton, null),
+                (RydbergPhotonDuration, AtomGateActions.StartRydbergPhoton, null),
+
+                (ExcitingPhotonDuration, AtomGateActions.StartExcitingPhoton, 0),
+                (ExcitingPhotonDuration, AtomGateActions.StartExcitingPhoton, 1),
+                (ExcitingPhotonDuration, AtomGateActions.StartExcitingPhoton, 2),
+                (ExcitingPhotonDuration, AtomGateActions.StartExcitingPhoton, 3),
+                (ExcitingPhotonDuration, AtomGateActions.StartExcitingPhoton, 4),
+                (ExcitingPhotonDuration, AtomGateActions.StartExcitingPhoton, 5),
+                (ExcitingPhotonDuration, AtomGateActions.StartExcitingPhoton, 6),
+                (ExcitingPhotonDuration, AtomGateActions.StartExcitingPhoton, 7),
+                (ExcitingPhotonDuration, AtomGateActions.StartExcitingPhoton, 8),
+
+                (0, AtomGateActions.StartReadoutPhotons, null)
+            };
+        }
         if (!gameObject.activeSelf)
         {
             _showAtoms = true;
@@ -707,7 +730,7 @@ public class ArpoisePoiGate : ArpoisePoiStructure
                 switch (element.action)
                 {
                     case AtomGateActions.StartExcitingPhoton:
-                        _todoList.Add((1000 + Random.Next(element.second * 1000), element.action, element.parameter));
+                        _todoList.Add((WaitBeforeExcitingPhotons + Random.Next(element.milliseconds), element.action, element.parameter));
                         break;
                     case AtomGateActions.StartRydbergPhoton:
                         int? nextParameter = Random.Next(9);
@@ -715,11 +738,11 @@ public class ArpoisePoiGate : ArpoisePoiStructure
                         {
                             nextParameter = Random.Next(9);
                         }
-                        _todoList.Add((6000 + Random.Next(element.second * 1000), element.action, nextParameter));
+                        _todoList.Add((WaitBeforeRydbergPhotons + Random.Next(element.milliseconds), element.action, nextParameter));
 
                         break;
                     case AtomGateActions.StartReadoutPhotons:
-                        _todoList.Add((1000 + element.second * 1000, element.action, element.parameter));
+                        _todoList.Add((WaitBeforeReadoutPhotons, element.action, element.parameter));
 
                         break;
                 }
@@ -733,6 +756,7 @@ public class ArpoisePoiGate : ArpoisePoiStructure
             return;
         }
         var action = _todoList[0].action;
+
         var parameter = _todoList[0].parameter;
         _todoList.RemoveAt(0);
 

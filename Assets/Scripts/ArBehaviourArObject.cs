@@ -70,6 +70,7 @@ namespace com.arpoise.arpoiseapp
     public class ArBehaviourArObject : ArBehaviourPosition
     {
         #region Globals
+        public float Value = 0.0f;
         public static int FramesPerSecond = 30;
         public GameObject SceneAnchor = null;
         public string LayerWebUrl { get; protected set; }
