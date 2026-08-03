@@ -730,7 +730,7 @@ namespace com.arpoise.arpoiseapp
             _lastA = value;
             if (_materialsToFade == null)
             {
-                GetMaterialsToFade(AnimatedObject, _materialsToFade = new List<Material>());
+                _materialsToFade = GetMaterialsToFade(AnimatedObject);
             }
             foreach (var material in _materialsToFade)
             {
@@ -819,25 +819,34 @@ namespace com.arpoise.arpoiseapp
             }
         }
 
-        private void GetMaterialsToFade(GameObject objectToFade, List<Material> materials)
+        public static List<Material> GetMaterialsToFade(GameObject objectToFade)
         {
+            List<Material> materials = new();
             if (objectToFade != null)
             {
                 foreach (var renderer in objectToFade.GetComponentsInChildren<MeshRenderer>())
                 {
-                    if (renderer != null && renderer.material != null)
+                    if (renderer != null && renderer.materials != null)
                     {
-                        materials.Add(renderer.material);
+                        materials.AddRange(renderer.materials);
                     }
                 }
                 foreach (var renderer in objectToFade.GetComponentsInChildren<SkinnedMeshRenderer>())
                 {
-                    if (renderer != null && renderer.material != null)
+                    if (renderer != null && renderer.materials != null)
                     {
-                        materials.Add(renderer.material);
+                        materials.AddRange(renderer.materials);
+                    }
+                }
+                foreach (var renderer in objectToFade.GetComponentsInChildren<BillboardRenderer>())
+                {
+                    if (renderer != null && renderer.materials != null)
+                    {
+                        materials.AddRange(renderer.materials);
                     }
                 }
             }
+            return materials;
         }
 
         public static bool TryParseMinutes(string s, out int result)

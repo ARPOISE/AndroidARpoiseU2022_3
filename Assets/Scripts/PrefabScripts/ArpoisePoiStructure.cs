@@ -113,29 +113,6 @@ public class ArpoisePoiStructure : MonoBehaviour
         }
     }
 
-    protected List<Material> GetMaterialsToFade(GameObject objectToFade)
-    {
-        List<Material> materials = new();
-        if (objectToFade != null)
-        {
-            foreach (var renderer in objectToFade.GetComponentsInChildren<MeshRenderer>())
-            {
-                if (renderer != null && renderer.material != null)
-                {
-                    materials.Add(renderer.material);
-                }
-            }
-            foreach (var renderer in objectToFade.GetComponentsInChildren<SkinnedMeshRenderer>())
-            {
-                if (renderer != null && renderer.material != null)
-                {
-                    materials.Add(renderer.material);
-                }
-            }
-        }
-        return materials;
-    }
-
     private float? _fadeValue;
     private DateTime _lastFadeTime = DateTime.MinValue;
     private bool _doFade = false;
@@ -152,7 +129,7 @@ public class ArpoisePoiStructure : MonoBehaviour
         {
             foreach (var objectToFade in arObject.GameObjects ?? Enumerable.Empty<GameObject>())
             {
-                List<Material> materialsToFade = GetMaterialsToFade(objectToFade);
+                var materialsToFade = ArAnimation.GetMaterialsToFade(objectToFade);
                 foreach (var material in materialsToFade)
                 {
                     var color = material.color;
@@ -166,7 +143,7 @@ public class ArpoisePoiStructure : MonoBehaviour
     {
         if (_doFade)
         {
-            List<Material> materialsToFade = GetMaterialsToFade(gameObject);
+            var materialsToFade = ArAnimation.GetMaterialsToFade(gameObject);
             var fadeValue = materialsToFade.FirstOrDefault()?.color.a ?? -1f;
             if (fadeValue >= 0f)
             {
