@@ -1038,7 +1038,7 @@ namespace com.arpoise.arpoiseapp
                     {
                         //Debug.Log("RefreshRequest " + refreshRequest.layerName + ", " + refreshRequest.url);
                         count = 0;
-                        if (nameof(RefreshRequest.ReloadLayerData).Equals(refreshRequest.layerName))
+                        if (nameof(RefreshRequest.ReloadLayerData).Equals(refreshRequest.layerName, StringComparison.InvariantCultureIgnoreCase))
                         {
                             var objectState = ArObjectState;
                             if (objectState != null)

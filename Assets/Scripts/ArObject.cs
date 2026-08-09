@@ -117,5 +117,24 @@ namespace com.arpoise.arpoiseapp
                 }
             }
         }
+
+        private List<Material> _materialsToFade = null;
+
+        public List<Material> GetMaterialsToFade()
+        {
+            if (_materialsToFade == null)
+            {
+                _materialsToFade = new List<Material>();
+                foreach (var gameObject in GameObjects)
+                {
+                    var materials = ArAnimation.GetMaterialsToFade(gameObject);
+                    if (materials != null && materials.Any())
+                    {
+                        _materialsToFade.AddRange(materials);
+                    }
+                }
+            }
+            return _materialsToFade;
+        }
     }
 }

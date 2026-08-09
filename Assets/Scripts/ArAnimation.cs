@@ -27,7 +27,6 @@ Peter Graf, see www.mission-base.com/peter/
 ARpoise, see www.ARpoise.com/
 
 */
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -79,6 +78,8 @@ namespace com.arpoise.arpoiseapp
         public readonly GameObject Wrapper;
         public readonly string Name = string.Empty;
         public readonly string[] FollowedBy = Array.Empty<string>();
+        public readonly string[] SelectRandomly = Array.Empty<string>();
+        public readonly string[] SelectSequentially = Array.Empty<string>();
         public readonly ArEventType ArEventType;
 
         private readonly ArCreature _creature;
@@ -111,6 +112,7 @@ namespace com.arpoise.arpoiseapp
 
         public GameObject AnimatedObject;
 
+        private int _sequentialIndex = 0;
         private long _startTicks = 0;
         private bool _isStopping = false;
         private Vector3 _localEulerAngles;
@@ -171,7 +173,7 @@ namespace com.arpoise.arpoiseapp
                 _nextActivation = null;
             }
         }
-            
+
 
         public bool IsToBeDestroyed { get; private set; }
         public bool IsToBeDuplicated { get; set; }
@@ -210,11 +212,15 @@ namespace com.arpoise.arpoiseapp
             }
             if (poiAnimation != null)
             {
+                var followedBy = !string.IsNullOrWhiteSpace(poiAnimation.followedBy) ? poiAnimation.followedBy.Split(',').Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToArray() : FollowedBy;
+                if (followedBy.Length > 0)
+                {
+                    SelectRandomly = followedBy.Where(x => x.Contains(nameof(SelectRandomly), StringComparison.InvariantCultureIgnoreCase)).ToArray();
+                    SelectSequentially = followedBy.Where(x => x.Contains(nameof(SelectSequentially), StringComparison.InvariantCultureIgnoreCase)).ToArray();
+                    FollowedBy = followedBy.Where(x => !x.Contains(nameof(SelectRandomly), StringComparison.InvariantCultureIgnoreCase) && !x.Contains(nameof(SelectSequentially), StringComparison.InvariantCultureIgnoreCase)).ToArray();
+                }
                 Name = poiAnimation.name?.Trim() ?? string.Empty;
                 _isTimeSync = Name?.Contains(nameof(_behaviour.TimeSync)) ?? false;
-                FollowedBy = !string.IsNullOrWhiteSpace(poiAnimation.followedBy)
-                    ? poiAnimation.followedBy.Split(',').Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToArray()
-                    : FollowedBy;
                 _lengthTicks = (long)(TimeSpan.TicksPerSecond * poiAnimation.length);
                 _delayTicks = (long)(TimeSpan.TicksPerSecond * poiAnimation.delay);
                 _behaviour = behaviour;
@@ -467,6 +473,56 @@ namespace com.arpoise.arpoiseapp
                             SetSpatialBlend(_initialSpatialBlend.Value);
                         }
                         break;
+                }
+            }
+        }
+
+        private void HandleAnimations(string animationName, long startTicks, long nowTicks, ArAnimation[] animationsWithName)
+        {
+            foreach (var animation in animationsWithName.Where(x => animationName == x.Name))
+            {
+                if (HandleOpenUrl(animationName))
+                {
+                    continue;
+                }
+                if (HandleSetActive(animationName, true))
+                {
+                    continue;
+                }
+                if (!animation.IsActive)
+                {
+                    if (animation.ArEventType != ArEventType.WhenActive || animation.AnimatedObject.activeSelf)
+                    {
+                        animation.Activate(startTicks, nowTicks);
+                    }
+                }
+            }
+        }
+
+        public void HandleFlollowedBy(ArBehaviourArObject arBehaviour, long startTicks, long nowTicks, ArAnimation[] animationsWithName)
+        {
+            if (SelectRandomly.Length > 0)
+            {
+                HandleAnimations(SelectRandomly[_random.Next(SelectRandomly.Length)], startTicks, nowTicks, animationsWithName);
+            }
+            if (SelectSequentially.Length > 0)
+            {
+                HandleAnimations(SelectSequentially[_sequentialIndex++], startTicks, nowTicks, animationsWithName);
+                if (_sequentialIndex >= SelectSequentially.Length)
+                {
+                    _sequentialIndex = 0;
+                }
+            }
+            if (FollowedBy.Length > 0)
+            {
+                foreach (var animationName in FollowedBy)
+                {
+                    if (nameof(RefreshRequest.ReloadLayerData).Equals(animationName, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        var refreshRequest = new RefreshRequest() { layerName = nameof(RefreshRequest.ReloadLayerData) };
+                        arBehaviour.RequestRefresh(refreshRequest);
+                    }
+                    HandleAnimations(animationName, startTicks, nowTicks, animationsWithName);
                 }
             }
         }

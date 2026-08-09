@@ -127,14 +127,11 @@ public class ArpoisePoiStructure : MonoBehaviour
         _doFade = true;
         foreach (var arObject in ArObjectsToFade ?? Enumerable.Empty<ArObject>())
         {
-            foreach (var objectToFade in arObject.GameObjects ?? Enumerable.Empty<GameObject>())
+            var materialsToFade = arObject.GetMaterialsToFade();
+            foreach (var material in materialsToFade)
             {
-                var materialsToFade = ArAnimation.GetMaterialsToFade(objectToFade);
-                foreach (var material in materialsToFade)
-                {
-                    var color = material.color;
-                    material.color = new Color(color.r, color.g, color.b, value);
-                }
+                var color = material.color;
+                material.color = new Color(color.r, color.g, color.b, value);
             }
         }
     }

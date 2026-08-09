@@ -454,9 +454,8 @@ namespace com.arpoise.arpoiseapp
             var isToBeDestroyed = false;
             var animations = AllAnimations;
             var animationsWithName = AnimationsWithName;
-            for (int i = 0; i < animations.Length; i++)
+            foreach (var animation in animations)
             {
-                var animation = animations[i];
                 if (inFocusAnimationsToStop != null && inFocusAnimationsToStop.Contains(animation))
                 {
                     animation.Stop(startTicks, nowTicks);
@@ -479,33 +478,7 @@ namespace com.arpoise.arpoiseapp
 
                 if (animation.JustStopped)
                 {
-                    foreach (var animationName in animation.FollowedBy)
-                    {
-                        if (nameof(RefreshRequest.ReloadLayerData).Equals(animationName, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            var refreshRequest = new RefreshRequest() { layerName = nameof(RefreshRequest.ReloadLayerData) };
-                            arBehaviour.RequestRefresh(refreshRequest);
-                            break;
-                        }
-                        if (animation.HandleOpenUrl(animationName))
-                        {
-                            continue;
-                        }
-                        if (animation.HandleSetActive(animationName, true))
-                        {
-                            continue;
-                        }
-                        foreach (var animationToFollow in animationsWithName.Where(x => animationName == x.Name))
-                        {
-                            if (!animationToFollow.IsActive)
-                            {
-                                if (animationToFollow.ArEventType != ArEventType.WhenActive || animationToFollow.AnimatedObject.activeSelf)
-                                {
-                                    animationToFollow.Activate(startTicks, nowTicks);
-                                }
-                            }
-                        }
-                    }
+                    animation.HandleFlollowedBy(arBehaviour, startTicks, nowTicks, AnimationsWithName);
                 }
                 if (!isToBeDestroyed && animation.IsToBeDestroyed)
                 {
