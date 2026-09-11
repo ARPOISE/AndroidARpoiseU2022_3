@@ -499,7 +499,7 @@ namespace com.arpoise.arpoiseapp
             }
         }
 
-        public void HandleFlollowedBy(ArBehaviourArObject arBehaviour, long startTicks, long nowTicks, ArAnimation[] animationsWithName)
+        public void HandleFollowedBy(ArBehaviourArObject arBehaviour, long startTicks, long nowTicks, ArAnimation[] animationsWithName)
         {
             if (SelectRandomly.Length > 0)
             {
@@ -533,7 +533,7 @@ namespace com.arpoise.arpoiseapp
             if (!string.IsNullOrWhiteSpace(name) && name.StartsWith(_openUrl, StringComparison.InvariantCultureIgnoreCase))
             {
                 var url = name.Substring(_openUrl.Length);
-                if (!string.IsNullOrWhiteSpace(url))
+                if (!string.IsNullOrWhiteSpace(url) && Uri.TryCreate(url, UriKind.Absolute, out _))
                 {
                     Debug.Log("Application.OpenURL " + url);
                     Application.OpenURL(url);
@@ -711,7 +711,6 @@ namespace com.arpoise.arpoiseapp
                     {
                         _audioSource.volume = AudioVolume.Value;
                     }
-
                     _audioSource.Play();
                 }
             }
@@ -786,7 +785,7 @@ namespace com.arpoise.arpoiseapp
             _lastA = value;
             if (_materialsToFade == null)
             {
-                _materialsToFade = GetMaterialsToFade(AnimatedObject);
+                _materialsToFade = GetMaterialsToFade(AnimatedObject) ?? new List<Material>();
             }
             foreach (var material in _materialsToFade)
             {
@@ -918,14 +917,14 @@ namespace com.arpoise.arpoiseapp
                 if (parts.Length > 0)
                 {
                     int hours;
-                    if (!int.TryParse(parts[0], out hours))
+                    if (!int.TryParse(parts[0], out hours) || hours < 0 || hours > 23)
                     {
                         return false;
                     }
                     if (parts.Length > 1)
                     {
                         int minutes;
-                        if (!int.TryParse(parts[1], out minutes))
+                        if (!int.TryParse(parts[1], out minutes) || minutes < 0 || minutes > 59)
                         {
                             return false;
                         }
@@ -938,12 +937,12 @@ namespace com.arpoise.arpoiseapp
                 return false;
             }
 
-            if (int.TryParse(s, out result))
+            if (!int.TryParse(s, out result) || result < 0 || result > 23)
             {
-                result *= 60;
-                return true;
+                return false;
             }
-            return false;
+            result *= 60;
+            return true;
         }
 
         public void Replace(GameObject oldObject, GameObject newObject)

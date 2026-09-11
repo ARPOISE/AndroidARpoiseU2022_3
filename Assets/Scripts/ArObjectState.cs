@@ -27,7 +27,6 @@ Peter Graf, see www.mission-base.com/peter/
 ARpoise, see www.ARpoise.com/
 
 */
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -478,7 +477,7 @@ namespace com.arpoise.arpoiseapp
 
                 if (animation.JustStopped)
                 {
-                    animation.HandleFlollowedBy(arBehaviour, startTicks, nowTicks, AnimationsWithName);
+                    animation.HandleFollowedBy(arBehaviour, startTicks, nowTicks, AnimationsWithName);
                 }
                 if (!isToBeDestroyed && animation.IsToBeDestroyed)
                 {

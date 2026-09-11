@@ -27,7 +27,6 @@ Peter Graf, see www.mission-base.com/peter/
 ARpoise, see www.ARpoise.com/
 
 */
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
