@@ -54,3 +54,5 @@ Assets/Scripts/ArduinoScripts
 /user.keystore
 /ARpoise.aab
 Assets/Scripts/ArduinoScripts.meta
+Assets/MidiPlayer
+Assets/MidiPlayer.meta
