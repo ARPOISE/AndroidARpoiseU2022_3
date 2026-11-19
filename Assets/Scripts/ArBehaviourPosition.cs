@@ -84,14 +84,6 @@ namespace com.arpoise.arpoiseapp
 
         #endregion
 
-        #region Start
-        protected override void Start()
-        {
-            NowTicks = DateTime.Now.Ticks;
-            base.Start();
-        }
-        #endregion
-
         #region Update
         protected override void Update()
         {
@@ -250,7 +242,28 @@ namespace com.arpoise.arpoiseapp
                 }
             }
             // End of quest mode
-#endif
+#else
+#if WindowsARpoise
+            // If in windows, set a fixed initial location and forget about the location service
+            //
+            {
+                // MUC-AINMILLER
+                FilteredLatitude = OriginalLatitude = 48.158526f;
+                FilteredLongitude = OriginalLongitude = 11.578670f;
+
+                Debug.Log("WindowsARpoise fixed location, lat " + OriginalLatitude + ", lon " + OriginalLongitude);
+
+                for (; ; )
+                {
+                    var arObjectState = ArObjectState;
+                    if (arObjectState != null)
+                    {
+                        PlaceArObjects(arObjectState);
+                    }
+                    yield return new WaitForSeconds(1f);
+                }
+            }
+#else
 #if UNITY_EDITOR
             // If in editor mode, set a fixed initial location and forget about the location service
             //
@@ -269,22 +282,8 @@ namespace com.arpoise.arpoiseapp
 
                 Debug.Log("UNITY_EDITOR fixed location, lat " + OriginalLatitude + ", lon " + OriginalLongitude);
 
-                //var second = DateTime.Now.Ticks / 10000000L;
-                //var random = new System.Random((int)second);
-                //var nextMove = second + 90000 + random.Next(0, 6);
-
-                //while (second > 0 || second <= 0)
-                for(; ; )
+                for (; ; )
                 {
-                    //second = DateTime.Now.Ticks / 10000000L;
-                    //if (second >= nextMove)
-                    //{
-                    //    nextMove = second + 6 + random.Next(0, 6);
-                    //    FilteredLatitude = OriginalLatitude + 0.00001f * random.Next(-5, 5);
-                    //    FilteredLongitude = OriginalLongitude + 0.00001f * random.Next(-4, 4);
-                    //    Debug.Log("UNITY_EDITOR new location, lat " + FilteredLatitude + ", lon " + FilteredLongitude);
-                    //}
-                    //FilteredLatitude += 0.00001F;
                     var arObjectState = ArObjectState;
                     if (arObjectState != null)
                     {
@@ -294,7 +293,7 @@ namespace com.arpoise.arpoiseapp
                 }
             }
             // End of editor mode
-#endif
+#else
             int nFails = 0;
             bool doInitialize = true;
             while (string.IsNullOrWhiteSpace(ErrorMessage))
@@ -406,6 +405,9 @@ namespace com.arpoise.arpoiseapp
                 yield return new WaitForSeconds(.01f);
             }
             yield break;
+#endif
+#endif
+#endif
         }
 
         public float? DurationStretchFactor { get; private set; }
@@ -459,7 +461,7 @@ namespace com.arpoise.arpoiseapp
                 }
             }
         }
-        #endregion
+#endregion
 
         #region Misc
         protected virtual IEnumerator GetData()

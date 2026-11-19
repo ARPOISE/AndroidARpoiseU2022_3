@@ -35,6 +35,7 @@ using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+#if AllowTakeScreenshot
 #if ARpoiseApp
 using static NativeGallery;
 #endif
@@ -43,6 +44,7 @@ using static NativeGallery;
 #endif
 #if UG2022_3App
 using static NativeGallery;
+#endif
 #endif
 
 
@@ -132,6 +134,7 @@ namespace com.arpoise.arpoiseapp
 
         protected IEnumerator TakeScreenshot()
         {
+
             //Console.WriteLine($"----> TakeScreenshot, size {ShowScreenshotButton}");
 
             var menuButtonActive = MenuButton.activeSelf;
@@ -154,6 +157,7 @@ namespace com.arpoise.arpoiseapp
             {
                 InfoText.SetActive(false);
             }
+#if AllowTakeScreenshot
             var audioSource = ScreenshotButton.GetComponent<AudioSource>();
             if (audioSource != null)
             {
@@ -180,6 +184,7 @@ namespace com.arpoise.arpoiseapp
 #endif
 
             Destroy(texture);
+#endif
             yield return new WaitForEndOfFrame();
 
             if (menuButtonActive)

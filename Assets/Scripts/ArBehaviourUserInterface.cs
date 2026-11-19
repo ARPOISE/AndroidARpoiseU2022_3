@@ -31,6 +31,9 @@ ARpoise, see www.ARpoise.com/
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+#if WindowsARpoise_
+using System.IO.Ports;
+#endif
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -335,13 +338,39 @@ namespace com.arpoise.arpoiseapp
                 RefreshRequest = refreshRequest;
             }
         }
-#endregion
+        #endregion
+
+#if WindowsARpoise_
+        // Change this to match your Arduino's exact COM port and baud rate
+        public string portName = "COM6";
+        public int baudRate = 115200;
+
+        private SerialPort stream;
+
+        private string arduinoValue = string.Empty;
+#endif
 
         #region Start
         protected override void Start()
         {
             base.Start();
+#if WindowsARpoise_
+            // Initialize the serial port connection
+            stream = new SerialPort(portName, baudRate);
 
+            // Set a low timeout so Unity doesn't freeze if data is missing
+            stream.ReadTimeout = 10;
+
+            try
+            {
+                stream.Open();
+                Debug.Log("Serial Port Opened Successfully!");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("Could not open serial port: " + e.Message);
+            }
+#endif
 #if iOsArvosU2022_3
             if (InfoPanel != null)
             {
@@ -402,11 +431,10 @@ namespace com.arpoise.arpoiseapp
                 }
             }
         }
-        #endregion
+#endregion
 
         #region Update
 
-       
         protected override void Update()
         {
             base.Update();
@@ -615,6 +643,30 @@ namespace com.arpoise.arpoiseapp
                 return;
             }
 
+#if WindowsARpoise_
+            if (stream != null && stream.IsOpen)
+            {
+                try
+                {
+                    // Read the incoming string line from Arduino
+                    var value = stream.ReadLine();
+
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        arduinoValue = value;
+                        //Debug.Log("Received from Arduino: " + arduinoValue);
+
+                        // Optional: Convert to integer and use it to do something
+                        // int parsedValue = int.Parse(value);
+                    }
+                }
+                catch (System.TimeoutException)
+                {
+                    // Timeout exceptions are normal when waiting for hardware frames.
+                    // Leave this empty to prevent console clutter.
+                }
+            }
+#endif
             if (InfoText != null)
             {
                 // Set info text
@@ -656,7 +708,9 @@ namespace com.arpoise.arpoiseapp
                         message = message.Replace("{LON}", UsedLongitude.ToString("F6", CultureInfo.InvariantCulture));
 
                         message = message.Replace("{V}", Value);
-
+#if WindowsARpoise_
+                        message = message.Replace("{AV}", arduinoValue);
+#endif
                         //message = message.Replace("{X1}", (firstArObject != null ? firstArObject.TargetPosition.x : 0).ToString("F1", CultureInfo.InvariantCulture));
                         //message = message.Replace("{Y1}", (firstArObject != null ? firstArObject.TargetPosition.y : 0).ToString("F1", CultureInfo.InvariantCulture));
                         //message = message.Replace("{Z1}", (firstArObject != null ? firstArObject.TargetPosition.z : 0).ToString("F1", CultureInfo.InvariantCulture));
@@ -765,6 +819,16 @@ namespace com.arpoise.arpoiseapp
                 }
             }
         }
-        #endregion
+
+        void OnApplicationQuit()
+        {
+#if WindowsARpoise_
+            if (stream != null && stream.IsOpen)
+            {
+                stream.Close();
+            }
+#endif
+        }
+#endregion
     }
 }

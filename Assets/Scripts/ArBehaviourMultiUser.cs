@@ -35,6 +35,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using UnityEngine;
+#if WindowsARpoise
+using UnityEngine.UI;
+using UnityEngine.Windows.WebCam;
+#endif
 
 namespace com.arpoise.arpoiseapp
 {
@@ -54,7 +58,7 @@ namespace com.arpoise.arpoiseapp
         public const string OperatingSystem = "Android";
 #endif
 #endif
-        public const int Bundle = 2026090500;
+        public const int Bundle = 2026101800;
         public const string ArvosApplicationName = "Arvos";
         public const string ArpoiseApplicationName = "Arpoise";
         public const string UgApplicationName = "UnexpectedGrowth";
@@ -72,6 +76,7 @@ namespace com.arpoise.arpoiseapp
         public const string AnimationTag = "Animation";
         public const string LockTag = "Lock";
         public const string VeraPlasticTag = "VePl";
+        public const string ArduinoTag = "Arduino";
         #region Globals
         public GameObject InfoText = null;
         public GameObject HeaderButton = null;
@@ -105,10 +110,31 @@ namespace com.arpoise.arpoiseapp
 
         protected long CurrentSecond { get; private set; }
 
+#if WindowsARpoise
+        public RawImage display;
+        private WebCamTexture webcam;
+        private AspectRatioFitter aspectFitter;
+#endif
         protected virtual void Start()
         {
+            NowTicks = DateTime.Now.Ticks;
+#if WindowsARpoise
+            webcam = new WebCamTexture();
+            display.texture = webcam;
+            display.uvRect = new Rect(1.0f, 0.0f, -1.0f, 1.0f);
+            aspectFitter = display.GetComponent<AspectRatioFitter>();
+            webcam.Play();
+#endif
         }
-
+#if WindowsARpoise
+        void OnDestroy()
+        {
+            if (webcam != null)
+            {
+                webcam.Stop();
+            }
+        }
+#endif
         private byte[] _readBuffer = new byte[32 * 1024];
         private int _nRead = 0;
 
@@ -345,6 +371,7 @@ namespace com.arpoise.arpoiseapp
         bool _isPaused = false;
         void OnApplicationFocus(bool hasFocus)
         {
+#if !UNITY_EDITOR && !WindowsARpoise
             var isPaused = !hasFocus;
             if (isPaused != _isPaused)
             {
@@ -354,6 +381,7 @@ namespace com.arpoise.arpoiseapp
                 }
                 _isPaused = isPaused;
             }
+#endif
         }
 
         void OnApplicationPause(bool pauseStatus)
@@ -381,6 +409,24 @@ namespace com.arpoise.arpoiseapp
 
         protected virtual void Update()
         {
+#if WindowsARpoise
+            if (webcam != null && webcam.isPlaying)
+            {
+                // WebcamTexture initially sometimes reports a tiny dummy resolution,
+                // so wait until we have a real image.
+                if (webcam.width > 100 && webcam.height > 100)
+                {
+                    float aspect = (float)webcam.width / webcam.height;
+
+                    // Debug.Log("Webcam: " + webcam.width + " x " + webcam.height + "  aspect: " + aspect);
+
+                    if (aspectFitter != null)
+                    {
+                        aspectFitter.aspectRatio = aspect;
+                    }
+                }
+            }
+#endif
             if (string.IsNullOrWhiteSpace(_url) || _isPaused)
             {
                 return;
@@ -546,7 +592,7 @@ namespace com.arpoise.arpoiseapp
                                 value = parts[++i];
                                 break;
                             }
-                            else if (LockTag == parts[i] || VeraPlasticTag == parts[i])
+                            else if (LockTag == parts[i] || VeraPlasticTag == parts[i] || ArduinoTag == parts[i])
                             {
                                 tag = parts[i];
                                 value = parts[++i];
