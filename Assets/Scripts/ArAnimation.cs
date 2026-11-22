@@ -713,6 +713,15 @@ namespace com.arpoise.arpoiseapp
                     }
                     _audioSource.Play();
                 }
+#if HasMidiPlayer
+                ArpoiseMidiPlayback midiPlayback =
+                    gameObject.GetComponent<ArpoiseMidiPlayback>();
+
+                if (midiPlayback != null)
+                {
+                    midiPlayback.Play();
+                }
+#endif
             }
         }
 

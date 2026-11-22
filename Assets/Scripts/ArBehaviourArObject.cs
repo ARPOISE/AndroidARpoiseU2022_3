@@ -47,7 +47,6 @@ using static NativeGallery;
 #endif
 #endif
 
-
 namespace com.arpoise.arpoiseapp
 {
     public class TriggerObject
@@ -287,6 +286,26 @@ namespace com.arpoise.arpoiseapp
         // There are a number of scripts used by prefabs that the app has compiled in, load them
         private ArpoisePoiStructure GetPrefabScriptComponents(GameObject objectToAdd, Poi poi)
         {
+            ArpoiseMidiSource arpoiseMidiSource = objectToAdd.GetComponentInChildren<ArpoiseMidiSource>(true);
+            if (arpoiseMidiSource != null)
+            {
+                Debug.Log("ARpoise MIDI Source found: " + arpoiseMidiSource.gameObject.name);
+                Debug.Log("MIDI file: " + (arpoiseMidiSource.midiFile != null ? arpoiseMidiSource.midiFile.name : "none"));
+                Debug.Log("SoundFont URL: " + arpoiseMidiSource.soundFontUrl);
+
+#if HasMidiPlayer
+                if (ArpoiseMidiManager.Instance != null)
+                {
+                    Debug.Log("ARpoise MIDI: Registering source with manager.");
+                    ArpoiseMidiManager.Instance.Register(arpoiseMidiSource);
+                }
+                else
+                {
+                    Debug.LogError("ARpoise MIDI: ArpoiseMidiManager.Instance is null.");
+                }
+#endif
+            }
+
             ArpoisePoiStructure arpoisePoiStructure = null;
             var objectName = objectToAdd.name;
             if (objectName == null)

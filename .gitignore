@@ -56,3 +56,9 @@ Assets/Scripts/ArduinoScripts
 Assets/Scripts/ArduinoScripts.meta
 Assets/MidiPlayer
 Assets/MidiPlayer.meta
+Assets/csc.rsp
+Assets/csc.rsp.meta
+Assets/Scripts/ArpoiseMidiPlayer/ArpoiseMidiManager.cs
+Assets/Scripts/ArpoiseMidiPlayer/ArpoiseMidiManager.cs.meta
+Assets/Scripts/ArpoiseMidiPlayer/ArpoiseMidiPlayback.cs
+Assets/Scripts/ArpoiseMidiPlayer/ArpoiseMidiPlayback.cs.meta
