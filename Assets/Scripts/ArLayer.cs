@@ -539,6 +539,44 @@ namespace com.arpoise.arpoiseapp
                 return _derivations.Value;
             }
         }
+
+        [NonSerialized]
+        private string _midiFileUrl = null;
+        public string MidiFileUrl
+        {
+            get
+            {
+                if (_midiFileUrl == null)
+                {
+                    _midiFileUrl = string.Empty;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(MidiFileUrl).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        _midiFileUrl = action.activityMessage;
+                    }
+                }
+                return _midiFileUrl;
+            }
+        }
+
+        [NonSerialized]
+        private string _soundFontUrl = null;
+        public string SoundFontUrl
+        {
+            get
+            {
+                if (_soundFontUrl == null)
+                {
+                    _soundFontUrl = string.Empty;
+                    var action = actions?.FirstOrDefault(x => x.showActivity && nameof(SoundFontUrl).Equals(x.label?.Trim()) && !string.IsNullOrWhiteSpace(x.activityMessage));
+                    if (action != null)
+                    {
+                        _soundFontUrl = action.activityMessage;
+                    }
+                }
+                return _soundFontUrl;
+            }
+        }
     }
 
     // This class defines the Json message returned by porpoise to the client side, allowing to parse the message

@@ -125,6 +125,7 @@ namespace com.arpoise.arpoiseapp
         private float? _lastSpatialBlend = null;
         private List<Material> _materialsToFade = null;
         private AudioSource _audioSource = null;
+        private ArpoiseMidiPlayback _midiPlayback = null;
 
         public float To
         {
@@ -714,12 +715,17 @@ namespace com.arpoise.arpoiseapp
                     _audioSource.Play();
                 }
 #if HasMidiPlayer
-                ArpoiseMidiPlayback midiPlayback =
-                    gameObject.GetComponent<ArpoiseMidiPlayback>();
-
-                if (midiPlayback != null)
+                if (_midiPlayback == null)
                 {
-                    midiPlayback.Play();
+                    _midiPlayback = gameObject.GetComponent<ArpoiseMidiPlayback>();
+                }
+                if (_midiPlayback != null)
+                {
+                    if (AudioVolume.HasValue && AudioVolume.Value >= 0)
+                    {
+                        _midiPlayback.SetVolume(AudioVolume.Value);
+                    }
+                    _midiPlayback.Play();
                 }
 #endif
             }
@@ -855,6 +861,25 @@ namespace com.arpoise.arpoiseapp
                 else
                 {
                     _audioSource.volume = value;
+                }
+            }
+            if (_midiPlayback == null && AnimatedObject != null)
+            {
+                _midiPlayback = AnimatedObject.GetComponent<ArpoiseMidiPlayback>();
+            }
+            if (_midiPlayback != null)
+            {
+                if (!_initialVolume.HasValue)
+                {
+                    _initialVolume = _midiPlayback.Volume;
+                }
+                if (AudioVolume.HasValue && AudioVolume.Value >= 0)
+                {
+                    _midiPlayback.SetVolume(AudioVolume.Value);
+                }
+                else
+                {
+                    _midiPlayback.SetVolume(value);
                 }
             }
         }

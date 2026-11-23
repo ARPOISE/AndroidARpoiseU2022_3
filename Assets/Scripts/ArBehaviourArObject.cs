@@ -289,6 +289,20 @@ namespace com.arpoise.arpoiseapp
             ArpoiseMidiSource arpoiseMidiSource = objectToAdd.GetComponentInChildren<ArpoiseMidiSource>(true);
             if (arpoiseMidiSource != null)
             {
+                if (!string.IsNullOrWhiteSpace(poi.MidiFileUrl))
+                {
+                    arpoiseMidiSource.midiFileUrl = poi.MidiFileUrl;
+                }
+
+                if (!string.IsNullOrWhiteSpace(poi.SoundFontUrl))
+                {
+                    arpoiseMidiSource.soundFontUrl = poi.SoundFontUrl;
+                }
+                else if (string.IsNullOrWhiteSpace(arpoiseMidiSource.soundFontUrl))
+                {
+                    arpoiseMidiSource.soundFontUrl = ArpoiseMidiSource.DEFAULT_SOUNDFONT_URL;
+                }
+
                 Debug.Log("ARpoise MIDI Source found: " + arpoiseMidiSource.gameObject.name);
                 Debug.Log("MIDI file: " + (arpoiseMidiSource.midiFile != null ? arpoiseMidiSource.midiFile.name : "none"));
                 Debug.Log("SoundFont URL: " + arpoiseMidiSource.soundFontUrl);

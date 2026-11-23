@@ -34,21 +34,22 @@ using UnityEngine;
 
 public class ArpoiseMidiSource : MonoBehaviour
 {
+    public const string DEFAULT_SOUNDFONT_URL = "https://www.arpoise.com/MIDI/ARpoiseDefault.sf2";
+
     [Header("MIDI Content")]
-    [Tooltip("MIDI file included in the AssetBundle as a TextAsset.")]
+    [Tooltip("MIDI file included in the AssetBundle.")]
     public TextAsset midiFile;
 
-    [Tooltip("HTTPS URL of the SoundFont (.sf2) to use.")]
-    public string soundFontUrl = "";
+    [Tooltip("Optional HTTPS MIDI URL. Overrides the embedded MIDI file.")]
+    public string midiFileUrl = "";
+
+    [Tooltip("HTTPS SoundFont URL. Defaults to the ARpoise SoundFont.")]
+    public string soundFontUrl = DEFAULT_SOUNDFONT_URL;
 
     [Header("Playback")]
-    [Tooltip("Start playback when the prefab is activated.")]
-    public bool playOnEnable = false;
-
-    [Tooltip("Restart the MIDI composition when it finishes.")]
-    public bool loop = false;
+    public bool playOnEnable = true;
+    public bool loop = true;
 
     [Range(0f, 1f)]
-    [Tooltip("Playback volume.")]
     public float volume = 1f;
 }
