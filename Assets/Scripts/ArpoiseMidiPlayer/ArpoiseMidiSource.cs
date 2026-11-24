@@ -25,9 +25,11 @@ This file is part of ARpoise.
 
 For more information on 
 
-Tamiko Thiel, see www.TamikoThiel.com/
-Peter Graf, see www.mission-base.com/peter/
-ARpoise, see www.ARpoise.com/
+Tamiko Thiel, see https://www.TamikoThiel.com/
+Peter Graf, see https://www.mission-base.com/peter/
+ARpoise, see https://www.ARpoise.com/
+
+AI-Assisted-Development: OpenAI ChatGPT (GPT-6)
 
 */
 using UnityEngine;

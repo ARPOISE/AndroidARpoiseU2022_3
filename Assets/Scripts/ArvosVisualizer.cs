@@ -31,9 +31,9 @@ The license of the original file is shown above.
 
 For more information on 
 
-Tamiko Thiel, see www.TamikoThiel.com/
-Peter Graf, see www.mission-base.com/peter/
-ARpoise, see www.ARpoise.com/
+Tamiko Thiel, see https://www.TamikoThiel.com/
+Peter Graf, see https://www.mission-base.com/peter/
+ARpoise, see https://www.ARpoise.com/
 
 */
 
